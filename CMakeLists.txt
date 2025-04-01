@@ -7,6 +7,14 @@ find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt5 REQUIRED COMPONENTS Gui)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+    libavcodec
+    libavformat
+    libavutil
+    libswscale
+)
+
 include_directories (${PROJECT_SOURCE_DIR}/src)
 
 set(APPLICATION_SOURCES
@@ -132,6 +140,7 @@ target_link_libraries(${APPLICATION_EXE_NAME}
     Qt5::Core 
     Qt5::Gui
     Qt5::Widgets
+    PkgConfig::LIBAV
 )
 
 set_target_properties(${APPLICATION_EXE_NAME} PROPERTIES

@@ -1,0 +1,8 @@
+.vscode
+/CMakeFiles
+/h264_samples
+/openmediaanalyzer_autogen
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+openmediaanalyzer

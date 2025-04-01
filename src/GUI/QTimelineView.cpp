@@ -14,6 +14,7 @@ QTimelineView::QTimelineView(QWidget* parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     m_pHBoxLayout = new QHBoxLayout(this);
+    m_pHBoxLayout->setSpacing(0);
 
     QWidget* containerWidget = new QWidget(this);
     containerWidget->setLayout(m_pHBoxLayout);
@@ -47,6 +48,9 @@ void QTimelineView::unitsUpdated(){
 
 void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels){
     QScrollBar* hScrollBar = m_pScrollArea->horizontalScrollBar();
+    int prevHScrollBarMax = hScrollBar->maximum();
+    int prevHScrollBarValue = hScrollBar->value();
+    bool clampScrollRight = hScrollBar->value() >= SCROLL_CLAMP_RIGHT_THRESHOLD * hScrollBar->maximum();
     // check for new max size first
     // existing access units may have been updated
     for(QSharedPointer<QFrameElement> pFrameElement : m_pFrameElements){
@@ -69,18 +73,23 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
         m_pHBoxLayout->addWidget(pFrameElement.get());
         connect(pFrameElement.get(), &QFrameElement::selectFrame, this, &QTimelineView::frameSelected);
     }
-    hScrollBar->setValue(hScrollBar->maximum());
+    if(clampScrollRight) hScrollBar->setValue(hScrollBar->maximum());
+    else hScrollBar->setValue(hScrollBar->value() - (hScrollBar->maximum() - prevHScrollBarMax));
 }
 
 void QTimelineView::accessUnitsRemoved(uint32_t count){
     QScrollBar* hScrollBar = m_pScrollArea->horizontalScrollBar();
+    bool clampScrollRight = hScrollBar->value() >= SCROLL_CLAMP_RIGHT_THRESHOLD * hScrollBar->maximum();
+    int prevHScrollBarMax = hScrollBar->maximum();
+    int prevHScrollBarValue = hScrollBar->value();
     for(int i = 0;i < count;++i){
         QLayoutItem* item = m_pHBoxLayout->takeAt(0);
         if(item->widget()) item->widget()->deleteLater();
         m_pFrameElements.pop_front();
         delete item;
     }
-    hScrollBar->setValue(hScrollBar->maximum());
+    if(clampScrollRight) hScrollBar->setValue(hScrollBar->maximum());
+    // else hScrollBar->setValue(hScrollBar->value() - (prevHScrollBarMax - hScrollBar->maximum()));
 }
 
 void QTimelineView::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitModel){

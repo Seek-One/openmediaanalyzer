@@ -46,7 +46,6 @@ void QStreamModel::run(){
             }
         }
     }   
-    emit finished();
 }
 
 void QStreamModel::stopProcessing(){

@@ -6,6 +6,8 @@
 #include <QScrollArea>
 #include <list>
 
+#define SCROLL_CLAMP_RIGHT_THRESHOLD 0.99
+
 class QAccessUnitModel;
 class QFrameElement;
 

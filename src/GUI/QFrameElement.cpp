@@ -9,7 +9,7 @@
 QFrameElement::QFrameElement(QWidget* parent)
     : QWidget(parent), m_selected(false), m_hovered(false), m_interactable(true)
 {
-    setMinimumSize(75, 125);
+    setMinimumSize(4, 125);
     setMouseTracking(true);
 }
 
@@ -37,9 +37,7 @@ void QFrameElement::paintEvent(QPaintEvent* event) {
     double sizeRatio = size/m_maxSize;
     QRect barRect(width()/4, height()-(height()*sizeRatio), width()/2, height());
     painter.fillRect(barRect, m_barColor);
-
-    painter.setPen(m_textColor);
-    painter.drawText(rect(), Qt::AlignCenter | Qt::AlignVCenter, m_text);
+    setToolTip(m_text);
 }
 
 void QFrameElement::frameSelected(){

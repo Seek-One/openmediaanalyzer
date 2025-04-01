@@ -21,7 +21,6 @@ QStreamModel::~QStreamModel(){
 }
 
 void QStreamModel::streamLoaded(const QString& folderPath){
-    qDebug() << folderPath;
     m_loadedFolderPath = folderPath;
     m_loadedDir = QDir(folderPath);
     m_pModel->setRootPath(m_loadedFolderPath);
@@ -33,7 +32,9 @@ void QStreamModel::streamLoaded(const QString& folderPath){
 void QStreamModel::run(){
     m_running.storeRelaxed(true);
     m_processing.storeRelaxed(false);
-    while(m_running.loadRelaxed()){
+    while(m_running.loadRelaxed()){ 
+        // causes the thread to not terminate, preventing the app from being fully terminated on closing (use signals for now)
+        // loop may be replaced when switching over to an actual stream, investigate issues then
         QCoreApplication::processEvents();
         if(m_processing.loadRelaxed() && !m_loadedFolderPath.isEmpty()){
             while(m_processing.loadRelaxed() && m_running.loadRelaxed()){

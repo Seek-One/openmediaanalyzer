@@ -1,6 +1,6 @@
 #include "H26XBitstreamReader.h"
 
-H26XBitstreamReader::H26XBitstreamReader(const uint8_t* pNALData, uint32_t iNALLength)
+H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 {
 	m_pNALData = pNALData;
 	m_iBitsOffset = 0;

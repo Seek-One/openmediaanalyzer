@@ -4,12 +4,11 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <optional>
 
 #include "H264NAL.h"
 
 struct H264PPS;
-struct H264SPS2;
+struct H264SPS;
 
 struct H264Slice : public H264NAL {
 	enum SliceType {
@@ -22,6 +21,8 @@ struct H264Slice : public H264NAL {
 	};
 
 	H264Slice();
+	H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, uint8_t* nalData);
+	~H264Slice();
 
 	static bool isSlice(H264NAL* NALUnit);
 
@@ -103,8 +104,8 @@ struct H264Slice : public H264NAL {
 
 	std::vector<std::string> errors;
 	std::vector<std::string> dump_fields() override;
-	std::optional<H264PPS> getPPS() const;
-	std::optional<H264SPS2> getSPS() const;
+	H264PPS* getPPS() const;
+	H264SPS* getSPS() const;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264Slice_H_

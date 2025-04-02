@@ -14,7 +14,7 @@
 
 class H265BitstreamReader: public H26XBitstreamReader {
 public:
-	H265BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength);
+	H265BitstreamReader(uint8_t* pNALData, uint32_t iNALLength);
 
 	void readNALHeader(H265NAL& h265NAL);
 	void readVPS(H265VPS& h265VPS);

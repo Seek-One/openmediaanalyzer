@@ -46,7 +46,7 @@ public:
 	// Real picture size
 	const Size& getPictureSize() const;
 
-	virtual bool parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength) override;
+	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength) override;
 
 
 public:
@@ -56,7 +56,7 @@ public:
 	std::vector<std::string> errors;
 
 private:
-	virtual bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;
+	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength) override;
 
 	inline int computeSubWidthC() const;
 	inline int computeSubHeightC() const;
@@ -69,8 +69,8 @@ private:
 
 private:
 	H264NAL m_currentNAL;
-	H264SPS2 m_sps;
-	H264PPS m_pps;
+	H264SPS* m_pSps;
+	H264PPS* m_pPps;
 	std::deque<std::unique_ptr<H264GOP>> m_GOPs;
 	H264AccessUnit* m_pCurrentAccessUnit;
 

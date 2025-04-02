@@ -10,6 +10,8 @@
 
 struct H264PPS : public H264NAL {
 	H264PPS();
+	H264PPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data);
+	~H264PPS();
 
 	uint8_t pic_parameter_set_id;
 	uint8_t seq_parameter_set_id;
@@ -55,7 +57,7 @@ struct H264PPS : public H264NAL {
 	std::vector<std::string> errors;
 
 	std::vector<std::string> dump_fields() override;
-	static inline std::unordered_map<uint8_t, H264PPS&> PPSMap;
+	static inline std::unordered_map<uint8_t, H264PPS*> PPSMap;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264PPS_H_

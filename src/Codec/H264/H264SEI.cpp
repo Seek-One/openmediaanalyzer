@@ -6,22 +6,28 @@
 
 #include "H264SEI.h"
 
-H264SEI::H264SEI()
+H264SEI::H264SEI():
+	H264SEI(0, 0, 0, nullptr)
+{}
+
+H264SEI::H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data):
+	H264NAL(forbidden_zero_bit, nal_ref_idc, nal_size, nal_data)
 {
 	nal_unit_type = UnitType_SEI;
 }
 
-H264SEI::H264SEI(H264SEI* pH264SEI):
-	messages(pH264SEI->messages)
-{
-	forbidden_zero_bit = pH264SEI->forbidden_zero_bit;
-	nal_ref_idc = pH264SEI->nal_ref_idc;
-	nal_unit_type = UnitType_SEI;
-	nal_size = pH264SEI->nal_size;
-}
+// H264SEI::H264SEI(H264SEI* pH264SEI):
+// 	messages(pH264SEI->messages)
+// {
+// 	forbidden_zero_bit = pH264SEI->forbidden_zero_bit;
+// 	nal_ref_idc = pH264SEI->nal_ref_idc;
+// 	nal_unit_type = UnitType_SEI;
+// 	nal_size = pH264SEI->nal_size;
+// }
 
 
 H264SEI::~H264SEI(){
+	if(nal_data) delete[] nal_data;
 	for(H264SEIMessage* message : messages) delete message;
 	messages.clear();
 }
@@ -63,17 +69,17 @@ std::vector<std::string> H264SEIBufferingPeriod::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Buffering period");
 	fields.push_back((std::ostringstream() << "  seq_parameter_set_id:" << (int)seq_parameter_set_id).str());
-	auto referencedSPS = H264SPS2::SPSMap.find(seq_parameter_set_id);
-	if(referencedSPS == H264SPS2::SPSMap.end()) return fields;
-	H264SPS2 sps = referencedSPS->second;
- 	if(sps.nal_hrd_parameters_present_flag){
-		for(int i = 0;i <= sps.nal_cpb_cnt_minus1;++i){
+	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
+	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
+	H264SPS* pSps = referencedSPS->second;
+ 	if(pSps->nal_hrd_parameters_present_flag){
+		for(int i = 0;i <= pSps->nal_cpb_cnt_minus1;++i){
 			fields.push_back((std::ostringstream() << "    nal_initial_cpb_removal_delay[" << i << "]:" << nal_initial_cpb_removal_delay[i]).str());
 			fields.push_back((std::ostringstream() << "    nal_initial_cpb_removal_delay_offset[" << i << "]:" << nal_initial_cpb_removal_delay_offset[i]).str());
 		}
 	}
-	if(sps.vcl_hrd_parameters_present_flag){
-		for(int i = 0;i <= sps.vcl_cpb_cnt_minus1;++i){
+	if(pSps->vcl_hrd_parameters_present_flag){
+		for(int i = 0;i <= pSps->vcl_cpb_cnt_minus1;++i){
 			fields.push_back((std::ostringstream() << "    vcl_initial_cpb_removal_delay[" << i << "]:" << vcl_initial_cpb_removal_delay[i]).str());
 			fields.push_back((std::ostringstream() << "    vcl_initial_cpb_removal_delay_offset[" << i << "]:" << vcl_initial_cpb_removal_delay_offset[i]).str());
 		}
@@ -84,12 +90,12 @@ std::vector<std::string> H264SEIBufferingPeriod::dump_fields(){
 std::vector<std::string> H264SEIPicTiming::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Pic timing");
-	H264SPS2 sps = H264SPS2::SPSMap.find(seq_parameter_set_id)->second;
-	if(sps.nal_hrd_parameters_present_flag || sps.vcl_hrd_parameters_present_flag){
+	H264SPS* pSps = H264SPS::SPSMap.find(seq_parameter_set_id)->second;
+	if(pSps->nal_hrd_parameters_present_flag || pSps->vcl_hrd_parameters_present_flag){
 		fields.push_back((std::ostringstream() << "  cpb_removal_delay:" << cpb_removal_delay).str());
 		fields.push_back((std::ostringstream() << "  dpb_output_delay:" << dpb_output_delay).str());
 	}
-	if(sps.pic_struct_present_flag){
+	if(pSps->pic_struct_present_flag){
 		fields.push_back((std::ostringstream() << "  pic_struct:" << (int)pic_struct).str());
 		int NumClockTS = 0;
 		switch(pic_struct){
@@ -116,7 +122,7 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 				if(full_timestamp_flag[i] || seconds_flag[i]) fields.push_back((std::ostringstream() << "        seconds_value[" << i << "]:" << (int)seconds_value[i]).str());
 				if(full_timestamp_flag[i] || minutes_flag[i]) fields.push_back((std::ostringstream() << "        minutes_value[" << i << "]:" << (int)minutes_value[i]).str());
 				if(full_timestamp_flag[i] || hours_flag[i]) fields.push_back((std::ostringstream() << "        hours_value[" << i << "]:" << (int)hours_value[i]).str());
-				if(sps.nal_time_offset_length > 0 || sps.vcl_time_offset_length > 0){
+				if(pSps->nal_time_offset_length > 0 || pSps->vcl_time_offset_length > 0){
 					fields.push_back((std::ostringstream() << "      full_timestamp_flag[" << i << "]:" << (int)full_timestamp_flag[i]).str());
 				}
 			}

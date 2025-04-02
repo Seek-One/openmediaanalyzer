@@ -30,12 +30,14 @@ struct H264NAL {
 	};
 
 	H264NAL();
+	H264NAL(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data);
 	virtual ~H264NAL() = default;
 
 	uint8_t forbidden_zero_bit;
 	uint8_t nal_ref_idc;
 	UnitType nal_unit_type;
 	uint32_t nal_size;
+	uint8_t* nal_data;
 
 	virtual std::vector<std::string> dump_fields();
 };

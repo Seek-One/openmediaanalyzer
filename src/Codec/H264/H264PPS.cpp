@@ -4,7 +4,12 @@
 #include "H264PPS.h"
 #include "H264NAL.h"
 
-H264PPS::H264PPS()
+H264PPS::H264PPS():
+	H264PPS(0, 0, 0, nullptr)
+{}
+
+H264PPS::H264PPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data):
+	H264NAL(forbidden_zero_bit, nal_ref_idc, nal_size, nal_data)
 {
 	nal_unit_type = UnitType_PPS;
 	pic_parameter_set_id = 0;
@@ -59,6 +64,13 @@ H264PPS::H264PPS()
 	}
 
 	second_chroma_qp_index_offset = 0;
+}
+
+H264PPS::~H264PPS(){
+	if(nal_data) {
+		delete[] nal_data;
+		nal_data = nullptr;
+	}
 }
 
 std::vector<std::string> H264PPS::dump_fields(){

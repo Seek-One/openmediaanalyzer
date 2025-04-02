@@ -26,9 +26,6 @@ protected:
 
     void leaveEvent(QEvent *event);
 
-public slots:
-    void frameSelected();
-
 signals:
     void selectFrame(QSharedPointer<QAccessUnitModel> pAccessUnits);
     

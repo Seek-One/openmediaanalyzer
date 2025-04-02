@@ -40,10 +40,6 @@ void QFrameElement::paintEvent(QPaintEvent* event) {
     setToolTip(m_text);
 }
 
-void QFrameElement::frameSelected(){
-    m_selected = false;
-    update();
-}
 
 void QFrameElement::mousePressEvent(QMouseEvent* event) {
     if(!m_interactable) return;

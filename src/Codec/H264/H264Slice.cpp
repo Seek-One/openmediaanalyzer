@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstring>
 #include <sstream>
 
@@ -6,8 +7,14 @@
 
 #include "H264Slice.h"
 
-H264Slice::H264Slice()
+H264Slice::H264Slice():
+	H264Slice(0, 0, UnitType::UnitType_Unspecified, 0, nullptr)
+{}
+
+H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, uint8_t* nalData):
+	H264NAL(forbiddenZeroBit, nalRefIdc, nalSize, nalData)
 {
+	nal_unit_type = nalUnitType;
 	IdrPicFlag = 0;
 	first_mb_in_slice = 0;
 	slice_type = SliceType_Unspecified;
@@ -88,6 +95,12 @@ H264Slice::H264Slice()
 	memset(drpm.max_long_term_frame_idx_plus1, 0, 64 * sizeof(uint32_t));
 }
 
+H264Slice::~H264Slice(){
+	if(nal_data) {
+		delete[] nal_data;
+		nal_data = nullptr;
+	}
+}
 
 bool H264Slice::isSlice(H264NAL* NALUnit){
 	return NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame;
@@ -101,26 +114,26 @@ std::vector<std::string> H264Slice::dump_fields(){
 	
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()) return fields;
-	H264PPS pps = referencedPPS->second;
-	auto referencedSPS = H264SPS2::SPSMap.find(pps.seq_parameter_set_id);
-	if(referencedSPS == H264SPS2::SPSMap.end()) return fields;
-	H264SPS2 sps = referencedSPS->second;
-	if(sps.separate_colour_plane_flag == 1) fields.push_back((std::ostringstream() << "  colour_plane_id:" << (int)colour_plane_id).str());
+	H264PPS* pPps = referencedPPS->second;
+	auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);
+	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
+	H264SPS* pSps = referencedSPS->second;
+	if(pSps->separate_colour_plane_flag == 1) fields.push_back((std::ostringstream() << "  colour_plane_id:" << (int)colour_plane_id).str());
     fields.push_back((std::ostringstream() << "frame_num:" << frame_num).str());
-	if(!sps.frame_mbs_only_flag){
+	if(!pSps->frame_mbs_only_flag){
 		fields.push_back((std::ostringstream() << "  field_pic_flag:" << (int)field_pic_flag).str());
 		if(field_pic_flag) fields.push_back((std::ostringstream() << "    bottom_field_flag:" << (int)bottom_field_flag).str());
 	}
 	if(IdrPicFlag) fields.push_back((std::ostringstream() << "  idr_pic_id:" << (int)idr_pic_id).str());
-	if(sps.pic_order_cnt_type == 0){
+	if(pSps->pic_order_cnt_type == 0){
 		fields.push_back((std::ostringstream() << "  pic_order_cnt_lsb:" << (int)pic_order_cnt_lsb).str());
-		if(pps.bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt_bottom:" << delta_pic_order_cnt_bottom).str());
+		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt_bottom:" << delta_pic_order_cnt_bottom).str());
 	}
-	if(sps.pic_order_cnt_type == 1 && sps.delta_pic_order_always_zero_flag){
+	if(pSps->pic_order_cnt_type == 1 && pSps->delta_pic_order_always_zero_flag){
 		fields.push_back((std::ostringstream() << "  delta_pic_order_cnt0:" << delta_pic_order_cnt[0]).str());
-		if(pps.bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt1:" << delta_pic_order_cnt[1]).str());
+		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt1:" << delta_pic_order_cnt[1]).str());
 	}
-	if(pps.redundant_pic_cnt_present_flag) fields.push_back((std::ostringstream() << "  redundant_pic_cnt:" << (int)redundant_pic_cnt).str());
+	if(pPps->redundant_pic_cnt_present_flag) fields.push_back((std::ostringstream() << "  redundant_pic_cnt:" << (int)redundant_pic_cnt).str());
 	if(slice_type == SliceType_B) fields.push_back((std::ostringstream() << "  direct_spatial_mv_pred_flag:" << (int)direct_spatial_mv_pred_flag).str());
 	if(slice_type == SliceType_P || slice_type == SliceType_SP || slice_type == SliceType_B){
 		fields.push_back((std::ostringstream() << "  num_ref_idx_active_override_flag:" << (int)num_ref_idx_active_override_flag).str());
@@ -162,20 +175,20 @@ std::vector<std::string> H264Slice::dump_fields(){
 		}
 	}
 
-	if(pps.entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI) fields.push_back((std::ostringstream() << "  cabac_init_idc:" << (int)cabac_init_idc).str());
+	if(pPps->entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI) fields.push_back((std::ostringstream() << "  cabac_init_idc:" << (int)cabac_init_idc).str());
 	fields.push_back((std::ostringstream() << "slice_qp_delta:" << (int)slice_qp_delta).str());
 	if(slice_type == SliceType_SP || slice_type == SliceType_SI){
 		if(slice_type == SliceType_SP) fields.push_back((std::ostringstream() << "    sp_for_switch_flag:" << (int)sp_for_switch_flag).str());
 		fields.push_back((std::ostringstream() << "  slice_qs_delta:" << (int)slice_qs_delta).str());
 	}
-	if(pps.deblocking_filter_control_present_flag){
+	if(pPps->deblocking_filter_control_present_flag){
 		fields.push_back((std::ostringstream() << "  disable_deblocking_filter_idc:" << (int)disable_deblocking_filter_idc).str());
 		if(disable_deblocking_filter_idc != 1){
 			fields.push_back((std::ostringstream() << "    slice_alpha_c0_offset_div2:" << (int)slice_alpha_c0_offset_div2).str());
 			fields.push_back((std::ostringstream() << "    slice_beta_offset_div2:" << (int)slice_beta_offset_div2).str());
 		}
 	}
-	if(pps.num_slice_groups_minus1 > 0 && pps.slice_group_map_type >= 3 && pps.slice_group_map_type <= 5){
+	if(pPps->num_slice_groups_minus1 > 0 && pPps->slice_group_map_type >= 3 && pPps->slice_group_map_type <= 5){
 		fields.push_back((std::ostringstream() << "  slice_group_change_cycle:" << slice_group_change_cycle).str());
 	}
 
@@ -183,16 +196,16 @@ std::vector<std::string> H264Slice::dump_fields(){
 	return fields;
 }
 
-std::optional<H264PPS> H264Slice::getPPS() const{
+H264PPS* H264Slice::getPPS() const{
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
-	if(referencedPPS == H264PPS::PPSMap.end()) return {};
+	if(referencedPPS == H264PPS::PPSMap.end()) return nullptr;
 	return referencedPPS->second;
 }
 
-std::optional<H264SPS2> H264Slice::getSPS() const{
-	std::optional<H264PPS> pps = getPPS();
-	if(!pps.has_value()) return {};
-	auto referencedSPS = H264SPS2::SPSMap.find(pps.value().seq_parameter_set_id);
-	if(referencedSPS == H264SPS2::SPSMap.end()) return {};
+H264SPS* H264Slice::getSPS() const{
+	H264PPS* pPps = getPPS();
+	if(!pPps) return nullptr;
+	auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);
+	if(referencedSPS == H264SPS::SPSMap.end()) return {};
 	return referencedSPS->second;
 }

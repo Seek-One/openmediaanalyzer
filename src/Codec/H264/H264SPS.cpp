@@ -5,7 +5,12 @@
 #include "H264SPS.h"
 #include "H264NAL.h"
 
-H264SPS2::H264SPS2()
+H264SPS::H264SPS():
+	H264SPS(0, 0, 0, nullptr)
+{}
+
+H264SPS::H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data):
+	H264NAL(forbidden_zero_bit, nal_ref_idc, nal_size, nal_data)
 {
 	nal_unit_type = UnitType_SPS;
 	profile_idc = 0;
@@ -133,10 +138,14 @@ H264SPS2::H264SPS2()
 	}
 }
 
-H264SPS2::~H264SPS2(){
+H264SPS::~H264SPS(){
+	if(nal_data) {
+		delete[] nal_data;
+		nal_data = nullptr;
+	}
 }
 
-std::vector<std::string> H264SPS2::dump_fields(){
+std::vector<std::string> H264SPS::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back((std::ostringstream() << "profile_idc:" << (int)profile_idc).str());
 	fields.push_back((std::ostringstream() << "constraint_set0_flag:" << (int)constraint_set0_flag).str());
@@ -273,7 +282,7 @@ std::vector<std::string> H264SPS2::dump_fields(){
 	return fields;
 }
 
-uint8_t H264SPS2::level_limit_index(){
+uint8_t H264SPS::level_limit_index(){
 	if(level_idc == 11 && constraint_set3_flag == 1) return 1; // 1b
 	switch(level_idc){
 		case 10: return 0;

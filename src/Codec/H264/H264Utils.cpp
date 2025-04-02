@@ -371,12 +371,12 @@ void H264Utils::parseSPS(const unsigned char* data, H264SPS& h264SPS)
 
 	h264SPS.profile_idc = get_bits(data, &offset, 8);
 
-	h264SPS.constrained_set0_flag = get_bits(data, &offset, 1);
-	h264SPS.constrained_set1_flag = get_bits(data, &offset, 1);
-	h264SPS.constrained_set2_flag = get_bits(data, &offset, 1);
-	h264SPS.constrained_set3_flag = get_bits(data, &offset, 1);
-	h264SPS.constrained_set4_flag = get_bits(data, &offset, 1);
-	h264SPS.reserved_zero = get_bits(data, &offset, 3);
+	h264SPS.constraint_set0_flag = get_bits(data, &offset, 1);
+	h264SPS.constraint_set1_flag = get_bits(data, &offset, 1);
+	h264SPS.constraint_set2_flag = get_bits(data, &offset, 1);
+	h264SPS.constraint_set3_flag = get_bits(data, &offset, 1);
+	h264SPS.constraint_set4_flag = get_bits(data, &offset, 1);
+	h264SPS.reserved_zero_2bits = get_bits(data, &offset, 3);
 
 	h264SPS.level_idc = get_bits(data, &offset, 8);
 	h264SPS.seq_parameter_set_id = golomb_get_ue(data, &offset);
@@ -391,13 +391,13 @@ void H264Utils::parseSPS(const unsigned char* data, H264SPS& h264SPS)
 	case 83:
 	case 86:
 	case 118:
-		h264SPS.chromat_format_idc = golomb_get_ue(data, &offset);
-		if(h264SPS.chromat_format_idc == 3){
+		h264SPS.chroma_format_idc = golomb_get_ue(data, &offset);
+		if(h264SPS.chroma_format_idc == 3){
 			h264SPS.separate_colour_plane_flag = get_bits(data, &offset, 1);
 		}
 		h264SPS.bit_depth_luma_minus8 = golomb_get_ue(data, &offset);
 		h264SPS.bit_depth_chroma_minus8 = golomb_get_ue(data, &offset);
-		h264SPS.qpprime_y_zero_tranform_bypass_flag = get_bits(data, &offset, 1);
+		h264SPS.qpprime_y_zero_transform_bypass_flag = get_bits(data, &offset, 1);
 
 		h264SPS.seq_scaling_matrix_present_flag = get_bits(data, &offset, 1);
 		if(h264SPS.seq_scaling_matrix_present_flag){
@@ -424,7 +424,7 @@ void H264Utils::parseSPS(const unsigned char* data, H264SPS& h264SPS)
 		h264SPS.offset_for_top_to_bottom_field = golomb_get_se(data, &offset);
 		h264SPS.num_ref_frames_in_pic_order_cnt_cycle = golomb_get_ue(data, &offset);
 		for(uint32_t i=0; i<h264SPS.num_ref_frames_in_pic_order_cnt_cycle; i++){
-			h264SPS.offset_for_ref_frame = golomb_get_se(data, &offset);
+			h264SPS.offset_for_ref_frame[i] = golomb_get_se(data, &offset);
 		}
 	}
 	h264SPS.max_num_ref_frames = golomb_get_ue(data, &offset);

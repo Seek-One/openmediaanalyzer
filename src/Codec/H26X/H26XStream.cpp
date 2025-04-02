@@ -9,7 +9,7 @@ H26XStream::H26XStream()
 	m_iPacketLength = 0;
 }
 
-std::vector<NALData> H26XStream::splitNAL(const uint8_t* pPacketData, uint32_t iPacketLength)
+std::vector<NALData> H26XStream::splitNAL(uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL;
 	m_pPacketData = pPacketData;

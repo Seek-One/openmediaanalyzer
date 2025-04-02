@@ -10,57 +10,10 @@
 
 #include "H264NAL.h"
 
-struct H264SPS
-{
-	uint8_t profile_idc;
-
-	uint8_t constrained_set0_flag;
-	uint8_t constrained_set1_flag;
-	uint8_t constrained_set2_flag;
-	uint8_t constrained_set3_flag;
-	uint8_t constrained_set4_flag;
-	uint8_t reserved_zero;
-
-	uint8_t level_idc;
-	uint32_t seq_parameter_set_id;
-
-	uint32_t chromat_format_idc;
-	uint8_t separate_colour_plane_flag;
-	uint32_t bit_depth_luma_minus8;
-	uint32_t bit_depth_chroma_minus8;
-	uint8_t qpprime_y_zero_tranform_bypass_flag;
-	uint8_t seq_scaling_matrix_present_flag;
-	uint8_t seq_scaling_list_present_flag[12];
-
-	uint32_t log2_max_frame_num_minus4;
-	uint32_t pic_order_cnt_type;
-	uint32_t log2_max_pic_order_cnt_lsb_minus4;
-	uint8_t delta_pic_order_always_zero_flag;
-	int32_t offset_for_non_ref_pic;
-	int32_t offset_for_top_to_bottom_field;
-	uint32_t num_ref_frames_in_pic_order_cnt_cycle;
-	uint32_t offset_for_ref_frame;
-
-	uint32_t max_num_ref_frames;
-	uint8_t gaps_in_frame_num_value_allowed_flag;
-	uint32_t pic_width_in_mbs_minus1;
-	uint32_t pic_height_in_map_units_minus1;
-
-	uint8_t frame_mbs_only_flag;
-	uint8_t mb_adaptive_frame_field_flag;
-
-	uint8_t direct_8x8_inference_flag;
-
-	uint8_t frame_cropping_flag;
-	uint8_t frame_crop_left_offset;
-	uint8_t frame_crop_right_offset;
-	uint8_t frame_crop_top_offset;
-	uint8_t frame_crop_bottom_offset;
-};
-
-struct H264SPS2 : public H264NAL {
-	H264SPS2();
-	~H264SPS2();
+struct H264SPS : public H264NAL {
+	H264SPS();
+	H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data);
+	~H264SPS();
 
 	uint8_t profile_idc;
 	uint8_t constraint_set0_flag;
@@ -181,7 +134,7 @@ struct H264SPS2 : public H264NAL {
 
 	std::vector<std::string> dump_fields() override;
 
-	static inline std::unordered_map<uint8_t, H264SPS2&> SPSMap;
+	static inline std::unordered_map<uint8_t, H264SPS*> SPSMap;
 	
 	static inline uint32_t MaxMBPS[20] = {
 		1485, 1485, 3000, 6000, 11880, 11880, 19800, 20250, 40500,

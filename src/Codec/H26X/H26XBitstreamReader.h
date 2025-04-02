@@ -5,7 +5,7 @@
 
 class H26XBitstreamReader {
 public:
-	H26XBitstreamReader(const uint8_t* pNALData, uint32_t iNALLength);
+	H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength);
 
 protected:
 	uint32_t readBits(uint8_t iNumberBits);

@@ -28,7 +28,7 @@ public:
 	const H265PPS& getPPS() const;
 	const std::vector<H265Slice>& getSliceList() const;
 
-	virtual bool parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength);
+	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength);
 
 	// Extract all necessary informations for the decoding process
 	void startDecodingProcess();
@@ -75,7 +75,7 @@ public:
 	std::vector<int> RefPicListTemp1;
 
 private:
-	virtual bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength);
+	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength);
 
 private:
 	H265NAL m_currentNAL;

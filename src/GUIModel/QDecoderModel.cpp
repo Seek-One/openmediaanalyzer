@@ -3,6 +3,14 @@
 #include <set>
 #include <algorithm>
 
+extern "C" {
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavutil/imgutils.h>
+    #include <libavutil/avutil.h>
+    #include <libswscale/swscale.h>
+}
+
 #include "../GUI/QFolderView.h"
 #include "../Codec/H264/H264Stream.h"
 #include "../Codec/H264/H264GOP.h"
@@ -12,10 +20,12 @@
 
 #include "QDecoderModel.h"
 
-QDecoderModel::QDecoderModel(){
-    m_pH264Stream = nullptr;
-    m_pSelectedFrameModel = nullptr;
-    m_tabIndex = 0;
+QDecoderModel::QDecoderModel():
+    m_pH264Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0)
+{
+    // const AVCodec* codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+    // AVCodecContext* codecCtx = avcodec_alloc_context3(codec);
+    // avcodec_open2(codecCtx, codec, nullptr);
 }
 
 QDecoderModel::~QDecoderModel(){
@@ -35,21 +45,12 @@ QStandardItem* QDecoderModel::modelItemFromFields(std::vector<std::string> field
     return headerItem;
 }
 
-void QDecoderModel::reset(){
-    if(m_pH264Stream) delete m_pH264Stream;
-    m_pH264Stream = new H264Stream();
-    m_streamErrors.clear();
-    m_pSelectedFrameModel = nullptr;
-    m_currentGOPModel.clear();
-    frameSelected(nullptr);
-}
-
 void buildSPSView(QDecoderModel* pStreamModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
     model->setHorizontalHeaderLabels(QDecoderModel::headers);
     QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H264SPS2::SPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second.dump_fields(), "SPS Unit #" + QString::number(entry.first)));
+    for(auto entry : H264SPS::SPSMap){
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "SPS Unit #" + QString::number(entry.first)));
     }
     emit pStreamModel->updateSPSInfoView(model);
 }
@@ -59,17 +60,30 @@ void buildPPSView(QDecoderModel* pStreamModel){
     model->setHorizontalHeaderLabels(QDecoderModel::headers);
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H264PPS::PPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second.dump_fields(), "PPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "PPS Unit #" + QString::number(entry.first)));
     }
     emit pStreamModel->updatePPSInfoView(model);
 }
+
+void QDecoderModel::reset(){
+    if(m_pH264Stream) delete m_pH264Stream;
+    m_pH264Stream = new H264Stream();
+    m_streamErrors.clear();
+    m_pSelectedFrameModel = nullptr;
+    m_currentGOPModel.clear();
+    frameSelected(nullptr);
+    buildSPSView(this);
+    buildPPSView(this);
+}
+
 
 
 void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH264Stream->accessUnitCount();
     uint8_t PPSUnitsBefore = H264PPS::PPSMap.size();
-    uint8_t SPSUnitsBefore = H264SPS2::SPSMap.size();
+    uint8_t SPSUnitsBefore = H264SPS::SPSMap.size();
     m_pH264Stream->parsePacket(fileContent, fileSize);
+    delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
     if(GOPs.size() > GOP_LIMIT){
@@ -86,7 +100,6 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
         if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(GOP_LIMIT/2));
     }
     checkForNewGOP();
-    delete[] fileContent;
     for(H264GOP* pGOP : m_pH264Stream->getGOPs()){
         for(H264AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
     }
@@ -104,10 +117,10 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
     }
     ; 
     if(H264PPS::PPSMap.size() != PPSUnitsBefore) buildPPSView(this);
-    if(H264SPS2::SPSMap.size() != SPSUnitsBefore) buildSPSView(this);
+    if(H264SPS::SPSMap.size() != SPSUnitsBefore) buildSPSView(this);
     switch(m_tabIndex){
         case 0:
-            emitFrameErrors();
+            emitStreamErrors();
             break;
         case 1:
             emitSPSErrors();
@@ -137,7 +150,7 @@ QStringList errorListFromAccessUnit(const H264AccessUnit* accessUnit){
                 NALUnitErrors = reinterpret_cast<H264PPS*>(NALUnit.get())->errors;
                 break;
             case H264NAL::UnitType_SPS:
-                NALUnitErrors = reinterpret_cast<H264SPS2*>(NALUnit.get())->errors;
+                NALUnitErrors = reinterpret_cast<H264SPS*>(NALUnit.get())->errors;
                 break;
             case H264NAL::UnitType_SEI:
                 NALUnitErrors = reinterpret_cast<H264SEI*>(NALUnit.get())->errors;
@@ -166,7 +179,7 @@ void modelFromAccessUnit(QStandardItemModel* model, const H264AccessUnit* access
                 model->appendRow(QDecoderModel::modelItemFromFields(reinterpret_cast<H264PPS*>(NALUnit.get())->dump_fields(), "Picture Parameter Set"));
                 break;
             case H264NAL::UnitType_SPS:
-                model->appendRow(QDecoderModel::modelItemFromFields(reinterpret_cast<H264SPS2*>(NALUnit.get())->dump_fields(), "Sequence Parameter Set"));
+                model->appendRow(QDecoderModel::modelItemFromFields(reinterpret_cast<H264SPS*>(NALUnit.get())->dump_fields(), "Sequence Parameter Set"));
                 break;
             case H264NAL::UnitType_SEI:
                 model->appendRow(QDecoderModel::modelItemFromFields(reinterpret_cast<H264SEI*>(NALUnit.get())->dump_fields(), "Supplemental Enhancement Information"));
@@ -190,7 +203,7 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
 
 void QDecoderModel::framesTabOpened(){
     m_tabIndex = 0;
-    emitFrameErrors();
+    emitStreamErrors();
 }
 
 void QDecoderModel::spsTabOpened(){
@@ -208,18 +221,17 @@ void QDecoderModel::folderLoaded(){
     emit updateTimelineUnits();
 }
 
-void QDecoderModel::emitFrameErrors(){
-    // if(m_pH264Stream && m_pSelectedFrameModel) emit updateErrorView("Frame errors", errorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
+void QDecoderModel::emitStreamErrors(){
     if(m_pH264Stream && !m_pSelectedFrameModel) emit updateErrorView("Stream errors", m_streamErrors);
 }
 
 void QDecoderModel::emitSPSErrors(){
     QStringList errors;
-    for(auto SPSEntry : H264SPS2::SPSMap){
-        H264SPS2 sps = SPSEntry.second;
-        if(sps.errors.empty()) continue;
-        errors.push_back("SPS #" + QString::number(sps.seq_parameter_set_id));
-        std::transform(sps.errors.begin(), sps.errors.end(), std::back_inserter(errors), [](const std::string& err){
+    for(auto SPSEntry : H264SPS::SPSMap){
+        H264SPS* pSps = SPSEntry.second;
+        if(pSps->errors.empty()) continue;
+        errors.push_back("SPS #" + QString::number(pSps->seq_parameter_set_id));
+        std::transform(pSps->errors.begin(), pSps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }
@@ -229,10 +241,10 @@ void QDecoderModel::emitSPSErrors(){
 void QDecoderModel::emitPPSErrors(){
     QStringList errors;
     for(auto PPSEntry : H264PPS::PPSMap){
-        H264PPS pps = PPSEntry.second;
-        if(pps.errors.empty()) continue;
-        errors.push_back("PPS #" + QString::number(pps.seq_parameter_set_id));
-        std::transform(pps.errors.begin(), pps.errors.end(), std::back_inserter(errors), [](const std::string& err){
+        H264PPS* pPps = PPSEntry.second;
+        if(pPps->errors.empty()) continue;
+        errors.push_back("PPS #" + QString::number(pPps->seq_parameter_set_id));
+        std::transform(pPps->errors.begin(), pPps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }

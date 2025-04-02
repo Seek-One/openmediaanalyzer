@@ -46,7 +46,7 @@ public slots:
     void ppsTabOpened();
 
 private:
-    void emitFrameErrors();
+    void emitStreamErrors();
     void emitSPSErrors();
     void emitPPSErrors();
     void checkForNewGOP();

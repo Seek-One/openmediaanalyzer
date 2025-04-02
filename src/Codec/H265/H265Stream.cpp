@@ -56,7 +56,7 @@ const std::vector<H265Slice>& H265Stream::getSliceList() const
 	return m_listSlices;
 }
 
-bool H265Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
+bool H265Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	m_listSlices.clear();
 
@@ -253,7 +253,7 @@ void H265Stream::computeRef()
 	}
 }
 
-bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
+bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 {
 	H265BitstreamReader bitstreamReader(pNALData, iNALLength);
 	bitstreamReader.readNALHeader(m_currentNAL);

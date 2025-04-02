@@ -4,7 +4,7 @@
 #include "../H26X/H26XMath.h"
 #include "H265BitstreamReader.h"
 
-H265BitstreamReader::H265BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength)
+H265BitstreamReader::H265BitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 	: H26XBitstreamReader(pNALData, iNALLength)
 {
 

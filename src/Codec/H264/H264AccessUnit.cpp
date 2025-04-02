@@ -85,7 +85,7 @@ void H264AccessUnit::validate(){
         std::vector<uint8_t> allowedSliceTypes = H264AUD::slice_type_values[AUDUnit->primary_pic_type];
         for(auto& NALUnit : NALUnits){
             if(H264Slice::isSlice(NALUnit.get()) &&
-            std::find(allowedSliceTypes.begin(), allowedSliceTypes.end(), reinterpret_cast<H264Slice&>(*NALUnit).slice_type-1) == allowedSliceTypes.end()){
+            std::find(allowedSliceTypes.begin(), allowedSliceTypes.end(), reinterpret_cast<H264Slice*>(NALUnit.get())->slice_type-1) == allowedSliceTypes.end()){
                 errors.push_back("[H264 Access Unit] Slice type not in values allowed by access unit delimiter");
             }
         }
@@ -109,9 +109,9 @@ void H264AccessUnit::validate(){
     int lastSliceRedundantPicCnt = -1;
     for(int i = 0;i < NALUnits.size();++i){
         if(H264Slice::isSlice(NALUnits[i].get())){
-            H264Slice slice = reinterpret_cast<H264Slice&>(*NALUnits[i]);
-            if(slice.redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
-            lastSliceRedundantPicCnt = slice.redundant_pic_cnt;
+            H264Slice* pSlice = reinterpret_cast<H264Slice*>(NALUnits[i].get());
+            if(pSlice->redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
+            lastSliceRedundantPicCnt = pSlice->redundant_pic_cnt;
         }
     }
 }

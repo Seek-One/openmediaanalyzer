@@ -36,7 +36,6 @@ public:
     QStringList m_streamErrors;
 
 signals:
-    void updateTimeline(QVector<QSharedPointer<QAccessUnitModel>> frames);
     void updateTimelineUnits();
     void addTimelineUnits(QVector<QSharedPointer<QAccessUnitModel>> accessUnits);
     void removeTimelineUnits(uint32_t count);
@@ -63,6 +62,7 @@ private:
     void validateCurrentGOP();
     void addStreamError(QString err);
     QImage* decodeSlice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    QImage* getQImageFromFrame(const AVFrame* pFrame);
 
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
@@ -72,4 +72,8 @@ private:
 
     const AVCodec* m_pCodec;
     AVCodecContext* m_pCodecCtx;
+    SwsContext* m_pSwsCtx;
+    int m_frameWidth;
+    int m_frameHeight; 
+    int m_pixelFormat;
 };

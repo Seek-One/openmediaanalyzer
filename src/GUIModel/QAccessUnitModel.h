@@ -36,8 +36,6 @@ public:
     std::optional<uint16_t> m_displayedFrameNum;
     Status m_status;
     QUuid m_id;
-    bool m_frameDecoded;
-
 
 private:
 

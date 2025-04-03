@@ -6,16 +6,16 @@
 #include "QAccessUnitModel.h"
 
 QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(displayedFrameNum), m_status(Status::OK), m_id(id), m_frameDecoded(false){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(displayedFrameNum), m_status(Status::OK), m_id(id){
 }
 
 QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status::OK), m_id(id), m_frameDecoded(false){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status::OK), m_id(id){
     setDisplayedFrameNumber();
 }
 
 QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, Status status, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(status), m_id(id), m_frameDecoded(false){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(status), m_id(id){
     setDisplayedFrameNumber();
 }
 

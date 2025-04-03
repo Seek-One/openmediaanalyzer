@@ -36,6 +36,7 @@ struct H264NAL {
 	uint8_t nal_ref_idc;
 	UnitType nal_unit_type;
 	uint32_t nal_size;
+	std::vector<std::string> errors;
 
 	virtual std::vector<std::string> dump_fields();
 };

@@ -101,7 +101,6 @@ struct H264Slice : public H264NAL {
 
 	uint8_t IdrPicFlag;
 
-	std::vector<std::string> errors;
 	std::vector<std::string> dump_fields() override;
 	std::optional<H264PPS> getPPS() const;
 	std::optional<H264SPS2> getSPS() const;

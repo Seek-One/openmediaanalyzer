@@ -177,8 +177,6 @@ struct H264SPS2 : public H264NAL {
 	uint8_t max_num_reorder_frames;
 	uint8_t max_dec_frame_buffering;
 
-	std::vector<std::string> errors;
-
 	std::vector<std::string> dump_fields() override;
 
 	static inline std::unordered_map<uint8_t, H264SPS2&> SPSMap;

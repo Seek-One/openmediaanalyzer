@@ -2,12 +2,14 @@
 #include <QGridLayout>
 #include <QMenuBar>
 #include <QAction>
+#include <QStatusBar>
 
 #include "QFolderView.h"
 #include "QVideoFrameView.h"
 #include "QTimelineView.h"
 #include "QNALUInfoView.h"
 #include "QErrorView.h"
+#include "QStatusView.h"
 
 #include "QWindowMain.h"
 
@@ -26,6 +28,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pFrameInfoView = new QNALUInfoView(pWidget);
     m_pTimelineView = new QTimelineView(pWidget);
     m_pErrorView = new QErrorView(pWidget);
+    m_pStatusView = new QStatusView(pWidget);
 
     setCentralWidget(pWidget);
     
@@ -75,6 +78,8 @@ QWindowMain::QWindowMain(QWidget* parent)
                 break;
         }
     });
+
+    statusBar()->addPermanentWidget(m_pStatusView, 1);
 }
 
 QWindowMain::~QWindowMain()
@@ -104,6 +109,10 @@ QNALUInfoView* QWindowMain::getFrameInfoView(){
 
 QErrorView* QWindowMain::getErrorView(){
     return m_pErrorView;
+}
+
+QStatusView* QWindowMain::getStatusView(){
+    return m_pStatusView;
 }
 
 void QWindowMain::errorViewToggled(QString _, QStringList errors){

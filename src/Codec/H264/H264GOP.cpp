@@ -16,11 +16,17 @@ H264GOP::~H264GOP(){
     accessUnits.clear();
 }
 
-uint32_t H264GOP::count(){
+uint32_t H264GOP::count() const {
     return accessUnits.size();
 }
 
-std::vector<H264AccessUnit*> H264GOP::getAccessUnits(){
+uint64_t H264GOP::size() const {
+    return std::accumulate(accessUnits.begin(), accessUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264AccessUnit>& pAccessUnit){
+        return acc + pAccessUnit->size();
+    });
+}
+
+std::vector<H264AccessUnit*> H264GOP::getAccessUnits() const {
     std::vector<H264AccessUnit*> pAccessUnits;
     std::transform(accessUnits.begin(), accessUnits.end(), std::back_inserter(pAccessUnits), [](const std::unique_ptr<H264AccessUnit>& pAccessUnit){
         return pAccessUnit.get();
@@ -28,7 +34,7 @@ std::vector<H264AccessUnit*> H264GOP::getAccessUnits(){
     return pAccessUnits;
 }
 
-std::vector<H264Slice*> H264GOP::slices(){
+std::vector<H264Slice*> H264GOP::slices() const {
     std::vector<H264Slice*> pSlices;
     for(auto& access_unit : accessUnits){
         H264Slice* pSlice = access_unit->slice();

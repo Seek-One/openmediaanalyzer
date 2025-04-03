@@ -32,8 +32,8 @@ uint32_t H264AccessUnit::count() const{
     return NALUnits.size();
 }
 
-uint32_t H264AccessUnit::size() const{
-    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint32_t acc, const std::unique_ptr<H264NAL>& unit){
+uint64_t H264AccessUnit::size() const{
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264NAL>& unit){
         return acc+unit->nal_size;
     });
 }
@@ -114,4 +114,11 @@ void H264AccessUnit::validate(){
             lastSliceRedundantPicCnt = slice.redundant_pic_cnt;
         }
     }
+}
+
+bool H264AccessUnit::isValid() const {
+    if(!errors.empty()) return false;
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H264NAL>& NALUnit){
+        return acc && NALUnit->errors.empty();
+    });
 }

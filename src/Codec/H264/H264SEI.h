@@ -26,8 +26,6 @@ struct H264SEI : public H264NAL {
 	~H264SEI();
 
     std::vector<H264SEIMessage*> messages;
-
-	std::vector<std::string> errors;
 	
 	std::vector<std::string> dump_fields() override;
 };

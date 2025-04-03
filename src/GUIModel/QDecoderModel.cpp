@@ -1,15 +1,8 @@
 #include <QDebug>
+#include <QUuid>
 #include <sstream>
 #include <set>
 #include <algorithm>
-
-extern "C" {
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/imgutils.h>
-    #include <libavutil/avutil.h>
-    #include <libswscale/swscale.h>
-}
 
 #include "../GUI/QFolderView.h"
 #include "../Codec/H264/H264Stream.h"
@@ -21,16 +14,30 @@ extern "C" {
 #include "QDecoderModel.h"
 
 QDecoderModel::QDecoderModel():
-    m_pH264Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0)
+    m_pH264Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0), m_pCodec(avcodec_find_decoder(AV_CODEC_ID_H264))
 {
-    // const AVCodec* codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-    // AVCodecContext* codecCtx = avcodec_alloc_context3(codec);
-    // avcodec_open2(codecCtx, codec, nullptr);
+    if(!m_pCodec) {
+        qDebug() << "Couldn't find decoder";
+        return;
+    }
+    m_pCodecCtx = avcodec_alloc_context3(m_pCodec);
+    if(!m_pCodecCtx){
+        qDebug() << "Couldn't allocate codec context";
+        return;
+    }
+    if(avcodec_open2(m_pCodecCtx, m_pCodec, nullptr) < 0){
+        qDebug() << "Couldn't open codec";
+        return;
+    }
+    
 }
 
 QDecoderModel::~QDecoderModel(){
     if(m_pH264Stream)delete m_pH264Stream;
     m_streamErrors.clear();
+    m_decodedFrames.clear();
+    avcodec_close(m_pCodecCtx);
+    avcodec_free_context(&m_pCodecCtx);
 }
 
 QStandardItem* QDecoderModel::modelItemFromFields(std::vector<std::string> fields, QString header){
@@ -71,9 +78,22 @@ void QDecoderModel::reset(){
     m_streamErrors.clear();
     m_pSelectedFrameModel = nullptr;
     m_currentGOPModel.clear();
+    m_decodedFrames.clear();
     frameSelected(nullptr);
     buildSPSView(this);
     buildPPSView(this);
+    emit updateVideoFrameView(nullptr);
+    avcodec_close(m_pCodecCtx);
+    avcodec_free_context(&m_pCodecCtx);
+    m_pCodecCtx = avcodec_alloc_context3(m_pCodec);
+    if(!m_pCodecCtx){
+        qDebug() << "Couldn't allocate codec context";
+        return;
+    }
+    if(avcodec_open2(m_pCodecCtx, m_pCodec, nullptr) < 0){
+        qDebug() << "Couldn't open codec";
+        return;
+    }
 }
 
 
@@ -83,6 +103,11 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
     uint8_t PPSUnitsBefore = H264PPS::PPSMap.size();
     uint8_t SPSUnitsBefore = H264SPS::SPSMap.size();
     m_pH264Stream->parsePacket(fileContent, fileSize);
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){
+        if(!pAccessUnitModel->m_frameDecoded && pAccessUnitModel->m_pAccessUnit->slice()){
+            m_decodedFrames[pAccessUnitModel->m_id] = QSharedPointer<QImage>(decodeSlice(pAccessUnitModel));
+        }
+    }
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
@@ -108,14 +133,16 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
         std::list<H264AccessUnit*> pAccessUnits = m_pH264Stream->getLastAccessUnits(accessUnitCountDiff);
         for(auto itAccessUnit = pAccessUnits.begin();itAccessUnit != pAccessUnits.end();++itAccessUnit){
-            QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(*itAccessUnit));
+            QUuid id = QUuid::createUuid();
+            QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(*itAccessUnit, id));
+            if((*itAccessUnit)->slice()) m_decodedFrames[id] = QSharedPointer<QImage>(decodeSlice(pAccessUnitModel));
             pAccessUnitModels.push_back(pAccessUnitModel);
             m_currentGOPModel.push_back(pAccessUnitModel);
             checkForNewGOP();
         }        
         emit addTimelineUnits(pAccessUnitModels);
     }
-    ; 
+
     if(H264PPS::PPSMap.size() != PPSUnitsBefore) buildPPSView(this);
     if(H264SPS::SPSMap.size() != SPSUnitsBefore) buildSPSView(this);
     switch(m_tabIndex){
@@ -195,6 +222,7 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
     if(pAccessUnitModel && pAccessUnitModel->m_pAccessUnit) {
         modelFromAccessUnit(model, pAccessUnitModel->m_pAccessUnit);
         if(m_tabIndex == 0) emit updateErrorView("Access unit errors", errorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit));
+        if(m_decodedFrames[pAccessUnitModel->m_id]) emit updateVideoFrameView(m_decodedFrames[pAccessUnitModel->m_id]);
     } else if(m_tabIndex == 0){
         emit updateErrorView("Stream errors", m_streamErrors);
     }
@@ -305,4 +333,92 @@ void QDecoderModel::validateCurrentGOP(){
 void QDecoderModel::addStreamError(QString err){
     m_streamErrors.push_back(err);
     if(m_streamErrors.size() > ERR_MSG_LIMIT) m_streamErrors.pop_front();
+}
+
+// https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format
+QImage* getQImageFromFrame(const AVFrame* pFrame) {
+    // first convert the input AVFrame to the desired format
+    SwsContext* img_convert_ctx = sws_getContext(
+                                     pFrame->width,
+                                     pFrame->height,
+                                     (AVPixelFormat)pFrame->format,
+                                     pFrame->width,
+                                     pFrame->height,
+                                     AV_PIX_FMT_RGB24,
+                                     SWS_BICUBIC, NULL, NULL, NULL);
+    if(!img_convert_ctx){
+        qDebug() << "Failed to create sws context";
+        return nullptr;
+    }
+
+    // prepare line sizes structure as sws_scale expects
+    int rgb_linesizes[8] = {0};
+    rgb_linesizes[0] = 3*pFrame->width;
+
+    // prepare char buffer in array, as sws_scale expects
+    unsigned char* rgbData[8];
+    int imgBytesSyze = 3*pFrame->height*pFrame->width;
+    // as explained above, we need to alloc extra 64 bytes
+    rgbData[0] = (unsigned char *)malloc(imgBytesSyze+64); 
+    if(!rgbData[0]){
+        qDebug() << "Error allocating buffer for frame conversion";
+        free(rgbData[0]);
+        sws_freeContext(img_convert_ctx);
+        return nullptr;
+    }
+    if(sws_scale(img_convert_ctx,
+                pFrame->data,
+                pFrame->linesize, 0,
+                pFrame->height,
+                rgbData,
+                rgb_linesizes)
+            != pFrame->height){
+        qDebug() << "Error changing frame color range";
+        free(rgbData[0]);
+        sws_freeContext(img_convert_ctx);
+        return nullptr;
+    }
+
+    // then create QImage and copy converted frame data into it
+
+    QImage* pImage = new QImage(pFrame->width,
+                 pFrame->height,
+                 QImage::Format_RGB888);
+
+    for(int y=0; y<pFrame->height; y++){
+        memcpy(pImage->scanLine(y), rgbData[0]+y*rgb_linesizes[0], rgb_linesizes[0]);
+    }
+
+    free(rgbData[0]);
+    sws_freeContext(img_convert_ctx);
+    return pImage;
+}
+
+QImage* QDecoderModel::decodeSlice(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
+    // reset context if IDR access unit ?
+    if(!pAccessUnitModel->m_pAccessUnit->slice()) return nullptr;
+    AVPacket* pPacket = av_packet_alloc();
+    pPacket->size = pAccessUnitModel->m_pAccessUnit->size();
+    pPacket->data = pAccessUnitModel->serialize();
+    if(avcodec_send_packet(m_pCodecCtx, pPacket) < 0){
+        qDebug() << "Couldn't send packet for decoding";
+        return nullptr;
+    }
+
+    AVFrame* pFrame = av_frame_alloc();
+    if(!pFrame){
+        qDebug() << "Couldn't allocate frame";
+        return nullptr;
+    }
+
+    int receivedFrame = avcodec_receive_frame(m_pCodecCtx, pFrame);
+    if(receivedFrame == AVERROR(EAGAIN) || receivedFrame == AVERROR_EOF || receivedFrame < 0){
+        qDebug() << "Error when receiving frame :" << receivedFrame;
+        return nullptr;
+    }
+    av_packet_free(&pPacket);
+    QImage* pImage = getQImageFromFrame(pFrame);
+    av_frame_free(&pFrame); 
+    avformat_network_deinit();
+    return pImage;
 }

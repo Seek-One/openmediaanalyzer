@@ -23,10 +23,10 @@ set(APPLICATION_SOURCES
     src/GUI/QErrorView.h
     src/GUI/QFolderView.cpp
     src/GUI/QFolderView.h
-    src/GUI/QFrameElement.cpp
-    src/GUI/QFrameElement.h
     src/GUI/QNALUInfoView.cpp
     src/GUI/QNALUInfoView.h
+    src/GUI/QTimelineAccessUnitElement.cpp
+    src/GUI/QTimelineAccessUnitElement.h
     src/GUI/QTimelineView.cpp
     src/GUI/QTimelineView.h
     src/GUI/QVideoFrameView.cpp
@@ -39,6 +39,8 @@ set(APPLICATION_SOURCES
     src/GUIController/QFolderViewController.h
     src/GUIController/QTimelineViewController.cpp
     src/GUIController/QTimelineViewController.h
+    src/GUIController/QVideoFrameViewController.cpp
+    src/GUIController/QVideoFrameViewController.h
     src/GUIController/QWindowMainController.cpp
     src/GUIController/QWindowMainController.h
     src/GUIModel/QAccessUnitModel.cpp

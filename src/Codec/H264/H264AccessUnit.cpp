@@ -24,6 +24,14 @@ bool H264AccessUnit::empty() const{
     return NALUnits.empty();
 }
 
+std::vector<H264NAL*> H264AccessUnit::getNALUnits() const{
+    std::vector<H264NAL*> pNALUnits;
+    std::transform(NALUnits.begin(), NALUnits.end(), std::back_inserter(pNALUnits), [](const std::unique_ptr<H264NAL>& pNALUnit){
+        return pNALUnit.get();
+    });
+    return pNALUnits;
+}
+
 void H264AccessUnit::addNALUnit(std::unique_ptr<H264NAL> NALUnit){
     NALUnits.push_back(std::move(NALUnit));
 }

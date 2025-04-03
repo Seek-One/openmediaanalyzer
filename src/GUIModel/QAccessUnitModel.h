@@ -3,6 +3,7 @@
 #include <QtGlobal>
 #include <QObject>
 #include <optional>
+#include <QUuid>
 
 
 
@@ -23,17 +24,23 @@ class QAccessUnitModel : public QObject
 {
     Q_OBJECT
 public: 
-    const H264AccessUnit* m_pAccessUnit;
-    std::optional<uint16_t> m_displayedFrameNum;
-    Status m_status;
 
-    QAccessUnitModel(const H264AccessUnit* pAccessUnit, uint displayedFrameNum);
-    QAccessUnitModel(const H264AccessUnit* pAccessUnit);
-    QAccessUnitModel(const H264AccessUnit* pAccessUnit, Status status);
+    QAccessUnitModel(const H264AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id);
+    QAccessUnitModel(const H264AccessUnit* pAccessUnit, QUuid id);
+    QAccessUnitModel(const H264AccessUnit* pAccessUnit, Status status, QUuid id);
 
     virtual ~QAccessUnitModel();
 
+    uint8_t* serialize() const;
+    const H264AccessUnit* m_pAccessUnit;
+    std::optional<uint16_t> m_displayedFrameNum;
+    Status m_status;
+    QUuid m_id;
+    bool m_frameDecoded;
+
+
 private:
+
     void setDisplayedFrameNumber();
 
 };

@@ -16,7 +16,11 @@ QNALUInfoView::QNALUInfoView(QWidget* parent)
 }
 
 QNALUInfoView::~QNALUInfoView(){
-    
+    if(m_pTreeView->model()){
+        delete m_pTreeView->model();
+        delete m_pTreeView->selectionModel();
+        m_pTreeView->setModel(nullptr);
+    }
 }
 
 void QNALUInfoView::viewUpdated(QStandardItemModel* pModel){

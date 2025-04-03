@@ -1,4 +1,7 @@
+#include <iostream>
 #include <cstring>
+
+#include "H264Utils.h"
 
 #include "H264NAL.h"
 
@@ -7,9 +10,11 @@ H264NAL::H264NAL():
 {}
 
 H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, uint8_t* nalData):
-	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc), nal_size(nalSize), nal_data(new uint8_t[nalSize]), nal_unit_type(UnitType_Unspecified)
+	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc), nal_size(nalSize), nal_data(nullptr), nal_unit_type(UnitType_Unspecified)
 {
-	std::memcpy(nal_data, nalData, nalSize);
+		nal_data = new uint8_t[nal_size+3];
+		std::memcpy(nal_data, g_startCode3Bytes, 3);
+		std::memcpy(nal_data+3, nalData, nalSize);
 }
 
 std::vector<std::string> H264NAL::dump_fields(){

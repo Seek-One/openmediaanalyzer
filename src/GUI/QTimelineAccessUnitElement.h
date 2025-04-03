@@ -7,12 +7,12 @@
 
 class QAccessUnitModel;
 
-class QFrameElement : public QWidget
+class QTimelineAccessUnitElement : public QWidget
 {
     Q_OBJECT
 public:
-    QFrameElement(QWidget *parent = NULL);
-    ~QFrameElement();
+    QTimelineAccessUnitElement(QWidget *parent = NULL);
+    ~QTimelineAccessUnitElement();
 
     void setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnits);
 

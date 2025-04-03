@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QGroupBox>
+#include <QImage>
 
 class QVideoFrameView : public QGroupBox
 {
@@ -9,6 +10,13 @@ public:
     QVideoFrameView(QWidget *parent = NULL);
     virtual ~QVideoFrameView();
 
-private:
+public slots:
+    void frameLoaded(QSharedPointer<QImage> pFrameImage);
 
+protected:
+    void paintEvent(QPaintEvent* pEvent) override;
+
+private:
+    QWidget* m_pWidget;
+    QSharedPointer<QImage> m_pImage;
 };

@@ -25,6 +25,7 @@ public:
     QNALUInfoView* getPPSInfoView();
     QNALUInfoView* getFrameInfoView();
     QErrorView* getErrorView();
+    QVideoFrameView* getVideoFrameView();
 
 public slots:
     void errorViewToggled(QString _, QStringList errors);

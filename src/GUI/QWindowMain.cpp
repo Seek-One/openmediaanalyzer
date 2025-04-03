@@ -106,6 +106,10 @@ QErrorView* QWindowMain::getErrorView(){
     return m_pErrorView;
 }
 
+QVideoFrameView* QWindowMain::getVideoFrameView(){
+    return m_pVideoFrameView;
+}
+
 void QWindowMain::errorViewToggled(QString _, QStringList errors){
     QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
     layout->removeWidget(m_pTabWidget);

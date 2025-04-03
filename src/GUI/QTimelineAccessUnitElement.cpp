@@ -4,24 +4,24 @@
 #include "../Codec/H264/H264AccessUnit.h"
 #include "../Codec/H264/H264Slice.h"
 
-#include "QFrameElement.h"
+#include "QTimelineAccessUnitElement.h"
 
-QFrameElement::QFrameElement(QWidget* parent)
+QTimelineAccessUnitElement::QTimelineAccessUnitElement(QWidget* parent)
     : QWidget(parent), m_selected(false), m_hovered(false), m_interactable(true)
 {
     setMinimumSize(4, 125);
     setMouseTracking(true);
 }
 
-QFrameElement::~QFrameElement(){}
+QTimelineAccessUnitElement::~QTimelineAccessUnitElement(){}
 
-void QFrameElement::setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
+void QTimelineAccessUnitElement::setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     m_pAccessUnitModel = pAccessUnitModel;
     m_interactable = !!pAccessUnitModel;
     update();
 }
 
-void QFrameElement::paintEvent(QPaintEvent* event) {
+void QTimelineAccessUnitElement::paintEvent(QPaintEvent* event) {
     updateBar();
     updateTextColor();
     QPainter painter(this);
@@ -41,7 +41,7 @@ void QFrameElement::paintEvent(QPaintEvent* event) {
 }
 
 
-void QFrameElement::mousePressEvent(QMouseEvent* event) {
+void QTimelineAccessUnitElement::mousePressEvent(QMouseEvent* event) {
     if(!m_interactable) return;
     if (event->button() == Qt::LeftButton) {
         emit selectFrame(m_pAccessUnitModel);
@@ -50,19 +50,19 @@ void QFrameElement::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void QFrameElement::enterEvent(QEvent* event) {
+void QTimelineAccessUnitElement::enterEvent(QEvent* event) {
     if(!m_interactable) return;
     m_hovered = true;
     update();
 }
 
-void QFrameElement::leaveEvent(QEvent* event) {
+void QTimelineAccessUnitElement::leaveEvent(QEvent* event) {
     if(!m_interactable) return;
     m_hovered = false;
     update();
 }
 
-void QFrameElement::updateBar(){
+void QTimelineAccessUnitElement::updateBar(){
     m_pAccessUnitModel->m_displayedFrameNum = m_pAccessUnitModel->m_pAccessUnit->frameNumber();
     if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("Frame " + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
     else m_text = QString("Frame ?");
@@ -89,7 +89,7 @@ void QFrameElement::updateBar(){
     }
 }
 
-void QFrameElement::updateTextColor(){
+void QTimelineAccessUnitElement::updateTextColor(){
     switch(m_pAccessUnitModel->m_status){
         case Status::OK:
             m_textColor = Qt::black;

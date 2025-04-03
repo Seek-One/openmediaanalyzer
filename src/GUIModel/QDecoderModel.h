@@ -4,6 +4,15 @@
 #include <QObject>
 #include <QFileSystemModel>
 #include <QStandardItemModel>
+#include <QImage>
+
+extern "C" {
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavutil/imgutils.h>
+    #include <libavutil/avutil.h>
+    #include <libswscale/swscale.h>
+}
 
 #include "QAccessUnitModel.h"
 
@@ -35,6 +44,7 @@ signals:
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
     void updateErrorView(QString title, QStringList errors);
+    void updateVideoFrameView(QSharedPointer<QImage> pImage);
 
 public slots:
     void reset();
@@ -52,9 +62,14 @@ private:
     void checkForNewGOP();
     void validateCurrentGOP();
     void addStreamError(QString err);
+    QImage* decodeSlice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
 
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
     int m_tabIndex;
     H264Stream* m_pH264Stream;
+    QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
+
+    const AVCodec* m_pCodec;
+    AVCodecContext* m_pCodecCtx;
 };

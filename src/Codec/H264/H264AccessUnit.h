@@ -17,6 +17,7 @@ struct H264AccessUnit {
     std::vector<std::string> errors;
 
     bool empty() const;
+    std::vector<H264NAL*> getNALUnits() const;
     void addNALUnit(std::unique_ptr<H264NAL> NALUnit);
     uint32_t count() const;
     uint32_t size() const;

@@ -34,7 +34,6 @@ signals:
     
 public:
     QString m_text;
-    QColor m_textColor;
     QColor m_barColor;
 
     bool m_hovered;
@@ -45,5 +44,5 @@ public:
 
 private:
     void updateBar();
-    void updateTextColor();
+    void updateBarColor();
 };

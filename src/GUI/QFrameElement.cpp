@@ -23,7 +23,7 @@ void QFrameElement::setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnit
 
 void QFrameElement::paintEvent(QPaintEvent* event) {
     updateBar();
-    updateTextColor();
+    updateBarColor();
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     
@@ -87,25 +87,21 @@ void QFrameElement::updateBar(){
                     m_text += "\nI";
                     break;
                 default:
-                    m_barColor = QColor::fromRgb(128, 128, 128);
+                    m_barColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
             }
         }
     }
 }
 
-void QFrameElement::updateTextColor(){
+void QFrameElement::updateBarColor(){
     switch(m_pAccessUnitModel->m_status){
         case Status::OK:
-            m_textColor = Qt::black;
-            break;
-        case Status::SKIPPED_FRAME:
-            m_textColor = QColor::fromRgb(139, 128, 0, 128);
             break;
         case Status::REFERENCED_IFRAME_MISSING:
         case Status::REFERENCED_PPS_OR_SPS_MISSING:
         case Status::OUT_OF_ORDER:
         case Status::MISSING_IFRAME:
-            m_textColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
+            m_barColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
             break;
     }
 }

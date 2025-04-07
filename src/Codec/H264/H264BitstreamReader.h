@@ -32,11 +32,12 @@ private:
 	void readDecRefPicMarking(H264Slice& h264Slice);
 	void readSEIBufferingPeriod(H264SEI& h264SEI);
 	void readSEIPicTiming(H264SEI& h264SEI, const H264SPS2& activeSPS);
+	void readSEIFillerPayload(H264SEI& h264SEI, uint payloadSize);
+	void readSEIUserDataUnregistered(H264SEI& h264SEI, uint payloadSize);
+    void readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS2 &activeSPS);
 	void readSEIFullFrameFreeze(H264SEI& h264SEI);
 	void readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const H264SPS2& activeSPS);
 	void readSEIMvcdOpViewInfo(H264SEIMvcdViewScalabilityInfo::movi& movi);
-	void readSEIFillerPayload(H264SEI& h264SEI, uint payloadSize);
-    void readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS2 &activeSPS);
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264_BITSTREAM_READER_H_

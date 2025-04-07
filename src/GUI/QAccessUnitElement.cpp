@@ -68,8 +68,8 @@ void QAccessUnitElement::leaveEvent(QEvent* event) {
 
 void QAccessUnitElement::updateBar(){
     m_pAccessUnitModel->m_displayedFrameNum = m_pAccessUnitModel->m_pAccessUnit->frameNumber();
-    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("AccessUnit " + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
-    else m_text = QString("AccessUnit ?");
+    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("Frame #" + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
+    else m_text = QString("Frame #?");
     if(!m_pAccessUnitModel->m_pAccessUnit) m_barColor = QColor::fromRgb(128, 128, 128);
     else {
         if(m_pAccessUnitModel->m_pAccessUnit->slice()){

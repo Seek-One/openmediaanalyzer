@@ -13,7 +13,7 @@
 #include "H264AccessUnit.h"
 
 H264AccessUnit::H264AccessUnit(){
-
+    hasFrameGaps = false;
 }
 
 H264AccessUnit::~H264AccessUnit(){
@@ -126,4 +126,16 @@ bool H264AccessUnit::isValid() const {
     return std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H264NAL>& NALUnit){
         return acc && NALUnit->errors.empty();
     });
+}
+
+bool H264AccessUnit::hasNonReferencePicture() const {
+    for(auto& NALUnit : NALUnits) 
+        if((NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc == 0) return true;
+    return false;
+}
+
+bool H264AccessUnit::hasReferencePicture() const {
+    for(auto& NALUnit : NALUnits) 
+        if((NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc != 0) return true;
+    return false;
 }

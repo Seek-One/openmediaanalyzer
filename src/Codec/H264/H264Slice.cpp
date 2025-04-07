@@ -179,6 +179,8 @@ std::vector<std::string> H264Slice::dump_fields(){
 		fields.push_back((std::ostringstream() << "  slice_group_change_cycle:" << slice_group_change_cycle).str());
 	}
 
+	fields.push_back((std::ostringstream() << "IdrPicFlag:" << (int)IdrPicFlag).str());
+    fields.push_back((std::ostringstream() << "PrevRefFrameNum:" << (int)PrevRefFrameNum).str());
 
 	return fields;
 }

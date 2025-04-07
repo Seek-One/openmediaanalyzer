@@ -542,10 +542,7 @@ void H264BitstreamReader::readSlice(H264Slice &h264Slice)
 		}
 	}
 
-	h264Slice.frame_num = readBits(h264SPS.log2_max_frame_num_minus4 + 4 );
-	if(h264Slice.slice_type == H264Slice::SliceType_I && h264Slice.frame_num != 0){
-		h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] frame_num of an IDR picture (" << (int)h264Slice.frame_num << ") should be 0").str());
-	}
+	h264Slice.frame_num = readBits(h264SPS.log2_max_frame_num_minus4 + 4);
 	if (!h264SPS.frame_mbs_only_flag)
 	{
 		h264Slice.field_pic_flag = readBits(1);

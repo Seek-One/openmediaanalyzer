@@ -42,7 +42,12 @@ void QTimelineView::resetTimeline(){
     QAccessUnitElement::m_maxSize = 0;
 }
 
-void QTimelineView::unitsUpdated(){
+void QTimelineView::accessUnitsUpdated(){
+    for(QSharedPointer<QAccessUnitElement> pTimelineAccessUnitElement : m_pAccessUnitElements){
+        if(pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit && pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit->size() > QAccessUnitElement::m_maxSize){
+            QAccessUnitElement::m_maxSize = pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit->size();
+        }
+    }
     for(QSharedPointer<QAccessUnitElement> pAccessUnitElement : m_pAccessUnitElements) pAccessUnitElement->update();
 }
 

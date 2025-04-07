@@ -106,12 +106,17 @@ void H264AccessUnit::validate(){
             }
         }
     }
+
     int lastSliceRedundantPicCnt = -1;
     for(int i = 0;i < NALUnits.size();++i){
         if(H264Slice::isSlice(NALUnits[i].get())){
             H264Slice slice = reinterpret_cast<H264Slice&>(*NALUnits[i]);
-            if(slice.redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
-            lastSliceRedundantPicCnt = slice.redundant_pic_cnt;
+            if(slice.getPPS() && !slice.getPPS()->redundant_pic_cnt_present_flag){
+                lastSliceRedundantPicCnt = -1;
+                continue;
+            }
+            if((int)slice.redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
+            lastSliceRedundantPicCnt = (int)slice.redundant_pic_cnt;
         }
     }
 }

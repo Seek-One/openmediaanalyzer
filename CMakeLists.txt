@@ -11,12 +11,12 @@ include_directories (${PROJECT_SOURCE_DIR}/src)
 
 set(APPLICATION_SOURCES
 	src/main.cpp
+    src/GUI/QAccessUnitElement.cpp
+    src/GUI/QAccessUnitElement.h
     src/GUI/QErrorView.cpp
     src/GUI/QErrorView.h
     src/GUI/QFolderView.cpp
     src/GUI/QFolderView.h
-    src/GUI/QFrameElement.cpp
-    src/GUI/QFrameElement.h
     src/GUI/QNALUInfoView.cpp
     src/GUI/QNALUInfoView.h
     src/GUI/QStatusView.cpp

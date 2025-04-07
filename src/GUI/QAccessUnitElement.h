@@ -7,14 +7,14 @@
 
 class QAccessUnitModel;
 
-class QFrameElement : public QWidget
+class QAccessUnitElement : public QWidget
 {
     Q_OBJECT
 public:
-    QFrameElement(QWidget *parent = NULL);
-    ~QFrameElement();
+    QAccessUnitElement(QWidget *parent = NULL);
+    ~QAccessUnitElement();
 
-    void setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void setAccessUnitElement(QSharedPointer<QAccessUnitModel> pAccessUnits);
 
     static inline quint64 m_maxSize = 0;
 protected:
@@ -27,10 +27,10 @@ protected:
     void leaveEvent(QEvent *event);
 
 public slots:
-    void frameSelected();
+    void accessUnitSelected();
 
 signals:
-    void selectFrame(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
     
 public:
     QString m_text;

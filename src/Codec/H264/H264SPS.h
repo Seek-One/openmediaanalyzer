@@ -224,6 +224,8 @@ struct H264SPS2 : public H264NAL {
 	};
 
 	uint8_t level_limit_index();
+
+	uint16_t computeMaxFrameNumber();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264SPS_H_

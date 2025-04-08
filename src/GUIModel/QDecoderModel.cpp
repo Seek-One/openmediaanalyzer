@@ -297,8 +297,7 @@ void QDecoderModel::validateCurrentGOP(){
             pAccessUnitModel->m_status = Status::REFERENCED_IFRAME_MISSING;
             continue;
         }
-
-        if(pSlice->frame_num < prevFrameNumber) {
+        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
             pAccessUnitModel->m_status = Status::OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->frame_num;

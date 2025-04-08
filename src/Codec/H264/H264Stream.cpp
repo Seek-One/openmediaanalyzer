@@ -562,7 +562,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 	} else {
 		std::vector<uint16_t> UnusedShortTermFrameNums;
-		uint16_t MaxFrameNum = 1 << (4+pSlice->getSPS().value().log2_max_frame_num_minus4);
+		uint16_t MaxFrameNum = pSlice->getSPS()->computeMaxFrameNumber();
 		for(uint16_t i = (pSlice->PrevRefFrameNum+1)%MaxFrameNum;i != pSlice->frame_num;++i){
 			UnusedShortTermFrameNums.push_back(i);
 		}

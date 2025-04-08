@@ -298,3 +298,10 @@ uint8_t H264SPS2::level_limit_index(){
 	}
 	return 0;
 }
+
+uint16_t H264SPS2::computeMaxFrameNumber(){
+	if(log2_max_frame_num_minus4 == 12){ // overflow
+		return UINT16_MAX; 
+	}
+	return 1 << (log2_max_frame_num_minus4+4);
+}

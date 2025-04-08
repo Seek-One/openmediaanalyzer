@@ -807,19 +807,21 @@ void H264BitstreamReader::readAUD(H264AUD& h264AUD){
 
 void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS2& activeSPS){
 	do {
-		uint payloadType = 0;
+		uint64_t payloadType = 0;
 		uint8_t last_payload_type_byte = readBits(8);
 		while(last_payload_type_byte == 0xFF){
 			payloadType += last_payload_type_byte;
 			last_payload_type_byte = readBits(8);
 		}
 		payloadType += last_payload_type_byte;
-		uint payloadSize = 0;
+		uint64_t payloadSize = 0;
 		uint8_t last_payload_size_byte = readBits(8);
 		while(last_payload_size_byte == 0xFF){
 			payloadSize += last_payload_size_byte;
 			last_payload_size_byte = readBits(8);
 		}
+		payloadSize += last_payload_size_byte;
+		if(payloadSize*8 > m_iRemainingBits) return;
 		switch(payloadType){
 			case SEI_BUFFERING_PERIOD:
 				readSEIBufferingPeriod(h264SEI);
@@ -847,7 +849,7 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS2& activeSPS){
 				skipBits(8*payloadSize);
 		}
 		uint8_t byte_bit_offset = m_iBitsOffset%8;
-		if(byte_bit_offset != 0) readBits(8-byte_bit_offset);
+		if(byte_bit_offset != 0) skipBits(8-byte_bit_offset);
 	} while(hasMoreRBSPData());
 }
 

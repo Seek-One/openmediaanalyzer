@@ -4,26 +4,26 @@
 #include "../Codec/H264/H264AccessUnit.h"
 #include "../Codec/H264/H264Slice.h"
 
-#include "QTimelineAccessUnitElement.h"
+#include "QAccessUnitElement.h"
 
-QTimelineAccessUnitElement::QTimelineAccessUnitElement(QWidget* parent)
+QAccessUnitElement::QAccessUnitElement(QWidget* parent)
     : QWidget(parent), m_selected(false), m_hovered(false), m_interactable(true)
 {
     setMinimumSize(4, 125);
     setMouseTracking(true);
 }
 
-QTimelineAccessUnitElement::~QTimelineAccessUnitElement(){}
+QAccessUnitElement::~QAccessUnitElement(){}
 
-void QTimelineAccessUnitElement::setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
+void QAccessUnitElement::setAccessUnitElement(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     m_pAccessUnitModel = pAccessUnitModel;
     m_interactable = !!pAccessUnitModel;
     update();
 }
 
-void QTimelineAccessUnitElement::paintEvent(QPaintEvent* event) {
+void QAccessUnitElement::paintEvent(QPaintEvent* event) {
     updateBar();
-    updateTextColor();
+    updateBarColor();
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     
@@ -40,32 +40,36 @@ void QTimelineAccessUnitElement::paintEvent(QPaintEvent* event) {
     setToolTip(m_text);
 }
 
+void QAccessUnitElement::accessUnitSelected(){
+    m_selected = false;
+    update();
+}
 
-void QTimelineAccessUnitElement::mousePressEvent(QMouseEvent* event) {
+void QAccessUnitElement::mousePressEvent(QMouseEvent* event) {
     if(!m_interactable) return;
     if (event->button() == Qt::LeftButton) {
-        emit selectFrame(m_pAccessUnitModel);
+        emit selectAccessUnit(m_pAccessUnitModel);
         m_selected = !m_selected;
         update();
     }
 }
 
-void QTimelineAccessUnitElement::enterEvent(QEvent* event) {
+void QAccessUnitElement::enterEvent(QEvent* event) {
     if(!m_interactable) return;
     m_hovered = true;
     update();
 }
 
-void QTimelineAccessUnitElement::leaveEvent(QEvent* event) {
+void QAccessUnitElement::leaveEvent(QEvent* event) {
     if(!m_interactable) return;
     m_hovered = false;
     update();
 }
 
-void QTimelineAccessUnitElement::updateBar(){
+void QAccessUnitElement::updateBar(){
     m_pAccessUnitModel->m_displayedFrameNum = m_pAccessUnitModel->m_pAccessUnit->frameNumber();
-    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("Frame " + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
-    else m_text = QString("Frame ?");
+    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("Frame #" + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
+    else m_text = QString("Frame #?");
     if(!m_pAccessUnitModel->m_pAccessUnit) m_barColor = QColor::fromRgb(128, 128, 128);
     else {
         if(m_pAccessUnitModel->m_pAccessUnit->slice()){
@@ -83,25 +87,21 @@ void QTimelineAccessUnitElement::updateBar(){
                     m_text += "\nI";
                     break;
                 default:
-                    m_barColor = QColor::fromRgb(128, 128, 128);
+                    m_barColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
             }
         }
     }
 }
 
-void QTimelineAccessUnitElement::updateTextColor(){
+void QAccessUnitElement::updateBarColor(){
     switch(m_pAccessUnitModel->m_status){
         case Status::OK:
-            m_textColor = Qt::black;
-            break;
-        case Status::SKIPPED_FRAME:
-            m_textColor = QColor::fromRgb(139, 128, 0, 128);
             break;
         case Status::REFERENCED_IFRAME_MISSING:
         case Status::REFERENCED_PPS_OR_SPS_MISSING:
         case Status::OUT_OF_ORDER:
         case Status::MISSING_IFRAME:
-            m_textColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
+            m_barColor = QColor::fromRgb(255, 20, 20, m_interactable ? 255 : 128);
             break;
     }
 }

@@ -13,7 +13,7 @@
 #include "H264AccessUnit.h"
 
 H264AccessUnit::H264AccessUnit(){
-
+    hasFrameGaps = false;
 }
 
 H264AccessUnit::~H264AccessUnit(){
@@ -40,8 +40,8 @@ uint32_t H264AccessUnit::count() const{
     return NALUnits.size();
 }
 
-uint32_t H264AccessUnit::size() const{
-    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint32_t acc, const std::unique_ptr<H264NAL>& unit){
+uint64_t H264AccessUnit::size() const{
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264NAL>& unit){
         return acc+unit->nal_size;
     });
 }
@@ -114,12 +114,36 @@ void H264AccessUnit::validate(){
             }
         }
     }
+
     int lastSliceRedundantPicCnt = -1;
     for(int i = 0;i < NALUnits.size();++i){
         if(H264Slice::isSlice(NALUnits[i].get())){
             H264Slice* pSlice = reinterpret_cast<H264Slice*>(NALUnits[i].get());
-            if(pSlice->redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
-            lastSliceRedundantPicCnt = pSlice->redundant_pic_cnt;
+            if(pSlice->getPPS() && !pSlice->getPPS()->redundant_pic_cnt_present_flag){
+                lastSliceRedundantPicCnt = -1;
+                continue;
+            }
+            if((int)pSlice->redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
+            lastSliceRedundantPicCnt = (int)pSlice->redundant_pic_cnt;
         }
     }
+}
+
+bool H264AccessUnit::isValid() const {
+    if(!errors.empty()) return false;
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H264NAL>& NALUnit){
+        return acc && NALUnit->errors.empty();
+    });
+}
+
+bool H264AccessUnit::hasNonReferencePicture() const {
+    for(auto& NALUnit : NALUnits) 
+        if((NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc == 0) return true;
+    return false;
+}
+
+bool H264AccessUnit::hasReferencePicture() const {
+    for(auto& NALUnit : NALUnits) 
+        if((NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc != 0) return true;
+    return false;
 }

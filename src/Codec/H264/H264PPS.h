@@ -54,7 +54,6 @@ struct H264PPS : public H264NAL {
 
 	int8_t second_chroma_qp_index_offset;
 
-	std::vector<std::string> errors;
 
 	std::vector<std::string> dump_fields() override;
 	static inline std::unordered_map<uint8_t, H264PPS*> PPSMap;

@@ -16,5 +16,5 @@ public:
 
 private:
     QErrorView* m_pErrorView;
-    QDecoderModel* m_pStreamModel;
+    QDecoderModel* m_pDecoderModel;
 };

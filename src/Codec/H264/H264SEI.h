@@ -10,6 +10,7 @@
 #define SEI_BUFFERING_PERIOD 0
 #define SEI_PIC_TIMING 1
 #define SEI_FILLER_PAYLOAD 3
+#define SEI_USER_DATA_UNREGISTERED 5
 #define SEI_RECOVERY_POINT 6
 #define SEI_FULL_FRAME_FREEZE 13
 #define SEI_MVCD_VIEW_SCALABILITY_INFO 49
@@ -27,8 +28,6 @@ struct H264SEI : public H264NAL {
 	~H264SEI();
 
     std::vector<H264SEIMessage*> messages;
-
-	std::vector<std::string> errors;
 	
 	std::vector<std::string> dump_fields() override;
 };
@@ -82,7 +81,10 @@ struct H264SEIUserDataRegisteredItuTT35 : public H264SEIMessage {
 };
 
 struct H264SEIUserDataUnregistered : public H264SEIMessage {
-
+	~H264SEIUserDataUnregistered();
+	__uint128_t uuid_iso_iec_11578;
+	std::vector<uint8_t> user_data_payload_byte;
+	std::vector<std::string> dump_fields();
 };
 
 struct H264SEIRecoveryPoint : public H264SEIMessage {

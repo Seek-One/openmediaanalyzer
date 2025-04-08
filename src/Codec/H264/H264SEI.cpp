@@ -50,6 +50,9 @@ std::vector<std::string> H264SEI::dump_fields(){
 			case SEI_FILLER_PAYLOAD:
 				msgFields = reinterpret_cast<H264SEIFillerPayload*>(message)->dump_fields();
 				break;
+			case SEI_USER_DATA_UNREGISTERED:
+				msgFields = reinterpret_cast<H264SEIUserDataUnregistered*>(message)->dump_fields();
+				break;
 			case SEI_RECOVERY_POINT:
 				msgFields = reinterpret_cast<H264SEIRecoveryPoint*>(message)->dump_fields();
 				break;
@@ -134,6 +137,30 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 std::vector<std::string> H264SEIFillerPayload::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Filler payload");
+	return fields;
+}
+
+H264SEIUserDataUnregistered::~H264SEIUserDataUnregistered(){
+	user_data_payload_byte.clear();
+}
+
+std::vector<std::string> H264SEIUserDataUnregistered::dump_fields(){
+	std::vector<std::string> fields;
+	fields.push_back("SEI User data unregistered");
+
+	int index = 31;
+	std::ostringstream uuidStringStream = std::ostringstream();
+	for(int len : {8, 4, 4, 4, 12}){
+		for(int i = 0;i < len;++i){
+			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578 >> index*4)&& 0xFF);
+			index--;
+		}
+		if(len != 12) uuidStringStream << "-";
+	}
+	fields.push_back((std::ostringstream() << "  uuid_iso_iec_11578:" << uuidStringStream.str()).str());
+	for(int i = 0;i < user_data_payload_byte.size();++i){
+		fields.push_back((std::ostringstream() << "    user_data_payload_byte[" << i << "]:" << user_data_payload_byte[i]).str());
+	}
 	return fields;
 }
 

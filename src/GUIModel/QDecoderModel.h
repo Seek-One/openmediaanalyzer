@@ -43,6 +43,8 @@ signals:
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
     void updateErrorView(QString title, QStringList errors);
+    void updateSize(uint64_t size);
+    void updateValidity(uint32_t valid, uint32_t total);
     void updateVideoFrameView(QSharedPointer<QImage> pImage);
 
 public slots:

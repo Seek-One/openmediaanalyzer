@@ -9,6 +9,7 @@ class QVideoFrameView;
 class QTimelineView;
 class QNALUInfoView;
 class QErrorView;
+class QStatusView;
 
 class QWindowMain : public QMainWindow
 {
@@ -25,6 +26,7 @@ public:
     QNALUInfoView* getPPSInfoView();
     QNALUInfoView* getFrameInfoView();
     QErrorView* getErrorView();
+    QStatusView* getStatusView();
     QVideoFrameView* getVideoFrameView();
 
 public slots:
@@ -50,4 +52,5 @@ private:
     QNALUInfoView* m_pSPSInfoView;
     QNALUInfoView* m_pPPSInfoView;
     QErrorView* m_pErrorView;
+    QStatusView* m_pStatusView;
 };

@@ -808,19 +808,21 @@ void H264BitstreamReader::readAUD(H264AUD& h264AUD){
 
 void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 	do {
-		uint payloadType = 0;
+		uint64_t payloadType = 0;
 		uint8_t last_payload_type_byte = readBits(8);
 		while(last_payload_type_byte == 0xFF){
 			payloadType += last_payload_type_byte;
 			last_payload_type_byte = readBits(8);
 		}
 		payloadType += last_payload_type_byte;
-		uint payloadSize = 0;
+		uint64_t payloadSize = 0;
 		uint8_t last_payload_size_byte = readBits(8);
 		while(last_payload_size_byte == 0xFF){
 			payloadSize += last_payload_size_byte;
 			last_payload_size_byte = readBits(8);
 		}
+		payloadSize += last_payload_size_byte;
+		if(payloadSize*8 > m_iRemainingBits) return;
 		switch(payloadType){
 			case SEI_BUFFERING_PERIOD:
 				readSEIBufferingPeriod(h264SEI);
@@ -830,6 +832,9 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 				break;
 			case SEI_FILLER_PAYLOAD:
 				readSEIFillerPayload(h264SEI, payloadSize);
+				break;
+			case SEI_USER_DATA_UNREGISTERED:
+				readSEIUserDataUnregistered(h264SEI, payloadSize);
 				break;
 			case SEI_RECOVERY_POINT:
 				readSEIRecoveryPoint(h264SEI, activeSPS);
@@ -845,14 +850,14 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 				skipBits(8*payloadSize);
 		}
 		uint8_t byte_bit_offset = m_iBitsOffset%8;
-		if(byte_bit_offset != 0) readBits(8-byte_bit_offset);
+		if(byte_bit_offset != 0) skipBits(8-byte_bit_offset);
 	} while(hasMoreRBSPData());
 }
 
 void H264BitstreamReader::readSEIBufferingPeriod(H264SEI& h264SEI){
 	H264SEIBufferingPeriod* h264SEImsg = new H264SEIBufferingPeriod();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 0;
+	h264SEImsg->payloadType = SEI_BUFFERING_PERIOD;
 	h264SEImsg->seq_parameter_set_id = readGolombUE();
 	auto referencedSPS = H264SPS::SPSMap.find(h264SEImsg->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
@@ -892,7 +897,7 @@ void H264BitstreamReader::readSEIBufferingPeriod(H264SEI& h264SEI){
 void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& activeSPS){
 	H264SEIPicTiming* h264SEImsg = new H264SEIPicTiming();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 1;
+	h264SEImsg->payloadType = SEI_PIC_TIMING;
 	h264SEImsg->seq_parameter_set_id = activeSPS.seq_parameter_set_id;
 	if(activeSPS.nal_hrd_parameters_present_flag || activeSPS.vcl_hrd_parameters_present_flag){
 		h264SEImsg->cpb_removal_delay = readBits(std::max(activeSPS.nal_cpb_removal_delay_length_minus1+1, activeSPS.vcl_cpb_removal_delay_length_minus1+1));
@@ -966,14 +971,25 @@ void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& acti
 void H264BitstreamReader::readSEIFillerPayload(H264SEI& h264SEI, uint payloadSize){
 	H264SEIFillerPayload* h264SEImsg = new H264SEIFillerPayload();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 3;
+	h264SEImsg->payloadType = SEI_FILLER_PAYLOAD;
 	skipBits(8*payloadSize);
+}
+
+void H264BitstreamReader::readSEIUserDataUnregistered(H264SEI& h264SEI, uint payloadSize){
+	H264SEIUserDataUnregistered* h264SEImsg = new H264SEIUserDataUnregistered();
+	h264SEI.messages.push_back(h264SEImsg);
+	h264SEImsg->payloadType = SEI_USER_DATA_UNREGISTERED;
+	h264SEImsg->uuid_iso_iec_11578 = (__uint128_t)readBits(32) << 96;
+	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | ((__uint128_t)readBits(32) << 64);
+	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | ((__uint128_t)readBits(32) << 32);
+	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | readBits(32);
+	for(int i = 16;i < payloadSize;++i) h264SEImsg->user_data_payload_byte.push_back(readBits(8));
 }
 
 void H264BitstreamReader::readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS& activeSPS){
 	H264SEIRecoveryPoint* h264SEImsg = new H264SEIRecoveryPoint();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 6;
+	h264SEImsg->payloadType = SEI_RECOVERY_POINT;
 	h264SEImsg->recovery_frame_cnt = readGolombUE();
 	int MaxNumFrames = pow(2, 4+activeSPS.log2_max_frame_num_minus4);
 	if(h264SEImsg->recovery_frame_cnt > MaxNumFrames-1){
@@ -987,7 +1003,7 @@ void H264BitstreamReader::readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS& 
 void H264BitstreamReader::readSEIFullFrameFreeze(H264SEI& h264SEI){
 	H264SEIFullFrameFreeze* h264SEImsg = new H264SEIFullFrameFreeze();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 13;
+	h264SEImsg->payloadType = SEI_FULL_FRAME_FREEZE;
 	h264SEImsg->full_frame_freeze_repetition_period = readGolombUE();
 	if(h264SEImsg->full_frame_freeze_repetition_period > 16384){
 		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Full frame freeze] full_frame_freeze_repetition_period value (" << h264SEImsg->full_frame_freeze_repetition_period << ") not in valid range (0..16384)").str());
@@ -997,7 +1013,7 @@ void H264BitstreamReader::readSEIFullFrameFreeze(H264SEI& h264SEI){
 void H264BitstreamReader::readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const H264SPS& activeSPS){
 	H264SEIMvcdViewScalabilityInfo* h264SEImsg = new H264SEIMvcdViewScalabilityInfo();
 	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = 49;
+	h264SEImsg->payloadType = SEI_MVCD_VIEW_SCALABILITY_INFO;
 	h264SEImsg->num_operation_points_minus1 = readGolombUE();
 	if(h264SEImsg->num_operation_points_minus1 > 1023){
 		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_operation_points_minus1 value (" << h264SEImsg->num_operation_points_minus1 << ") not in valid range (0..1023)").str());

@@ -6,9 +6,9 @@
 #include "QErrorViewController.h"
 
 QErrorViewController::QErrorViewController(QErrorView* pErrorView, QDecoderModel* pDecoderModel)
-    : m_pErrorView(pErrorView), m_pStreamModel(pDecoderModel)
+    : m_pErrorView(pErrorView), m_pDecoderModel(pDecoderModel)
 {
-    connect(m_pStreamModel, &QDecoderModel::updateErrorView, m_pErrorView, &QErrorView::setErrors);
+    connect(m_pDecoderModel, &QDecoderModel::updateErrorView, m_pErrorView, &QErrorView::setErrors);
 }
 
 QErrorViewController::~QErrorViewController(){

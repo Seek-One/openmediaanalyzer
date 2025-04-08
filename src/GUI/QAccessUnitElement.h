@@ -7,14 +7,13 @@
 
 class QAccessUnitModel;
 
-class QTimelineAccessUnitElement : public QWidget
+class QAccessUnitElement : public QWidget
 {
     Q_OBJECT
 public:
-    QTimelineAccessUnitElement(QWidget *parent = NULL);
-    ~QTimelineAccessUnitElement();
-
-    void setFrameElement(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    QAccessUnitElement(QWidget *parent = NULL);
+    ~QAccessUnitElement();
+    void setAccessUnitElement(QSharedPointer<QAccessUnitModel> pAccessUnits);
 
     static inline quint64 m_maxSize = 0;
 protected:
@@ -26,12 +25,14 @@ protected:
 
     void leaveEvent(QEvent *event);
 
+public slots:
+    void accessUnitSelected();
+
 signals:
-    void selectFrame(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
     
 public:
     QString m_text;
-    QColor m_textColor;
     QColor m_barColor;
 
     bool m_hovered;
@@ -42,5 +43,5 @@ public:
 
 private:
     void updateBar();
-    void updateTextColor();
+    void updateBarColor();
 };

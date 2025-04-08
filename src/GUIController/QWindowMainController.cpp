@@ -10,6 +10,7 @@
 #include "QFolderViewController.h"
 #include "QTimelineViewController.h"
 #include "QErrorViewController.h"
+#include "QStatusViewController.h"
 #include "QVideoFrameViewController.h"
 
 #include "QWindowMainController.h"
@@ -22,6 +23,7 @@ QWindowMainController::QWindowMainController(){
     m_pFolderViewController = nullptr;
     m_pTimelineViewController = nullptr;
     m_pErrorViewController = nullptr;
+    m_pStatusViewController = nullptr;
     m_pVideoFrameViewController = nullptr;
 }
 
@@ -31,6 +33,7 @@ QWindowMainController::~QWindowMainController(){
     if(m_pFolderViewController) delete m_pFolderViewController;
     if(m_pTimelineViewController) delete m_pTimelineViewController;
     if(m_pErrorViewController) delete m_pErrorViewController;
+    if(m_pStatusViewController) delete m_pStatusViewController;
     if(m_pVideoFrameViewController) delete m_pVideoFrameViewController;
 }
 
@@ -39,6 +42,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pFolderViewController = new QFolderViewController(pWindowMain->getFolderView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
     m_pErrorViewController = new QErrorViewController(pWindowMain->getErrorView(), m_pDecoderModel);
+    m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel);
     m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel);
 
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);

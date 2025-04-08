@@ -9,6 +9,7 @@ class QDecoderModel;
 class QFolderViewController;
 class QTimelineViewController;
 class QErrorViewController;
+class QStatusViewController;
 class QVideoFrameViewController;
 
 class QWindowMainController : public QObject
@@ -37,5 +38,6 @@ private:
     QFolderViewController* m_pFolderViewController;
     QTimelineViewController* m_pTimelineViewController;
     QErrorViewController* m_pErrorViewController;
+    QStatusViewController* m_pStatusViewController;
     QVideoFrameViewController* m_pVideoFrameViewController;
 };

@@ -101,8 +101,8 @@ struct H264Slice : public H264NAL {
 	} drpm; // decoded ref pic marking
 
 	uint8_t IdrPicFlag;
+	uint16_t PrevRefFrameNum;
 
-	std::vector<std::string> errors;
 	std::vector<std::string> dump_fields() override;
 	H264PPS* getPPS() const;
 	H264SPS* getSPS() const;

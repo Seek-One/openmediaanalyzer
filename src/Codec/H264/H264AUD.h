@@ -24,9 +24,7 @@ struct H264AUD : public H264NAL {
     };
 
     uint8_t primary_pic_type;
-
-	std::vector<std::string> errors;
-
+    
 	std::vector<std::string> dump_fields() override;
 };
 

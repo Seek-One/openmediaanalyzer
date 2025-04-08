@@ -85,6 +85,8 @@ void QDecoderModel::reset(){
     frameSelected(nullptr);
     buildSPSView(this);
     buildPPSView(this);
+    emit updateSize(0);
+    emit updateValidity(0, 0);
     emit updateVideoFrameView(nullptr);
     if(m_pSwsCtx){
         sws_freeContext(m_pSwsCtx);
@@ -133,7 +135,8 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
         if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(GOP_LIMIT/2));
     }
     checkForNewGOP();
-    for(H264GOP* pGOP : m_pH264Stream->getGOPs()){
+    GOPs = m_pH264Stream->getGOPs();
+    for(H264GOP* pGOP : GOPs){
         for(H264AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
     }
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
@@ -164,6 +167,20 @@ void QDecoderModel::fileLoaded(uint8_t* fileContent, quint32 fileSize){
             emitPPSErrors();
             break;
     }
+    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
+        return acc + GOP->size();
+    });
+    emit updateSize(size);
+    uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
+        std::vector<H264AccessUnit*> pAccessUnits = GOP->getAccessUnits();
+        return acc + std::accumulate(pAccessUnits.begin(), pAccessUnits.end(), 0, [](uint32_t accAU, const H264AccessUnit* pAccessUnit){
+            return accAU + (pAccessUnit->isValid() ? 1 : 0);
+        });
+    });
+    uint32_t total = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
+        return acc + GOP->count();
+    });
+    emit updateValidity(valid, total);
 }
 
 QStringList errorListFromAccessUnit(const H264AccessUnit* accessUnit){
@@ -328,8 +345,7 @@ void QDecoderModel::validateCurrentGOP(){
             pAccessUnitModel->m_status = Status::REFERENCED_IFRAME_MISSING;
             continue;
         }
-
-        if(pSlice->frame_num < prevFrameNumber) {
+        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
             pAccessUnitModel->m_status = Status::OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->frame_num;

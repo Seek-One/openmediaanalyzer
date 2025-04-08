@@ -9,7 +9,7 @@
 #define SCROLL_CLAMP_RIGHT_THRESHOLD 0.975
 
 class QAccessUnitModel;
-class QTimelineAccessUnitElement;
+class QAccessUnitElement;
 
 class QTimelineView : public QGroupBox
 {
@@ -23,13 +23,13 @@ public slots:
     void accessUnitsUpdated();
     void accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitss);
     void accessUnitsRemoved(uint count);
-    void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void accessUnitSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
 
 signals:
-    void selectFrame(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
 
 private:
     QHBoxLayout* m_pHBoxLayout;
-    std::list<QSharedPointer<QTimelineAccessUnitElement>> m_pTimelineAccessUnitElement;
+    std::list<QSharedPointer<QAccessUnitElement>> m_pAccessUnitElements;
     QScrollArea* m_pScrollArea;
 };

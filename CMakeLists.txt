@@ -19,14 +19,16 @@ include_directories (${PROJECT_SOURCE_DIR}/src)
 
 set(APPLICATION_SOURCES
 	src/main.cpp
+    src/GUI/QAccessUnitElement.cpp
+    src/GUI/QAccessUnitElement.h
     src/GUI/QErrorView.cpp
     src/GUI/QErrorView.h
     src/GUI/QFolderView.cpp
     src/GUI/QFolderView.h
     src/GUI/QNALUInfoView.cpp
     src/GUI/QNALUInfoView.h
-    src/GUI/QTimelineAccessUnitElement.cpp
-    src/GUI/QTimelineAccessUnitElement.h
+    src/GUI/QStatusView.cpp
+    src/GUI/QStatusView.h
     src/GUI/QTimelineView.cpp
     src/GUI/QTimelineView.h
     src/GUI/QVideoFrameView.cpp
@@ -37,6 +39,8 @@ set(APPLICATION_SOURCES
     src/GUIController/QErrorViewController.h
     src/GUIController/QFolderViewController.cpp
     src/GUIController/QFolderViewController.h
+    src/GUIController/QStatusViewController.cpp
+    src/GUIController/QStatusViewController.h
     src/GUIController/QTimelineViewController.cpp
     src/GUIController/QTimelineViewController.h
     src/GUIController/QVideoFrameViewController.cpp

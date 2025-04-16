@@ -4,7 +4,6 @@
 #include <vector>
 #include <deque>
 #include <cstdint>
-#include <unordered_map>
 #include <memory>
 #include <list>
 
@@ -71,8 +70,9 @@ private:
 
 private:
 	H264NAL m_currentNAL;
-	H264SPS* m_pSps;
-	H264PPS* m_pPps;
+	H264SPS* m_pActiveSPS;
+	H264PPS* m_pActivePPS;
+	
 	std::deque<std::unique_ptr<H264GOP>> m_GOPs;
 	H264AccessUnit* m_pCurrentAccessUnit;
 

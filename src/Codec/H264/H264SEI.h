@@ -16,15 +16,16 @@
 #define SEI_MVCD_VIEW_SCALABILITY_INFO 49
 
 struct H264SEIMessage {
-	virtual ~H264SEIMessage() = default;
-	int payloadType;
 	H264SEIMessage();
+	virtual ~H264SEIMessage() = default;
+	uint8_t payloadType;
+
+	virtual std::vector<std::string> dump_fields();
 };
 
 struct H264SEI : public H264NAL {
 	H264SEI();
 	H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data);
-	// explicit H264SEI(H264SEI* pH264SEI);
 	~H264SEI();
 
     std::vector<H264SEIMessage*> messages;
@@ -40,7 +41,7 @@ struct H264SEIBufferingPeriod : public H264SEIMessage {
 	uint32_t nal_initial_cpb_removal_delay_offset[32];
 	uint32_t vcl_initial_cpb_removal_delay[32];
 	uint32_t vcl_initial_cpb_removal_delay_offset[32];
-    std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIPicTiming : public H264SEIMessage {
@@ -65,7 +66,7 @@ struct H264SEIPicTiming : public H264SEIMessage {
 	uint32_t time_offset[3];
 
 	uint8_t seq_parameter_set_id;
-    std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIPanScanRect : public H264SEIMessage {
@@ -73,7 +74,7 @@ struct H264SEIPanScanRect : public H264SEIMessage {
 };
 
 struct H264SEIFillerPayload : public H264SEIMessage {
-	std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIUserDataRegisteredItuTT35 : public H264SEIMessage {
@@ -84,7 +85,7 @@ struct H264SEIUserDataUnregistered : public H264SEIMessage {
 	~H264SEIUserDataUnregistered();
 	__uint128_t uuid_iso_iec_11578;
 	std::vector<uint8_t> user_data_payload_byte;
-	std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIRecoveryPoint : public H264SEIMessage {
@@ -93,7 +94,7 @@ struct H264SEIRecoveryPoint : public H264SEIMessage {
 	uint8_t exact_match_flag;
 	uint8_t broken_link_flag;
 	uint8_t changing_slice_group_idc;
-	std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIDecRefPicMarkingRepetition : public H264SEIMessage {
@@ -123,7 +124,7 @@ struct H264SEISeqCharacteristics : public H264SEIMessage {
 struct H264SEIFullFrameFreeze : public H264SEIMessage {
 	~H264SEIFullFrameFreeze() = default;
 	uint16_t full_frame_freeze_repetition_period;
-	std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 
 };
 
@@ -314,7 +315,7 @@ struct H264SEIMvcdViewScalabilityInfo : public H264SEIMessage {
 	uint8_t log2_max_mv_length_vertical[1024];
 	uint8_t num_reorder_frames[1024];
 	uint8_t max_dec_frame_buffering[1024];
-	std::vector<std::string> dump_fields();
+	std::vector<std::string> dump_fields() override;
 };
 
 struct H264SEIDepthRepresentationInfo : public H264SEIMessage {

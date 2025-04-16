@@ -138,13 +138,6 @@ H264SPS::H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 	}
 }
 
-H264SPS::~H264SPS(){
-	if(nal_data) {
-		delete[] nal_data;
-		nal_data = nullptr;
-	}
-}
-
 std::vector<std::string> H264SPS::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back((std::ostringstream() << "profile_idc:" << (int)profile_idc).str());

@@ -95,13 +95,6 @@ H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUn
 	memset(drpm.max_long_term_frame_idx_plus1, 0, 64 * sizeof(uint32_t));
 }
 
-H264Slice::~H264Slice(){
-	if(nal_data) {
-		delete[] nal_data;
-		nal_data = nullptr;
-	}
-}
-
 bool H264Slice::isSlice(H264NAL* NALUnit){
 	return NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame;
 }

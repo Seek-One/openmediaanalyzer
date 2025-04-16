@@ -87,7 +87,7 @@ PictureOrderCount H264Stream::computePOC() {
 		return PictureOrderCount(0, 0);
 	}
 
-	switch (m_pSps->pic_order_cnt_type) {
+	switch (m_pActiveSPS->pic_order_cnt_type) {
 	case 0:
 		return computePOCType0();
 
@@ -98,7 +98,7 @@ PictureOrderCount H264Stream::computePOC() {
 		return computePOCType2();
 
 	default:
-		std::cerr << "[H264::Stream] Invalid POC type: " << m_pSps->pic_order_cnt_type << "\n";
+		std::cerr << "[H264::Stream] Invalid POC type: " << m_pActiveSPS->pic_order_cnt_type << "\n";
 	}
 
 	return PictureOrderCount(0, 0);
@@ -201,7 +201,7 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 			}
 			for(std::string err : header_errors) pSps->errors.push_back(err);
-			m_pSps = pSps;
+			m_pActiveSPS = pSps;
 			H264SPS::SPSMap.insert_or_assign(pSps->seq_parameter_set_id, pSps);
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264SPS>(pSps));
 			break;
@@ -215,7 +215,7 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 			}			
 			for(std::string err : header_errors) pPps->errors.push_back(err);
-			m_pPps = pPps;
+			m_pActivePPS = pPps;
 			H264PPS::PPSMap.insert_or_assign(pPps->pic_parameter_set_id, pPps);
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264PPS>(pPps));
 			break;
@@ -253,7 +253,7 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		}
 		case H264NAL::UnitType_SEI: {
 			H264SEI* pSei = new H264SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
-			bitstreamReader.readSEI(*pSei, *m_pSps);
+			bitstreamReader.readSEI(*pSei, *m_pActiveSPS);
 			if(previousUnitIsVLC) {
 				m_pCurrentAccessUnit = new H264AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
@@ -312,9 +312,9 @@ void H264Stream::computeSizes() {
 	m_sizeUncropped = Size((int)PicWidthInSamplesL, (int)PicHeightInSamplesL);
 
 	// If the image was cropped
-	if (m_pSps->frame_cropping_flag) {
-		int iWidth = (PicWidthInSamplesL - (m_pSps->CropUnitX * m_pSps->frame_crop_right_offset + 1)) - (m_pSps->CropUnitX * m_pSps->frame_crop_left_offset) + 1;
-		int iHeight = ((16 * PicHeightInMbs) - (m_pSps->CropUnitY * m_pSps->frame_crop_bottom_offset + 1)) - (m_pSps->CropUnitY * m_pSps->frame_crop_top_offset) + 1;
+	if (m_pActiveSPS->frame_cropping_flag) {
+		int iWidth = (PicWidthInSamplesL - (m_pActiveSPS->CropUnitX * m_pActiveSPS->frame_crop_right_offset + 1)) - (m_pActiveSPS->CropUnitX * m_pActiveSPS->frame_crop_left_offset) + 1;
+		int iHeight = ((16 * PicHeightInMbs) - (m_pActiveSPS->CropUnitY * m_pActiveSPS->frame_crop_bottom_offset + 1)) - (m_pActiveSPS->CropUnitY * m_pActiveSPS->frame_crop_top_offset) + 1;
 
 		m_sizeCropped = Size(iWidth, iHeight);
 	} else {
@@ -344,7 +344,7 @@ PictureOrderCount H264Stream::computePOCType0() {
 	// h264 reference equation 8-3
 	H264Slice* pLastSlice = m_GOPs.back()->accessUnits.back()->slice();
 	int iPicOrderCntMsb = 0;
-	int iMaxPicOrderCntLsb = 1 << (m_pSps->log2_max_pic_order_cnt_lsb_minus4 + 4);
+	int iMaxPicOrderCntLsb = 1 << (m_pActiveSPS->log2_max_pic_order_cnt_lsb_minus4 + 4);
 	if ((pLastSlice->pic_order_cnt_lsb < prevPicOrderCntLsb) &&
 		((prevPicOrderCntLsb - pLastSlice->pic_order_cnt_lsb) >= (iMaxPicOrderCntLsb / 2)))
 	{
@@ -391,7 +391,7 @@ PictureOrderCount H264Stream::computePOCType1() {
 		}
 
 		// Set FrameNumOffset value
-		int iMaxFrameNum = 1 << (m_pSps->log2_max_frame_num_minus4 + 4);
+		int iMaxFrameNum = 1 << (m_pActiveSPS->log2_max_frame_num_minus4 + 4);
 		iFrameNumOffset = prevFrameNumOffset;
 		if (m_prevFrameNum > pLastSlice->frame_num) {
 			iFrameNumOffset += iMaxFrameNum;
@@ -399,7 +399,7 @@ PictureOrderCount H264Stream::computePOCType1() {
 	}
 
 	int absFrameNum = 0;
-	if (!m_pSps->num_ref_frames_in_pic_order_cnt_cycle) {
+	if (!m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle) {
 		absFrameNum = iFrameNumOffset + pLastSlice->frame_num;
 	}
 
@@ -410,25 +410,25 @@ PictureOrderCount H264Stream::computePOCType1() {
 	int expectedPicOrderCnt = 0;
 	if (absFrameNum > 0) {
 		int iExpectedDeltaPerPicOrderCntCycle = 0;
-		for (uint32_t i = 0; i < m_pSps->num_ref_frames_in_pic_order_cnt_cycle; ++i) {
-			iExpectedDeltaPerPicOrderCntCycle += m_pSps->offset_for_ref_frame[i];
+		for (uint32_t i = 0; i < m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle; ++i) {
+			iExpectedDeltaPerPicOrderCntCycle += m_pActiveSPS->offset_for_ref_frame[i];
 		}
 
-		int picOrderCntCycleCnt = (absFrameNum - 1) / m_pSps->num_ref_frames_in_pic_order_cnt_cycle;
-		int frameNumInPicOrderCntCycle = (absFrameNum - 1) % m_pSps->num_ref_frames_in_pic_order_cnt_cycle;
+		int picOrderCntCycleCnt = (absFrameNum - 1) / m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle;
+		int frameNumInPicOrderCntCycle = (absFrameNum - 1) % m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle;
 
 		expectedPicOrderCnt = picOrderCntCycleCnt * iExpectedDeltaPerPicOrderCntCycle;
 		for (int i = 0; i <= frameNumInPicOrderCntCycle; ++i) {
-			expectedPicOrderCnt += m_pSps->offset_for_ref_frame[i];
+			expectedPicOrderCnt += m_pActiveSPS->offset_for_ref_frame[i];
 		}
 
 		if (!m_currentNAL.nal_ref_idc) {
-			expectedPicOrderCnt += m_pSps->offset_for_non_ref_pic;
+			expectedPicOrderCnt += m_pActiveSPS->offset_for_non_ref_pic;
 		}
 	}
 
 	int iTopFieldOrderCnt = expectedPicOrderCnt + pLastSlice->delta_pic_order_cnt[0];
-	int iBottomFieldOrderCnt = iTopFieldOrderCnt + m_pSps->offset_for_top_to_bottom_field;
+	int iBottomFieldOrderCnt = iTopFieldOrderCnt + m_pActiveSPS->offset_for_top_to_bottom_field;
 	if (pLastSlice->bottom_field_flag) {
 		iBottomFieldOrderCnt += pLastSlice->delta_pic_order_cnt[0];
 	} else {
@@ -462,7 +462,7 @@ PictureOrderCount H264Stream::computePOCType2() {
 		}
 
 		// Set FrameNumOffset value
-		int iMaxFrameNum = (1 << (m_pSps->log2_max_frame_num_minus4 + 4));
+		int iMaxFrameNum = (1 << (m_pActiveSPS->log2_max_frame_num_minus4 + 4));
 		iFrameNumOffset = prevFrameNumOffset;
 		if (m_prevFrameNum > pLastSlice->frame_num) {
 			iFrameNumOffset += iMaxFrameNum;

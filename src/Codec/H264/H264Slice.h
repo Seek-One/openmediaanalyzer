@@ -22,7 +22,6 @@ struct H264Slice : public H264NAL {
 
 	H264Slice();
 	H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, uint8_t* nalData);
-	~H264Slice();
 
 	static bool isSlice(H264NAL* NALUnit);
 

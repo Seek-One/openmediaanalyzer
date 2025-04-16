@@ -16,53 +16,23 @@ H264SEI::H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 	nal_unit_type = UnitType_SEI;
 }
 
-// H264SEI::H264SEI(H264SEI* pH264SEI):
-// 	messages(pH264SEI->messages)
-// {
-// 	forbidden_zero_bit = pH264SEI->forbidden_zero_bit;
-// 	nal_ref_idc = pH264SEI->nal_ref_idc;
-// 	nal_unit_type = UnitType_SEI;
-// 	nal_size = pH264SEI->nal_size;
-// }
-
-
 H264SEI::~H264SEI(){
-	if(nal_data) delete[] nal_data;
 	for(H264SEIMessage* message : messages) delete message;
 	messages.clear();
 }
 
 H264SEIMessage::H264SEIMessage(){
-	payloadType = -1;
+	payloadType = UINT8_MAX;
+}
+
+std::vector<std::string> H264SEIMessage::dump_fields(){
+	return std::vector<std::string>();
 }
 
 std::vector<std::string> H264SEI::dump_fields(){
 	std::vector<std::string> fields;
 	for(H264SEIMessage* message : messages){
-		std::vector<std::string> msgFields;
-		switch(message->payloadType){
-			case SEI_BUFFERING_PERIOD:
-				msgFields = reinterpret_cast<H264SEIBufferingPeriod*>(message)->dump_fields();
-				break;
-			case SEI_PIC_TIMING:
-				msgFields = reinterpret_cast<H264SEIPicTiming*>(message)->dump_fields();
-				break;
-			case SEI_FILLER_PAYLOAD:
-				msgFields = reinterpret_cast<H264SEIFillerPayload*>(message)->dump_fields();
-				break;
-			case SEI_USER_DATA_UNREGISTERED:
-				msgFields = reinterpret_cast<H264SEIUserDataUnregistered*>(message)->dump_fields();
-				break;
-			case SEI_RECOVERY_POINT:
-				msgFields = reinterpret_cast<H264SEIRecoveryPoint*>(message)->dump_fields();
-				break;
-			case SEI_FULL_FRAME_FREEZE:
-				msgFields = reinterpret_cast<H264SEIFullFrameFreeze*>(message)->dump_fields();
-				break;
-			case SEI_MVCD_VIEW_SCALABILITY_INFO:
-				msgFields = reinterpret_cast<H264SEIMvcdViewScalabilityInfo*>(message)->dump_fields();
-				break;
-		}
+		std::vector<std::string> msgFields = message->dump_fields();
 		fields.insert(fields.end(), msgFields.begin(), msgFields.end());
 	}
 	return fields;

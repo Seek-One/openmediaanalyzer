@@ -10,7 +10,6 @@
 struct H264AUD : public H264NAL {
 	H264AUD();
     H264AUD(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data);
-    ~H264AUD();
 
     static const inline std::vector<std::vector<uint8_t>> slice_type_values = {
         {2, 7},

@@ -846,7 +846,7 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 				readSEIMvcdViewScalabilityInfo(h264SEI, activeSPS);
 				break;
 			default:
-				std::cout << "Unsupported SEI type : " << payloadType << "\n";
+				std::cerr << "Unsupported SEI type : " << payloadType << "\n";
 				skipBits(8*payloadSize);
 		}
 		uint8_t byte_bit_offset = m_iBitsOffset%8;

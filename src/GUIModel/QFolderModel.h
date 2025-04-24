@@ -15,7 +15,8 @@ public:
     
 signals:
     void updateFolderView(QFileSystemModel* model);
-    void loadFile(uint8_t* fileContent, quint32 fileSize);
+    void loadH264File(uint8_t* fileContent, quint32 fileSize);
+    void loadH265File(uint8_t* fileContent, quint32 fileSize);
     void loadFolderStart();
     void loadFolderEnd();
 

@@ -17,10 +17,11 @@ QFolderViewController::QFolderViewController(QFolderView* pFolderView, QFolderMo
     connect(this, &QFolderViewController::openStream, m_pStreamModel, &QStreamModel::streamLoaded);
 
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pDecoderModel, &QDecoderModel::reset);
-    connect(m_pFolderModel, &QFolderModel::loadFile, m_pDecoderModel, &QDecoderModel::fileLoaded);
+    connect(m_pFolderModel, &QFolderModel::loadH264File, m_pDecoderModel, &QDecoderModel::h264FileLoaded);
+    connect(m_pFolderModel, &QFolderModel::loadH265File, m_pDecoderModel, &QDecoderModel::h265FileLoaded);
 
     connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pDecoderModel, &QDecoderModel::reset);
-    connect(m_pStreamModel, &QStreamModel::loadFile, m_pDecoderModel, &QDecoderModel::fileLoaded);
+    connect(m_pStreamModel, &QStreamModel::loadFile, m_pDecoderModel, &QDecoderModel::h264FileLoaded);
 
     connect(m_pFolderModel, &QFolderModel::loadFolderEnd, m_pDecoderModel, &QDecoderModel::folderLoaded);
 }

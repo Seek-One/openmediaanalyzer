@@ -21,6 +21,7 @@ extern "C" {
 
 class QFolderView;
 class H264Stream;
+class H265Stream;
 
 class QDecoderModel : public QObject
 {
@@ -39,6 +40,7 @@ signals:
     void updateTimelineUnits();
     void addTimelineUnits(QVector<QSharedPointer<QAccessUnitModel>> accessUnits);
     void removeTimelineUnits(uint32_t count);
+    void updateVPSInfoView(QStandardItemModel* pModel);
     void updateSPSInfoView(QStandardItemModel* pModel);
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
@@ -49,32 +51,45 @@ signals:
 
 public slots:
     void reset();
-    void fileLoaded(uint8_t* fileContent, quint32 fileSize);
+    void h264FileLoaded(uint8_t* fileContent, quint32 fileSize);
+    void h265FileLoaded(uint8_t* fileContent, quint32 fileSize);
     void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void folderLoaded();
     void framesTabOpened();
+    void vpsTabOpened();
     void spsTabOpened();
     void ppsTabOpened();
 
 private:
     void emitStreamErrors();
-    void emitSPSErrors();
-    void emitPPSErrors();
+    void emitH264SPSErrors();
+    void emitH264PPSErrors();
+    void emitVPSErrors();
+    void emitH265SPSErrors();
+    void emitH265PPSErrors();
     void checkForNewGOP();
     void validateCurrentGOP();
+    void validateH264GOP();
+    void validateH265GOP();
     void addStreamError(QString err);
-    QImage* decodeSlice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
-    QImage* getQImageFromFrame(const AVFrame* pFrame);
+    QImage* decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    QImage* decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    QImage* getQImageFromH264Frame(const AVFrame* pFrame);
+    QImage* getQImageFromH265Frame(const AVFrame* pFrame);
 
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
     int m_tabIndex;
     H264Stream* m_pH264Stream;
+    H265Stream* m_pH265Stream;
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
 
-    const AVCodec* m_pCodec;
-    AVCodecContext* m_pCodecCtx;
-    SwsContext* m_pSwsCtx;
+    const AVCodec* m_pH264Codec;
+    AVCodecContext* m_pH264CodecCtx;
+    SwsContext* m_pH264SwsCtx;
+    const AVCodec* m_pH265Codec;
+    AVCodecContext* m_pH265CodecCtx;
+    SwsContext* m_pH265SwsCtx;
     int m_frameWidth;
     int m_frameHeight; 
     int m_pixelFormat;

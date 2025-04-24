@@ -53,10 +53,12 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::timelineStarted);
     
     
+    connect(m_pDecoderModel, &QDecoderModel::updateVPSInfoView, m_pWindowMain->getVPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updateSPSInfoView, m_pWindowMain->getSPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updatePPSInfoView, m_pWindowMain->getPPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updateFrameInfoView, m_pWindowMain->getFrameInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pWindowMain, &QWindowMain::openFramesTab, m_pDecoderModel, &QDecoderModel::framesTabOpened);
+    connect(m_pWindowMain, &QWindowMain::openVPSTab, m_pDecoderModel, &QDecoderModel::vpsTabOpened);
     connect(m_pWindowMain, &QWindowMain::openSPSTab, m_pDecoderModel, &QDecoderModel::spsTabOpened);
     connect(m_pWindowMain, &QWindowMain::openPPSTab, m_pDecoderModel, &QDecoderModel::ppsTabOpened);
     connect(m_pDecoderModel, &QDecoderModel::updateErrorView, pWindowMain, &QWindowMain::errorViewToggled);

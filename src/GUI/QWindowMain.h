@@ -22,6 +22,7 @@ public:
 
     QFolderView* getFolderView();
     QTimelineView* getTimelineView();
+    QNALUInfoView* getVPSInfoView();
     QNALUInfoView* getSPSInfoView();
     QNALUInfoView* getPPSInfoView();
     QNALUInfoView* getFrameInfoView();
@@ -36,6 +37,7 @@ signals:
     void openFolderClicked();
     void openStreamClicked();
     void openFramesTab();
+    void openVPSTab();
     void openSPSTab();
     void openPPSTab();
     void stop();
@@ -49,6 +51,7 @@ private:
     QTimelineView* m_pTimelineView;
     QTabWidget* m_pTabWidget;
     QNALUInfoView* m_pFrameInfoView;
+    QNALUInfoView* m_pVPSInfoView;
     QNALUInfoView* m_pSPSInfoView;
     QNALUInfoView* m_pPPSInfoView;
     QErrorView* m_pErrorView;

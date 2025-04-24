@@ -23,6 +23,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pFolderView = new QFolderView(pWidget);
     m_pVideoFrameView = new QVideoFrameView(pWidget);
     m_pTabWidget = new QTabWidget(pWidget);
+    m_pVPSInfoView = new QNALUInfoView(pWidget);
     m_pSPSInfoView = new QNALUInfoView(pWidget);
     m_pPPSInfoView = new QNALUInfoView(pWidget);
     m_pFrameInfoView = new QNALUInfoView(pWidget);
@@ -38,6 +39,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pTabWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     pGridLayout->addWidget(m_pTabWidget, 0, 3, m_pErrorView->isVisibleTo(this) ? 2 : 3, 1);
     m_pTabWidget->addTab(m_pFrameInfoView, "Access unit");
+    m_pTabWidget->addTab(m_pVPSInfoView, "VPS");
     m_pTabWidget->addTab(m_pSPSInfoView, "SPS");
     m_pTabWidget->addTab(m_pPPSInfoView, "PPS");
 
@@ -74,6 +76,9 @@ QWindowMain::QWindowMain(QWidget* parent)
                 emit openSPSTab();
                 break;
             case 2:
+                emit openSPSTab();
+                break;
+            case 3:
                 emit openPPSTab();
                 break;
         }
@@ -94,6 +99,9 @@ QTimelineView* QWindowMain::getTimelineView(){
     return m_pTimelineView;
 }
 
+QNALUInfoView* QWindowMain::getVPSInfoView(){
+    return m_pVPSInfoView;
+}
 
 QNALUInfoView* QWindowMain::getSPSInfoView(){
     return m_pSPSInfoView;

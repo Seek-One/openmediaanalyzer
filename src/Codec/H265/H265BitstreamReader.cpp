@@ -1134,3 +1134,30 @@ void H265BitstreamReader::readRefPicListsModification(H265Slice& h265Slice)
 		}
 	}
 }
+
+void H265BitstreamReader::readSEI(H265SEI& h265SEI){
+	do {
+		uint64_t payloadType = 0;
+		uint8_t last_payload_type_byte = readBits(8);
+		while(last_payload_type_byte == 0xFF){
+			payloadType += last_payload_type_byte;
+			last_payload_type_byte = readBits(8);
+		}
+		payloadType += last_payload_type_byte;
+		uint64_t payloadSize = 0;
+		uint8_t last_payload_size_byte = readBits(8);
+		while(last_payload_size_byte == 0xFF){
+			payloadSize += last_payload_size_byte;
+			last_payload_size_byte = readBits(8);
+		}
+		payloadSize += last_payload_size_byte;
+		if(payloadSize*8 > m_iRemainingBits) return;
+		switch(payloadType){
+			default:
+				std::cerr << "Unsupported SEI message type : " << payloadType << "\n";
+				skipBits(8*payloadSize);
+		}
+		uint8_t byte_bit_offset = m_iBitsOffset%8;
+		if(byte_bit_offset != 0) skipBits(8-byte_bit_offset);
+	} while(hasMoreRBSPData());
+}

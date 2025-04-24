@@ -445,6 +445,12 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
                 case H265NAL::UnitType_PPS:
                     model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Picture parameter set"));
                     break;
+                case H265NAL::UnitType_SEI_PREFIX:
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Prefix supplemental enhancement information"));
+                    break;
+                case H265NAL::UnitType_SEI_SUFFIX:
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Suffix supplemental enhancement information"));
+                    break;
             }
         }
     } 

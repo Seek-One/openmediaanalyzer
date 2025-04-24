@@ -11,6 +11,7 @@
 #include "H265Slice.h"
 #include "H265SPS.h"
 #include "H265VPS.h"
+#include "H265SEI.h"
 
 class H265BitstreamReader: public H26XBitstreamReader {
 public:
@@ -21,6 +22,7 @@ public:
 	void readSPS(H265SPS& h265SPS);
 	void readPPS(H265PPS& h265PPS);
 	void readSlice(H265Slice& h265Slice);
+	void readSEI(H265SEI& h265SEI);
 
 private:
 	H265ProfileTierLevel readProfileTierLevel(uint8_t iProfilePresentFlag, uint8_t iMaxNumSubLayersMinus1);

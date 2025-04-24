@@ -119,6 +119,8 @@ set(APPLICATION_SOURCES
     src/Codec/H265/H265ProfileTierLevel.h
     src/Codec/H265/H265ScalingList.cpp
     src/Codec/H265/H265ScalingList.h
+    src/Codec/H265/H265SEI.cpp
+    src/Codec/H265/H265SEI.h
     src/Codec/H265/H265ShortTermRefPicSet.cpp
     src/Codec/H265/H265ShortTermRefPicSet.h
     src/Codec/H265/H265Slice.cpp

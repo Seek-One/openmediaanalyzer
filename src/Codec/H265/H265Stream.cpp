@@ -126,6 +126,17 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			H265PPS::PPSMap.insert_or_assign(m_pActivePPS->pps_pic_parameter_set_id, m_pActivePPS);
 			break;
 		}
+		case H265NAL::UnitType_SEI_PREFIX:
+		case H265NAL::UnitType_SEI_SUFFIX: {
+			H265SEI* pSEI = new H265SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
+			bitstreamReader.readSEI(*pSEI);
+			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice){
+				m_pCurrentAccessUnit = new H265AccessUnit();
+				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
+			}
+			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265SEI>(pSEI));
+			break;
+		}
 		default:{
 			if (!m_currentNAL.isSlice()) std::cerr << "[H265 Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);

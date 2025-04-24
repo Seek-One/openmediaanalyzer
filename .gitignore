@@ -1,6 +1,6 @@
 .vscode
 /CMakeFiles
-/h264_samples
+/h26*_samples
 /openmediaanalyzer_autogen
 cmake_install.cmake
 CMakeCache.txt

@@ -48,6 +48,8 @@ struct H265ProfileTierLevel {
 	std::vector<uint8_t> sub_layer_max_14bit_constraint_flag;
 	std::vector<uint8_t> sub_layer_inbld_flag;
 	std::vector<uint8_t> sub_layer_level_idc;
+
+	std::vector<std::string> dump_fields();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_PROFILE_TIER_LEVEL_H_

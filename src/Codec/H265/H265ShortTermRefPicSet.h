@@ -29,6 +29,8 @@ struct H265ShortTermRefPicSet {
 	std::vector<int32_t> DeltaPocS1;
 	std::vector<uint8_t> UsedByCurrPicS1;
 	uint32_t NumDeltaPocs;
+
+	std::vector<std::string> dump_fields(uint32_t stRpsId, uint32_t num_short_term_ref_pic_sets);
 };
 
 

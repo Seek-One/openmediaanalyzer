@@ -1,11 +1,25 @@
+#include <cstring>
+
+#include "H265Utils.h"
+
 #include "H265NAL.h"
 
-H265NAL::H265NAL()
+H265NAL::H265NAL():
+	H265NAL(0, UnitType_Unspecified, 0, 0, 0, nullptr)
+{}
+
+H265NAL::H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, uint8_t* nalData):
+	forbidden_zero_bit(forbiddenZeroBit), nal_unit_type(nalUnitType), nuh_layer_id(nuhLayerId), nuh_temporal_id_plus1(nuhTemporalIdPlus1), 
+	TemporalId(nuh_temporal_id_plus1-1), nal_size(nalSize+3), nal_data(nullptr)
 {
-	forbidden_zero_bit = 0;
-	nal_unit_type = UnitType_Unspecified;
-	nuh_layer_id = 0;
-	nuh_temporal_id_plus1 = 0;
+	if(nalData == nullptr) return;
+	nal_data = new uint8_t[nal_size];
+	std::memcpy(nal_data, g_startCode3Bytes, 3);
+	std::memcpy(nal_data+3, nalData, nalSize);
+}
+
+H265NAL::~H265NAL(){
+	if(nal_data) delete[] nal_data;
 }
 
 bool H265NAL::isSlice() const
@@ -38,4 +52,8 @@ bool H265NAL::isSlice(UnitType nal_unit_type)
 	}
 
 	return false;
+}
+
+std::vector<std::string> H265NAL::dump_fields(){
+	return std::vector<std::string>();
 }

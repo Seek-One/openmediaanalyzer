@@ -1,13 +1,97 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265PPS_H_
 #define TOOLKIT_CODEC_UTILS_H265PPS_H_
 
+#include <unordered_map>
+
 #include "H265ScalingList.h"
+#include "H265NAL.h"
 
-struct H265PPS {
+struct H265PPSRangeExtension {
+	H265PPSRangeExtension();
+
+	uint8_t log2_max_transform_skip_block_size_minus2;
+	uint8_t cross_component_prediction_enabled_flag;
+	uint8_t chroma_qp_offset_list_enabled_flag;
+	uint8_t diff_cu_chroma_qp_offset_depth;
+	uint8_t chroma_qp_offset_list_len_minus1;
+	std::vector<int8_t> cb_qp_offset_list;
+	std::vector<int8_t> cr_qp_offset_list;
+	uint8_t log2_sao_offset_scale_luma;
+	uint8_t log2_sao_offset_scale_chroma;
+
+	std::vector<std::string> dump_fields();
+};
+
+struct H265PPSMultilayerExtension {
+	H265PPSMultilayerExtension();
+
+	uint8_t poc_reset_info_present_flag;
+	uint8_t pps_infer_scaling_list_flag;
+	uint8_t pps_scaling_list_ref_layer_id;
+	uint8_t num_ref_loc_offsets;
+	std::vector<uint8_t> ref_loc_offset_layed_id;
+	std::vector<uint8_t> scaled_ref_layer_offset_present_flag;
+	std::array<int16_t, 64> scaled_ref_layer_left_offset;
+	std::array<int16_t, 64> scaled_ref_layer_top_offset;
+	std::array<int16_t, 64> scaled_ref_layer_right_offset;
+	std::array<int16_t, 64> scaled_ref_layer_bottom_offset;
+	std::vector<uint8_t> ref_region_offset_present_flag;
+	std::array<int16_t, 64> ref_region_left_offset;
+	std::array<int16_t, 64> ref_region_top_offset;
+	std::array<int16_t, 64> ref_region_right_offset;
+	std::array<int16_t, 64> ref_region_bottom_offset;
+	std::vector<uint8_t> resample_phase_set_present_flag;
+	std::array<uint8_t, 64> phase_hor_luma;
+	std::array<uint8_t, 64> phase_ver_luma;
+	std::array<uint8_t, 64> phase_hor_chroma_plus8;
+	std::array<uint8_t, 64> phase_ver_chroma_plus8;
+	uint8_t colour_mapping_enabled_flag;
+	// TODO colour_mapping_table
+	// H265PPSColourMappingTable colour_mapping_table;
+
+	std::vector<std::string> dump_fields();
+};
+
+struct H265PPS3DExtension {
+	H265PPS3DExtension();
+	
+	uint8_t dlts_present_flag;
+	uint8_t pps_depth_layers_minus1;
+	uint8_t pps_bit_depth_for_depth_layers_minus8;
+	std::array<uint8_t, 64> dlt_flag;
+	std::array<uint8_t, 64> dlt_pref_flag;
+	std::array<uint8_t, 64> dlt_val_flags_present_flag;
+	std::array<std::vector<uint8_t>, 64> dlt_value_flag;
+
+	std::vector<std::string> dump_fields();
+};
+
+struct H265PPSSCCExtension {
+	H265PPSSCCExtension();
+
+	uint8_t pps_curr_pic_ref_enabled_flag;
+	uint8_t residual_adaptive_colour_transform_enabled_flag;
+	uint8_t pps_slice_act_qp_offsets_present_flag;
+	int8_t pps_act_y_qp_offset_plus5;
+	int8_t pps_act_cb_qp_offset_plus5;
+	int8_t pps_act_cr_qp_offset_plus3;
+	
+	uint8_t pps_palette_predictor_initializers_present_flag;
+	uint32_t pps_num_palette_predictor_initializer;
+	uint8_t monochrome_palette_flag;
+	uint8_t luma_bit_depth_entry_minus8;
+	uint8_t chroma_bit_depth_entry_minus8;
+	std::array<std::vector<uint32_t>, 3> pps_palette_predictor_initializer;
+	std::vector<std::string> dump_fields();
+};
+
+struct H265PPS : public H265NAL {
 	H265PPS();
+	H265PPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data);
+	~H265PPS();
 
-	uint32_t pps_pic_parameter_set_id;
-	uint32_t pps_seq_parameter_set_id;
+	uint8_t pps_pic_parameter_set_id;
+	uint8_t pps_seq_parameter_set_id;
 	uint8_t dependent_slice_segments_enabled_flag;
 	uint8_t output_flag_present_flag;
 	uint8_t num_extra_slice_header_bits;
@@ -45,7 +129,21 @@ struct H265PPS {
 	uint8_t lists_modification_present_flag;
 	int32_t log2_parallel_merge_level_minus2;
 	uint8_t slice_segment_header_extension_present_flag;
+
 	uint8_t pps_extension_present_flag;
+	uint8_t pps_range_extension_flag;
+	uint8_t pps_multilayer_extension_flag;
+	uint8_t pps_3d_extension_flag;
+	uint8_t pps_scc_extension_flag;
+
+	H265PPSRangeExtension pps_range_extension;
+	H265PPSMultilayerExtension pps_multilayer_extension;
+	H265PPS3DExtension pps_3d_extension;
+	H265PPSSCCExtension pps_scc_extension;
+
+	static inline std::unordered_map<uint8_t, H265PPS*> PPSMap;
+
+	std::vector<std::string> dump_fields() override;
 };
 
 

@@ -1,3 +1,6 @@
+#include <string>
+#include <sstream>
+
 #include "H265ScalingList.h"
 
 static int32_t g_defaultIntraScalingList[64] = {
@@ -49,4 +52,25 @@ H265ScalingList::H265ScalingList()
 			scaling_list_dc_coef_minus8[i][j] = 8;
 		}
 	}
+}
+
+std::vector<std::string> H265ScalingList::dump_fields(){
+	std::vector<std::string> fields;
+	for(int sizeId = 0;sizeId < 4;++sizeId){
+		for(int matrixId = 0;matrixId < 6;matrixId += (sizeId == 3 ? 3 : 1)){
+			fields.push_back((std::ostringstream() << "scaling_list_pred_mode_flag[" << sizeId << "][" << matrixId << "]:" << (int)scaling_list_pred_mode_flag[sizeId][matrixId]).str());
+			if(!scaling_list_pred_mode_flag[sizeId][matrixId]){
+				fields.push_back((std::ostringstream() << "  scaling_list_pred_matrix_id_delta[" << sizeId << "][" << matrixId << "]:" << scaling_list_pred_matrix_id_delta[sizeId][matrixId]).str());
+			} else {
+				int coefNum = std::min(64, (1 << (4 + (sizeId << 1))));
+				if(sizeId > 1){
+					fields.push_back((std::ostringstream() << "  scaling_list_dc_coef_minus8[" << sizeId << "][" << matrixId << "]:" << scaling_list_dc_coef_minus8[sizeId][matrixId]).str());
+				}
+				for(int i = 0;i < coefNum;++i){
+					fields.push_back((std::ostringstream() << "    scaling_list_dc_coef_minus8[" << i << "][" << sizeId << "][" << matrixId << "]:" << scaling_list_delta_coef[i][sizeId][matrixId]).str());
+				}
+			}
+		}
+	}
+	return fields;
 }

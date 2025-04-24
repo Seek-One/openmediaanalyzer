@@ -103,8 +103,14 @@ set(APPLICATION_SOURCES
     src/Codec/H264/H264Stream.h
     src/Codec/H264/H264Utils.cpp
     src/Codec/H264/H264Utils.h
+    src/Codec/H265/H265AccessUnit.cpp
+    src/Codec/H265/H265AccessUnit.h
     src/Codec/H265/H265BitstreamReader.cpp
     src/Codec/H265/H265BitstreamReader.h
+    src/Codec/H265/H265GOP.cpp
+    src/Codec/H265/H265GOP.h
+    src/Codec/H265/H265HrdParameters.cpp
+    src/Codec/H265/H265HrdParameters.h
     src/Codec/H265/H265NAL.cpp
     src/Codec/H265/H265NAL.h
     src/Codec/H265/H265PPS.cpp

@@ -1,7 +1,15 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265_SLICE_H_
 #define TOOLKIT_CODEC_UTILS_H265_SLICE_H_
 
+#include <list>
+
 #include "H265ShortTermRefPicSet.h"
+#include "H265NAL.h"
+#include "H265PPS.h"
+#include "H265SPS.h"
+#include "H265VPS.h"
+
+struct H265Slice;
 
 struct RefPicListsModification {
 
@@ -11,9 +19,30 @@ struct RefPicListsModification {
 	std::vector<uint32_t> list_entry_l0;
 	uint8_t ref_pic_list_modification_flag_l1;
 	std::vector<uint32_t> list_entry_l1;
+
+	std::vector<std::string> dump_fields(const H265Slice& slice) const;
 };
 
-struct H265Slice {
+struct H265PredWeightTable {
+	H265PredWeightTable();
+
+	uint8_t luma_log2_weight_denom;
+	uint8_t delta_chroma_log2_weight_denom;
+	std::array<uint8_t, 15> luma_weight_l0_flag;
+	std::array<uint8_t, 15> chroma_weight_l0_flag;
+	std::array<int16_t, 15> delta_luma_weight_l0_flag;
+	std::array<int16_t, 15> luma_offset_l0;
+	std::array<int16_t, 15> delta_chroma_weight_l0_flag;
+	std::array<int16_t, 15> delta_chroma_offset_l0;
+	std::array<uint8_t, 15> luma_weight_l1_flag;
+	std::array<uint8_t, 15> chroma_weight_l1_flag;
+	std::array<int16_t, 15> delta_luma_weight_l1_flag;
+	std::array<int16_t, 15> luma_offset_l1;
+	std::array<int16_t, 15> delta_chroma_weight_l1_flag;
+	std::array<int16_t, 15> delta_chroma_offset_l1;
+};
+
+struct H265Slice : public H265NAL {
 	enum SliceType {
 		SliceType_B = 0,
 		SliceType_P = 1,
@@ -22,6 +51,7 @@ struct H265Slice {
 	};
 
 	H265Slice();
+	H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data);
 
 	uint8_t first_slice_segment_in_pic_flag;
 	uint8_t no_output_of_prior_pics_flag;
@@ -55,7 +85,7 @@ struct H265Slice {
 	uint8_t cabac_init_flag;
 	uint8_t collocated_from_l0_flag;
 	uint32_t collocated_ref_idx;
-	// PredWeightTable          pred_weight_table;
+	H265PredWeightTable pred_weight_table;
 	uint32_t five_minus_max_num_merge_cand;
 	int32_t slice_qp_delta;
 	int32_t slice_cb_qp_offset;
@@ -75,6 +105,9 @@ struct H265Slice {
 	std::vector<uint8_t> slice_segment_header_extension_data_byte;
 
 	// Derived variables
+	uint8_t IdrPicFlag;
+	uint8_t IRAPPicture;
+	uint8_t NoRaslOutputFlag;
 	uint8_t CurrRpsIdx;
 	uint32_t NumPicTotalCurr;
 	std::vector<uint32_t> PocLsbLt;
@@ -87,7 +120,45 @@ struct H265Slice {
 	uint64_t NumShortTermPictureSliceHeaderBits;
 	uint64_t NumLongTermPictureSliceHeaderBits;
 
-	uint8_t IdrPicFlag;
+	// Variable to handle the decoding process 8
+	uint8_t TargetDecLayerIdList; // 8.1.2
+	uint8_t HighestTid; // 8.1.2
+	bool SubPicHrdFlag; // 8.1.2
+	uint32_t PicOrderCntVal; // 8.3.1
+	uint32_t prevPicOrderCntLsb; // 8.3.1
+	uint32_t prevPicOrderCntMsb; // 8.3.1
+	uint32_t MaxPicOrderCntLsb; // 8.3.2
+	Int32Vector PocStCurrBefore; // 8.3.2
+	Int32Vector PocStCurrAfter; // 8.3.2
+	Int32Vector PocStFoll; // 8.3.2
+	Int32Vector PocLtCurr; // 8.3.2
+	Int32Vector PocLtFoll; // 8.3.2
+	UInt8Vector CurrDeltaPocMsbPresentFlag; // 8.3.2
+	UInt8Vector FollDeltaPocMsbPresentFlag; // 8.3.2
+
+
+	// Short-term picture lists
+	std::vector<int> RefPicSetStCurrBefore;
+	std::vector<int> RefPicSetStCurrAfter;
+	std::list<int> RefPicSetStFoll;
+
+	// Long-term picture lists
+	std::vector<int> RefPicSetLtCurr;
+	std::list<int> RefPicSetLtFoll;
+
+	// Reference picture lists
+	std::vector<int> RefPicList0; // 8.3.4 (For P-slice)
+	std::vector<int> RefPicList1; // 8.3.4 (For B-slice)
+	std::vector<int> RefPicListTemp0;
+	std::vector<int> RefPicListTemp1;
+
+
+	void decodeRPS();
+	void computeRef();
+	std::vector<std::string> dump_fields() override;
+	H265PPS* getPPS() const;
+	H265SPS* getSPS() const;
+	H265VPS* getVPS() const;
 };
 
 

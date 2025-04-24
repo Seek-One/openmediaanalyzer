@@ -17,6 +17,8 @@ struct H265ScalingList {
 	// ScalingList[1] -> 8x8
 	// ScalingList[2] -> 16x16
 	// ScalingList[3] -> 32x32
+
+	std::vector<std::string> dump_fields();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_

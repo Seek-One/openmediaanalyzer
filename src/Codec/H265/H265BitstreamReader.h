@@ -20,12 +20,19 @@ public:
 	void readVPS(H265VPS& h265VPS);
 	void readSPS(H265SPS& h265SPS);
 	void readPPS(H265PPS& h265PPS);
-	void readSlice(H265Slice& h265Slice, const H265NAL& h265NAL, H265SPS& h265SPS, const H265PPS& h265PPS);
+	void readSlice(H265Slice& h265Slice);
 
 private:
 	H265ProfileTierLevel readProfileTierLevel(uint8_t iProfilePresentFlag, uint8_t iMaxNumSubLayersMinus1);
 	H265ScalingList readScalingList();
 	H265ShortTermRefPicSet readShortTermRefPicSet(uint32_t iShortTermSetIndex, const H265SPS& h265SPS);
+	H265HrdParameters readHrdParameters(uint8_t commonInfPresentFlag, uint8_t maxNumSubLayersMinus1);
+	H265VuiParameters readVuiParameters(uint8_t sps_max_sub_layers_minus1);
+	H265SPSRangeExtension readSPSRangeExtension();
+	H265SPSMultilayerExtension readSPSMultilayerExtension();
+	H265SPS3DExtension readSPS3DExtension();
+	H265SPSSCCExtension readSPSSCCExtension(const H265SPS& h265SPS);
+	H265PredWeightTable readSlicePredWeightTable(const H265Slice& h265Slice);
 	void computeNumPicTotalCurr(H265Slice& h265Slice, const H265SPS& h265SPS);
 
 	void readRefPicListsModification(H265Slice& h265Slice);

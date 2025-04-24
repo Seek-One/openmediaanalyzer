@@ -2,6 +2,8 @@
 #define TOOLKIT_CODEC_UTILS_H265NAL_H_
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 struct H265NAL {
 	enum UnitType {
@@ -35,14 +37,24 @@ struct H265NAL {
 	};
 
 	H265NAL();
+	H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, uint8_t* nalData);
+	virtual ~H265NAL();
 
 	uint8_t forbidden_zero_bit;
 	UnitType nal_unit_type;
 	uint8_t nuh_layer_id;
 	uint8_t nuh_temporal_id_plus1;
 
+	uint8_t TemporalId;
+
+	uint32_t nal_size;
+	uint8_t* nal_data;
+
+	std::vector<std::string> errors;
+
 	bool isSlice() const;
 	static bool isSlice(UnitType nal_unit_type);
+	virtual std::vector<std::string> dump_fields();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265NAL_H_

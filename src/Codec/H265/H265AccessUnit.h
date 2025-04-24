@@ -14,6 +14,7 @@ struct H265AccessUnit {
     ~H265AccessUnit();
 
     H265Slice* slice() const;
+    std::vector<H265Slice*> slices() const;
     bool empty() const;
     std::vector<H265NAL*> getNALUnits() const;
     void addNALUnit(std::unique_ptr<H265NAL> NALUnit);

@@ -98,7 +98,7 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 		h265SPS.SubHeightC = 1;
 	}
 	h265SPS.ChromaArrayType = (h265SPS.separate_colour_plane_flag == 0 ? h265SPS.chroma_format_idc : 0);
-
+	
 	h265SPS.pic_width_in_luma_samples = readGolombUE();
 	h265SPS.pic_height_in_luma_samples = readGolombUE();
 	h265SPS.conformance_window_flag = readBits(1);
@@ -189,7 +189,7 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	h265SPS.QpBdOffsetY = 6 * h265SPS.bit_depth_luma_minus8;
 	h265SPS.BitDepthC = 8 + h265SPS.bit_depth_chroma_minus8;
 	h265SPS.QpBdOffsetC = 6 * h265SPS.bit_depth_chroma_minus8;
-
+	
 	if(h265SPS.sps_range_extension_flag) h265SPS.sps_range_extension = readSPSRangeExtension();
 	if(h265SPS.sps_multilayer_extension_flag) h265SPS.sps_multilayer_extension = readSPSMultilayerExtension();
 	if(h265SPS.sps_3d_extension_flag) h265SPS.sps_3d_extension = readSPS3DExtension();
@@ -906,7 +906,14 @@ H265HrdParameters H265BitstreamReader::readHrdParameters(uint8_t commonInfPresen
 		if(!h265HrdParameters.low_delay_hrd_flag[i]) h265HrdParameters.cpb_cnt_minus1[i] = readGolombUE();
 		else h265HrdParameters.cpb_cnt_minus1[i] = 0;
 		if(h265HrdParameters.nal_hrd_parameters_present_flag){
-			for(int j =0;j <= h265HrdParameters.cpb_cnt_minus1[i];++j){
+			h265HrdParameters.nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			h265HrdParameters.nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			if(h265HrdParameters.sub_pic_hrd_params_present_flag){
+				h265HrdParameters.nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+				h265HrdParameters.nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			}
+			h265HrdParameters.nal_sub_layer_hrd_parameters[i].cbr_flag.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			for(int j = 0;j <= h265HrdParameters.cpb_cnt_minus1[i];++j){
 				h265HrdParameters.nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] = readGolombUE();
 				h265HrdParameters.nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] = readGolombUE();
 				if(h265HrdParameters.sub_pic_hrd_params_present_flag){
@@ -917,7 +924,14 @@ H265HrdParameters H265BitstreamReader::readHrdParameters(uint8_t commonInfPresen
 			}
 		}
 		if(h265HrdParameters.vcl_hrd_parameters_present_flag){
-			for(int j =0;j <= h265HrdParameters.cpb_cnt_minus1[i];++j){
+			h265HrdParameters.vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			h265HrdParameters.vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			if(h265HrdParameters.sub_pic_hrd_params_present_flag){
+				h265HrdParameters.vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+				h265HrdParameters.vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			}
+			h265HrdParameters.vcl_sub_layer_hrd_parameters[i].cbr_flag.resize(h265HrdParameters.cpb_cnt_minus1[i]+1);
+			for(int j = 0;j <= h265HrdParameters.cpb_cnt_minus1[i];++j){
 				h265HrdParameters.vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] = readGolombUE();
 				h265HrdParameters.vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] = readGolombUE();
 				if(h265HrdParameters.sub_pic_hrd_params_present_flag){

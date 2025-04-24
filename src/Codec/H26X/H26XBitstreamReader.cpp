@@ -13,13 +13,13 @@ H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 
 	// In last byte, remove final bit to 1 and trailing zero
 	int iMask = 0x01;
-	int iShfitCount = 1;
+	int iShiftCount = 1;
 	uint8_t iLastByte = pNALData[iNALLength - 1];
 	while ((iLastByte & iMask) == 0) {
 		iMask = iMask << 1;
-		++iShfitCount;
+		++iShiftCount;
 	}
-	m_iRemainingBits -= iShfitCount;
+	m_iRemainingBits -= iShiftCount;
 }
 
 uint32_t H26XBitstreamReader::readBits(uint8_t iNumberBits)

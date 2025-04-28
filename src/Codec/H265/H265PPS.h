@@ -144,6 +144,7 @@ struct H265PPS : public H265NAL {
 	static inline std::unordered_map<uint8_t, H265PPS*> PPSMap;
 
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 

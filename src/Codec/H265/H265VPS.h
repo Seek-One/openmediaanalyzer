@@ -25,7 +25,7 @@ struct H265VPS : public H265NAL {
 	std::vector<uint32_t> vps_max_num_reorder_pics;
 	std::vector<uint32_t> vps_max_latency_increase_plus1;
 	uint8_t vps_max_layer_id;
-	uint32_t vps_num_layer_sets_minus1;
+	uint16_t vps_num_layer_sets_minus1;
 	std::vector<UInt8Vector> layer_id_included_flag;
 	uint8_t vps_timing_info_present_flag;
 	uint32_t vps_num_units_in_tick;

@@ -35,11 +35,13 @@ struct H265HrdParameters {
 	uint8_t dpb_output_delay_length_minus1;
 	std::vector<uint8_t> fixed_pic_rate_general_flag;
 	std::vector<uint8_t> fixed_pic_rate_within_cvs_flag;
-	std::vector<uint32_t> elemental_duration_in_tc_minus1;
+	std::vector<uint16_t> elemental_duration_in_tc_minus1;
 	std::vector<uint8_t> low_delay_hrd_flag;
-	std::vector<uint32_t> cpb_cnt_minus1;
+	std::vector<uint8_t> cpb_cnt_minus1;
 	std::vector<H265SubLayerHrdParameters> nal_sub_layer_hrd_parameters;
 	std::vector<H265SubLayerHrdParameters> vcl_sub_layer_hrd_parameters;
+
+	std::vector<std::string> errors;
 
 	std::vector<std::string> dump_fields(uint8_t commonInfPresentFlag);
 };

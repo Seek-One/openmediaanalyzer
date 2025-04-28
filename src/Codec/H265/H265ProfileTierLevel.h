@@ -49,6 +49,8 @@ struct H265ProfileTierLevel {
 	std::vector<uint8_t> sub_layer_inbld_flag;
 	std::vector<uint8_t> sub_layer_level_idc;
 
+	std::vector<std::string> errors;
+	
 	std::vector<std::string> dump_fields();
 };
 

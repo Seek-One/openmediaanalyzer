@@ -66,7 +66,6 @@ void H264BitstreamReader::readNALHeader(H264NAL& h264NAL)
 
 void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 {
-	h264SPS.errors.clear();
 	// Ref sec. 7.3.2.1.1
 	h264SPS.profile_idc = readBits(8);
 	
@@ -78,16 +77,9 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 	h264SPS.constraint_set5_flag = readBits(1);
 	h264SPS.reserved_zero_2bits = readBits(2);
 	
-	if (h264SPS.reserved_zero_2bits != 0) {
-		h264SPS.errors.push_back("[H264 SPS content] reserved_zero_2bits not equal to 0");
-	}
-	
 	h264SPS.level_idc = readBits(8);
 	h264SPS.seq_parameter_set_id = readGolombUE();
-	if(h264SPS.seq_parameter_set_id > 31){
-		h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] seq_parameter_set_id value (" << (int)h264SPS.seq_parameter_set_id << ") not in valid range (0..31)").str());
-	}
-
+	
 	switch(h264SPS.profile_idc) {
 	case 100:
 	case 110:
@@ -106,13 +98,7 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 			h264SPS.separate_colour_plane_flag = readBits(1);
 		}
 		h264SPS.bit_depth_luma_minus8 = readGolombUE();
-		if(h264SPS.bit_depth_luma_minus8 > 6){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] bit_depth_luma_minus8  value (" << (int)h264SPS.bit_depth_luma_minus8  << ") not in valid range (0..6)").str());
-		}
 		h264SPS.bit_depth_chroma_minus8 = readGolombUE();
-		if(h264SPS.bit_depth_chroma_minus8 > 6){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] bit_depth_chroma_minus8  value (" << (int)h264SPS.bit_depth_chroma_minus8  << ") not in valid range (0..6)").str());
-		}
 		h264SPS.qpprime_y_zero_transform_bypass_flag = readBits(1);
 
 		h264SPS.seq_scaling_matrix_present_flag = readBits(1);
@@ -164,27 +150,15 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 	h264SPS.QpBdOffsetY = 6*h264SPS.bit_depth_luma_minus8;
 
 	h264SPS.log2_max_frame_num_minus4 = readGolombUE();
-	if(h264SPS.log2_max_frame_num_minus4 > 12){
-		h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] log2_max_frame_num_minus4 value (" << (int)h264SPS.log2_max_frame_num_minus4 << ") not in valid range (0..12)").str());
-	}
 	h264SPS.pic_order_cnt_type = readGolombUE();
-	if(h264SPS.pic_order_cnt_type > 2){
-		h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] pic_order_cnt_type (" << (int)h264SPS.pic_order_cnt_type << ") not in valid range (0..2)").str());
-	}
 	if (h264SPS.pic_order_cnt_type == 0) {
 		h264SPS.log2_max_pic_order_cnt_lsb_minus4 = readGolombUE();
-		if(h264SPS.log2_max_pic_order_cnt_lsb_minus4 > 12){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] log2_max_pic_order_cnt_lsb_minus4 value (" << (int)h264SPS.log2_max_frame_num_minus4 << ") not in valid range (0..12)").str());
-		}
 		h264SPS.MaxPicOrderCntLsb = 1 << (h264SPS.log2_max_pic_order_cnt_lsb_minus4+4);
 	} else if (h264SPS.pic_order_cnt_type == 1) {
 		h264SPS.delta_pic_order_always_zero_flag = readBits(1);
 		h264SPS.offset_for_non_ref_pic = readGolombSE();
 		h264SPS.offset_for_top_to_bottom_field = readGolombSE();
 		h264SPS.num_ref_frames_in_pic_order_cnt_cycle = readGolombUE();
-		if(h264SPS.num_ref_frames_in_pic_order_cnt_cycle > 255){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] num_ref_frames_in_pic_order_cnt_cycle value (" << (int)h264SPS.num_ref_frames_in_pic_order_cnt_cycle << ") not in valid range (0..255)").str());
-		}
 		for (uint32_t i=0; i < h264SPS.num_ref_frames_in_pic_order_cnt_cycle; i++) {
 			h264SPS.offset_for_ref_frame[i] = readGolombSE();
 		}
@@ -198,9 +172,6 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 	h264SPS.PicHeightInMapUnits = h264SPS.pic_height_in_map_units_minus1 + 1; 
 	h264SPS.FrameHeightInMbs = (2 - h264SPS.frame_mbs_only_flag) * h264SPS.PicHeightInMapUnits;
 	h264SPS.MaxDpbFrames = std::min(H264SPS::MaxDpbMbs[h264SPS.level_limit_index()]/(h264SPS.PicWidthInMbs*h264SPS.FrameHeightInMbs), 16u);
-	if(h264SPS.max_num_ref_frames > h264SPS.MaxDpbFrames){
-		h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] max_num_ref_frames value (" << (int)h264SPS.max_num_ref_frames << ") not in valid range (0.." << (int)h264SPS.MaxDpbFrames << ")").str());
-	}
 	h264SPS.PicSizeInMapUnits = h264SPS.PicWidthInMbs * h264SPS.PicHeightInMapUnits;
 
 
@@ -229,21 +200,13 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 				SubWidthC = 1;
 			} else if (h264SPS.chroma_format_idc == 1 || h264SPS.chroma_format_idc == 2) {
 				SubWidthC = 2;
-			} else {
-				// std::cerr << "[H264::Bitstream] invalid chroma_format_idc\n"; 
-				h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] chroma_format_idc value (" << (int)h264SPS.chroma_format_idc << ") not in valid range (0..3)").str());
 			}
 
 			if (h264SPS.chroma_format_idc == 1) {
 				SubHeightC = 2;
 			} else if (h264SPS.chroma_format_idc == 2 || h264SPS.chroma_format_idc == 3) {
 				SubHeightC = 1;
-			} else {
-				// std::cerr << "[H264::Bitstream] invalid chroma_format_idc\n";
-				h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] chroma_format_idc value (" << (int)h264SPS.chroma_format_idc << ") not in valid range (0..3)").str());
 			}
-		} else {
-			// std::cerr << "[H264::Bitstream] invalid separate_colour_plane_flag\n";
 		}
 
 		h264SPS.CropUnitX = SubWidthC; // (7-21)
@@ -254,16 +217,8 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 	if(h264SPS.frame_cropping_flag){
 		h264SPS.frame_crop_left_offset = readGolombUE();
 		h264SPS.frame_crop_right_offset = readGolombUE();
-		uint32_t frame_crop_left_limit = h264SPS.PicWidthInSamplesL/h264SPS.CropUnitX - h264SPS.frame_crop_right_offset+1; 
-		if(h264SPS.frame_crop_left_offset > frame_crop_left_limit){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] frame_crop_left_offset value (" << (int)h264SPS.frame_crop_left_offset << ") not in valid range (0.." << frame_crop_left_limit << ")").str());
-		}
 		h264SPS.frame_crop_top_offset = readGolombUE();
 		h264SPS.frame_crop_bottom_offset = readGolombUE();
-		uint32_t frame_crop_top_limit = 16*h264SPS.FrameHeightInMbs/h264SPS.CropUnitY - h264SPS.frame_crop_bottom_offset+1;
-		if(h264SPS.frame_crop_top_offset > frame_crop_top_limit){
-			h264SPS.errors.push_back((std::ostringstream() << "[H264 SPS content] frame_crop_top_offset value (" << (int)h264SPS.frame_crop_top_offset << ") not in valid range (0.." << frame_crop_top_limit << ")").str());
-		}
 	}
 
 	h264SPS.vui_parameters_present_flag = readBits(1);
@@ -352,18 +307,14 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 
 void H264BitstreamReader::readPPS(H264PPS& h264PPS)
 {
-	h264PPS.errors.clear();
 	// Ref sec. 7.3.2.2
 	h264PPS.pic_parameter_set_id = readGolombUE();
 	h264PPS.seq_parameter_set_id = readGolombUE();
-	if(h264PPS.seq_parameter_set_id > 31){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] seq_parameter_set_id value (" << (int)h264PPS.seq_parameter_set_id << ") not in valid range (0..31)").str());
-	}
+	
 	H264SPS* h264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(h264PPS.seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		// std::cerr << "PPS unit is referencing an unknown SPS unit\n";
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] reference to unknown SPS (" << (int)h264PPS.seq_parameter_set_id << ")").str());
+		std::cerr << "PPS unit is referencing an unknown SPS unit\n";
 		return;
 	}
 	h264SPS = referencedSPS->second;
@@ -376,21 +327,12 @@ void H264BitstreamReader::readPPS(H264PPS& h264PPS)
 		if (h264PPS.slice_group_map_type == 0) {
 			for (int iGroup = 0; iGroup <= h264PPS.num_slice_groups_minus1; iGroup++) {
 				h264PPS.run_length_minus1[iGroup] = readGolombUE();
-				if(h264PPS.run_length_minus1[iGroup] > h264SPS->PicSizeInMapUnits-1){
-					h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] run_length_minus1[" << iGroup << "] value (" << h264PPS.run_length_minus1[iGroup] << ") not in valid range (0.." << h264SPS->PicSizeInMapUnits-1 << ")").str());
-				}
 			}
 		}
 		else if (h264PPS.slice_group_map_type == 2) {
 			for (int iGroup = 0; iGroup < h264PPS.num_slice_groups_minus1; iGroup++) {
 				h264PPS.top_left[iGroup] = readGolombUE();
 				h264PPS.bottom_right[iGroup] = readGolombUE();
-				if(h264PPS.top_left[iGroup] > h264PPS.bottom_right[iGroup]){
-					h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] top_left[" << iGroup << "] value (" << h264PPS.top_left[iGroup] << ") should be less than or equal to bottom_right[" << iGroup << "] value (" << h264PPS.bottom_right[iGroup] << ")").str());
-				}
-				if(h264PPS.top_left[iGroup] % h264SPS->PicWidthInMbs > h264PPS.bottom_right[iGroup] % h264SPS->PicWidthInMbs){
-					h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] top_left[" << iGroup << "]%PicWidthInMbs value (" << h264PPS.top_left[iGroup]%h264SPS->PicWidthInMbs << ") should be less than or equal to bottom_right[" << iGroup << "]%PicWidthInMbs value (" << h264PPS.bottom_right[iGroup]%h264SPS->PicWidthInMbs << ")").str());
-				}
 			}
 		}
 		else if( h264PPS.slice_group_map_type == 3 ||
@@ -398,51 +340,22 @@ void H264BitstreamReader::readPPS(H264PPS& h264PPS)
 				 h264PPS.slice_group_map_type == 5 ) {
 			h264PPS.slice_group_change_direction_flag = readBits(1);
 			h264PPS.slice_group_change_rate_minus1 = readGolombUE();
-			if(h264PPS.slice_group_change_rate_minus1 > h264SPS->PicSizeInMapUnits-1){
-				h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] slice_group_change_rate_minus1 value (" << h264PPS.slice_group_change_rate_minus1 << ") not in valid range (0.." << h264SPS->PicSizeInMapUnits-1 << ")").str());
-			}
 		}
 		else if (h264PPS.slice_group_map_type == 6) {
 			h264PPS.pic_size_in_map_units_minus1 = readGolombUE();
-			if(h264PPS.pic_size_in_map_units_minus1 != h264SPS->PicSizeInMapUnits-1){
-				h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] pic_size_in_map_units_minus1 value (" << h264PPS.pic_size_in_map_units_minus1 << ") should be equal to " << h264SPS->PicSizeInMapUnits-1).str());
-			}
 			for (unsigned i = 0; i <= h264PPS.pic_size_in_map_units_minus1; i++) {
 				int v = (int)log2(h264PPS.num_slice_groups_minus1 + 1);
 				h264PPS.slice_group_id[i] = readBits(v);
-				if(h264PPS.slice_group_id[i] > h264PPS.num_slice_groups_minus1){
-					h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] slice_group_id[" << i << "] value (" << (int)h264PPS.slice_group_id[i] << ") not in valid range (0.." << h264PPS.num_slice_groups_minus1 << ")").str());
-				}
 			}
-		} else {
-			h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] slice_group_map_type value (" << (int)h264PPS.slice_group_map_type << ") not in valid range (0..6)").str());
 		}
 	}
 	h264PPS.num_ref_idx_l0_active_minus1 = readGolombUE();
-	if(h264PPS.num_ref_idx_l0_active_minus1 > 31){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] num_ref_idx_l0_active_minus1 value (" << (int)h264PPS.num_ref_idx_l0_active_minus1 << ") not in valid range (0..31)").str());
-	}
 	h264PPS.num_ref_idx_l1_active_minus1 = readGolombUE();
-	if(h264PPS.num_ref_idx_l1_active_minus1 > 31){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] num_ref_idx_l1_active_minus1 value (" << (int)h264PPS.num_ref_idx_l1_active_minus1 << ") not in valid range (0..31)").str());
-	}
 	h264PPS.weighted_pred_flag = readBits(1);
 	h264PPS.weighted_bipred_idc = readBits(2);
-	if(h264PPS.weighted_bipred_idc > 2){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] weighted_bipred_idc value (" << (int)h264PPS.weighted_bipred_idc << ") not in valid range (0..2)").str());
-	}
 	h264PPS.pic_init_qp_minus26 = readGolombSE();
-	if(h264PPS.pic_init_qp_minus26 < -26 - h264SPS->QpBdOffsetY || h264PPS.pic_init_qp_minus26 > 25){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] pic_init_qp_minus26 value (" << (int)h264PPS.pic_init_qp_minus26 << ") not in valid range (" << (int)(-26 - h264SPS->QpBdOffsetY ) << "..25)").str());
-	}
 	h264PPS.pic_init_qs_minus26 = readGolombSE();
-	if(h264PPS.pic_init_qs_minus26 < -26 || h264PPS.pic_init_qs_minus26 > 25){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] pic_init_qs_minus26 value (" << (int)h264PPS.pic_init_qs_minus26 << ") not in valid range (-26..25)").str());
-	}
 	h264PPS.chroma_qp_index_offset = readGolombSE();
-	if(h264PPS.chroma_qp_index_offset < -12 || h264PPS.chroma_qp_index_offset > 12){
-		h264PPS.errors.push_back((std::ostringstream() << "[H264 PPS content] chroma_qp_index_offset value (" << (int)h264PPS.chroma_qp_index_offset << ") not in valid range (-12..12)").str());
-	}
 	h264PPS.deblocking_filter_control_present_flag = readBits(1);
 	h264PPS.constrained_intra_pred_flag = readBits(1);
 	h264PPS.redundant_pic_cnt_present_flag = readBits(1);
@@ -501,49 +414,30 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 	h264Slice.IdrPicFlag = h264Slice.nal_unit_type == H264NAL::UnitType_IDRFrame;
 	h264Slice.first_mb_in_slice = readGolombUE();
 	h264Slice.slice_type = H264Utils::getSliceType(readGolombUE());
-	if(h264Slice.slice_type == H264Slice::SliceType_Unspecified){
-		h264Slice.errors.push_back("[H264 Slice content] Invalid slice type");
-	}
+	
 	h264Slice.pic_parameter_set_id = readGolombUE();
-	if(h264Slice.pic_parameter_set_id > 255){
-		h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] pic_parameter_set_id value (" << (int)h264Slice.pic_parameter_set_id << ") not in valid range (0.255)").str());
-	}
+	
 
 	H264PPS* pH264PPS;
 	auto referencedPPS = H264PPS::PPSMap.find(h264Slice.pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()){
-		h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] reference to unknown PPS (" << (int)h264Slice.pic_parameter_set_id << ")").str());
 		return;
 	}
 	pH264PPS = referencedPPS->second;
 	H264SPS* pH264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(pH264PPS->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] This unit's PPS is referencing an unknown SPS (" << (int)pH264PPS->seq_parameter_set_id << ")").str());
 		return;
 	}
 	pH264SPS = referencedSPS->second;
-	if(h264Slice.nal_unit_type == H264NAL::UnitType_IDRFrame || pH264SPS->max_num_ref_frames == 0){
-		switch(h264Slice.slice_type){
-			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
-			default:
-				h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] slice_type value (" << (int)h264Slice.slice_type-1 << ") of IDR should be in {2, 4, 7, 9}").str());
-				break;
-		}
-	}
+	
 
 	if (pH264SPS->separate_colour_plane_flag)
 	{
 		h264Slice.colour_plane_id = readBits(2);
-		if(h264Slice.colour_plane_id > 2){
-			h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] colour_plane_id value (" << (int)h264Slice.colour_plane_id << ") not in valid range (0..2)").str());
-		}
 	}
 
 	h264Slice.frame_num = readBits(pH264SPS->log2_max_frame_num_minus4 + 4 );
-	if(h264Slice.slice_type == H264Slice::SliceType_I && h264Slice.frame_num != 0){
-		h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] frame_num of an IDR picture (" << (int)h264Slice.frame_num << ") should be 0").str());
-	}
 	if (!pH264SPS->frame_mbs_only_flag)
 	{
 		h264Slice.field_pic_flag = readBits(1);
@@ -559,9 +453,6 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 	if (pH264SPS->pic_order_cnt_type == 0)
 	{
 		h264Slice.pic_order_cnt_lsb = readBits(pH264SPS->log2_max_pic_order_cnt_lsb_minus4 + 4 ); // was u(v)
-		if(h264Slice.pic_order_cnt_lsb > pH264SPS->MaxPicOrderCntLsb-1){
-			h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] pic_order_cnt_lsb value (" << (int)h264Slice.pic_order_cnt_lsb << ") not in valid range (0.." << pH264SPS->MaxPicOrderCntLsb-1 << ")").str());
-		}
 		if (pH264PPS->bottom_field_pic_order_in_frame_present_flag && !h264Slice.field_pic_flag)
 		{
 			h264Slice.delta_pic_order_cnt_bottom = readGolombSE();
@@ -578,9 +469,6 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 	if (pH264PPS->redundant_pic_cnt_present_flag)
 	{
 		h264Slice.redundant_pic_cnt = readGolombUE();
-		if(h264Slice.redundant_pic_cnt > 127){
-			h264Slice.errors.push_back((std::ostringstream() << "[H264 Slice content] redundant_pic_cnt (" << (int)h264Slice.redundant_pic_cnt << ") not in valid range (0..127)").str());
-		}
 	}
 	if (h264Slice.slice_type == H264Slice::SliceType_B)
 	{
@@ -861,22 +749,15 @@ void H264BitstreamReader::readSEIBufferingPeriod(H264SEI& h264SEI){
 	h264SEImsg->seq_parameter_set_id = readGolombUE();
 	auto referencedSPS = H264SPS::SPSMap.find(h264SEImsg->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] unknown reference to a SPS unit (" << (int)h264SEImsg->seq_parameter_set_id << ")").str());
 		return;
 	}
 	H264SPS* pH264SPS = referencedSPS->second;
-	if(h264SEImsg->seq_parameter_set_id > 31){
-		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] seq_parameter_set_id value (" << (int)h264SEImsg->seq_parameter_set_id << ") not in valid range (0..31)").str());
-	}
 	if(pH264SPS->nal_hrd_parameters_present_flag){
 		for(int SchedSelIdx = 0;SchedSelIdx <= pH264SPS->nal_cpb_cnt_minus1;++SchedSelIdx){
 			h264SEImsg->nal_initial_cpb_removal_delay[SchedSelIdx] = readBits(pH264SPS->nal_initial_cpb_removal_delay_length_minus1+1);
 			int CpbSize = (pH264SPS->nal_cpb_size_value_minus1[SchedSelIdx]+1)*(pow(2, 4+pH264SPS->nal_cpb_size_scale));
 			int BitRate = (pH264SPS->nal_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->nal_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
-			if(h264SEImsg->nal_initial_cpb_removal_delay[SchedSelIdx] == 0 || h264SEImsg->nal_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] nal_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << h264SEImsg->nal_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
-			}
 			h264SEImsg->nal_initial_cpb_removal_delay_offset[SchedSelIdx] = readBits(pH264SPS->nal_initial_cpb_removal_delay_length_minus1+1);
 		}
 	}
@@ -886,9 +767,6 @@ void H264BitstreamReader::readSEIBufferingPeriod(H264SEI& h264SEI){
 			int CpbSize = (pH264SPS->vcl_cpb_size_value_minus1[SchedSelIdx]+1)*(pow(2, 4+pH264SPS->vcl_cpb_size_scale));
 			int BitRate = (pH264SPS->vcl_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->vcl_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
-			if(h264SEImsg->vcl_initial_cpb_removal_delay[SchedSelIdx] == 0 || h264SEImsg->vcl_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] vcl_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << h264SEImsg->vcl_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
-			}
 			h264SEImsg->vcl_initial_cpb_removal_delay_offset[SchedSelIdx] = readBits(pH264SPS->vcl_initial_cpb_removal_delay_length_minus1+1);
 		}
 	}
@@ -906,7 +784,6 @@ void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& acti
 	}
 	if(activeSPS.pic_struct_present_flag){
 		h264SEImsg->pic_struct = readBits(4);
-		if(h264SEImsg->pic_struct > 8) h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] pic_struct value (" << h264SEImsg->pic_struct << ") not in valid range (0..8)").str());
 		int NumClockTS = 0;
 		switch(h264SEImsg->pic_struct){
 			case 0: case 1: case 2: 
@@ -923,14 +800,8 @@ void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& acti
 			h264SEImsg->clock_timestamp_flag[i] = readBits(1);
 			if(h264SEImsg->clock_timestamp_flag[i]){
 				h264SEImsg->ct_type[i] = readBits(2);
-				if(h264SEImsg->ct_type[i] > 2){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] ct_type[" << i << "] value (" << h264SEImsg->ct_type[i] << ") not in valid range (0..2)").str());
-				}
 				h264SEImsg->nuit_field_based_flag[i] = readBits(1);
 				h264SEImsg->counting_type[i] = readBits(5);
-				if(h264SEImsg->counting_type[i] > 6){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] counting_type[" << i << "] value (" << h264SEImsg->counting_type[i] << ") not in valid range (0..6)").str());
-				}
 				h264SEImsg->full_timestamp_flag[i] = readBits(1);
 				h264SEImsg->discontinuity_flag[i] = readBits(1);
 				h264SEImsg->cnt_dropped_flag[i] = readBits(1);
@@ -950,15 +821,6 @@ void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& acti
 							if(h264SEImsg->hours_value) h264SEImsg->hours_value[i] = readBits(5);
 						}
 					}
-				}
-				if(h264SEImsg->seconds_value[i] > 59){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] seconds_value[" << i << "] value (" << h264SEImsg->seconds_value[i] << ") not in valid range (0..59)").str());
-				}
-				if(h264SEImsg->minutes_value[i] > 59){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] minutes_value[" << i << "] value (" << h264SEImsg->minutes_value[i] << ") not in valid range (0..59)").str());
-				}
-				if(h264SEImsg->hours_value[i] > 23){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] hours_value[" << i << "] value (" << h264SEImsg->hours_value[i] << ") not in valid range (0..23)").str());
 				}
 				if(activeSPS.nal_time_offset_length > 0 || activeSPS.vcl_time_offset_length > 0){
 					h264SEImsg->time_offset[i] = readBits(std::max(activeSPS.nal_time_offset_length, activeSPS.vcl_time_offset_length));
@@ -992,12 +854,10 @@ void H264BitstreamReader::readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS& 
 	h264SEImsg->payloadType = SEI_RECOVERY_POINT;
 	h264SEImsg->recovery_frame_cnt = readGolombUE();
 	int MaxNumFrames = pow(2, 4+activeSPS.log2_max_frame_num_minus4);
-	if(h264SEImsg->recovery_frame_cnt > MaxNumFrames-1){
-		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Recovery point] recovery_frame_cnt value (" << h264SEImsg->recovery_frame_cnt << ") not in valid range (0.." << MaxNumFrames-1 << ")").str());
-	}
 	h264SEImsg->exact_match_flag = readBits(1);
 	h264SEImsg->broken_link_flag = readBits(1);
 	h264SEImsg->changing_slice_group_idc = readBits(2);
+	h264SEImsg->seq_parameter_set_id = activeSPS.seq_parameter_set_id;
 }
 
 void H264BitstreamReader::readSEIFullFrameFreeze(H264SEI& h264SEI){
@@ -1005,32 +865,23 @@ void H264BitstreamReader::readSEIFullFrameFreeze(H264SEI& h264SEI){
 	h264SEI.messages.push_back(h264SEImsg);
 	h264SEImsg->payloadType = SEI_FULL_FRAME_FREEZE;
 	h264SEImsg->full_frame_freeze_repetition_period = readGolombUE();
-	if(h264SEImsg->full_frame_freeze_repetition_period > 16384){
-		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Full frame freeze] full_frame_freeze_repetition_period value (" << h264SEImsg->full_frame_freeze_repetition_period << ") not in valid range (0..16384)").str());
-	}
+	
 }
 
 void H264BitstreamReader::readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const H264SPS& activeSPS){
 	H264SEIMvcdViewScalabilityInfo* h264SEImsg = new H264SEIMvcdViewScalabilityInfo();
 	h264SEI.messages.push_back(h264SEImsg);
 	h264SEImsg->payloadType = SEI_MVCD_VIEW_SCALABILITY_INFO;
+	h264SEImsg->seq_parameter_seq_id = activeSPS.seq_parameter_set_id;
 	h264SEImsg->num_operation_points_minus1 = readGolombUE();
-	if(h264SEImsg->num_operation_points_minus1 > 1023){
-		h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_operation_points_minus1 value (" << h264SEImsg->num_operation_points_minus1 << ") not in valid range (0..1023)").str());
-	}
+	
 	for(int i = 0;i <= h264SEImsg->num_operation_points_minus1;++i){
 		h264SEImsg->operation_point_id[i] = readGolombUE();
 		h264SEImsg->priority_id[i] = readBits(5);
 		h264SEImsg->temporal_id[i] = readBits(3);
 		h264SEImsg->num_target_output_views_minus1[i] = readGolombUE();
-		if(h264SEImsg->num_target_output_views_minus1[i] > 1023){
-			h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_target_output_views_minus1[" << i <<"] value (" << h264SEImsg->num_target_output_views_minus1[i] << ") not in valid range (0..1023)").str());
-		}
 		for(int j = 0;j <= h264SEImsg->num_target_output_views_minus1[i];++j){
 			h264SEImsg->view_id[i][j] = readGolombUE();
-			if(h264SEImsg->view_id[i][j] > 1023){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] view_id[" << i <<"][" << j << "] value (" << h264SEImsg->view_id[i][j] << ") not in valid range (0..1023)").str());
-			}
 			readSEIMvcdOpViewInfo(h264SEImsg->view_movi[i][j]);
 		}
 		h264SEImsg->profile_level_info_present_flag[i] = readBits(1);
@@ -1047,44 +898,23 @@ void H264BitstreamReader::readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const
 		}
 		if(h264SEImsg->frm_rate_info_present_flag[i]){
 			h264SEImsg->constant_frm_rate_idc[i] = readBits(2);
-			if(h264SEImsg->constant_frm_rate_idc[i] > 2){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] constant_frm_rate_idc[" << i <<"] value (" << (int)h264SEImsg->constant_frm_rate_idc[i] << ") not in valid range (0..2)").str());
-			}
 			h264SEImsg->avg_frm_rate[i] = readBits(16);
 		}
 		if(h264SEImsg->view_dependency_info_present_flag[i]){
 			h264SEImsg->num_directly_dependant_views[i] = readGolombUE();
-			if(h264SEImsg->num_directly_dependant_views[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_directly_dependant_views[" << i <<"] value (" << (int)h264SEImsg->num_directly_dependant_views[i] << ") not in valid range (0..16)").str());
-			}
 			for(int j = 0;j < h264SEImsg->num_directly_dependant_views[i];++j){
 				h264SEImsg->directly_dependant_view_id[i][j] = readGolombUE();
-				if(h264SEImsg->directly_dependant_view_id[i][j] > 1023){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] directly_dependant_view_id[" << i <<"][" << j << "] value (" << (int)h264SEImsg->directly_dependant_view_id[i][j] << ") not in valid range (0..1023)").str());
-				}
 				readSEIMvcdOpViewInfo(h264SEImsg->directely_dependant_view_movi[i][j]);
 			}
 		} else h264SEImsg->view_dependency_info_src_op_id[i] = readGolombUE();
 		if(h264SEImsg->parameters_sets_info_present_flag[i]) {
 			h264SEImsg->num_seq_parameter_sets[i] = readGolombUE();
-			if(h264SEImsg->num_seq_parameter_sets[i] > 32){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_seq_parameter_sets[" << i <<"] value (" << (int)h264SEImsg->num_seq_parameter_sets[i] << ") not in valid range (0..32)").str());
-			}
 			for(int j = 0;j <= h264SEImsg->num_seq_parameter_sets[i];++j){
 				h264SEImsg->seq_parameter_set_id_delta[i][j] = readGolombUE();
-				if(h264SEImsg->seq_parameter_set_id_delta[i][j] > 31){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)h264SEImsg->seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
-				}
 			}
 			h264SEImsg->num_subset_seq_parameter_set_minus1[i] = readGolombUE();
-			if(h264SEImsg->num_subset_seq_parameter_set_minus1[i] > 32){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_subset_seq_parameter_set_minus1[" << i <<"] value (" << (int)h264SEImsg->num_subset_seq_parameter_set_minus1[i] << ") not in valid range (0..32)").str());
-			}
 			for(int j = 0;j <= h264SEImsg->num_subset_seq_parameter_set_minus1[i];++j){
 				h264SEImsg->subset_seq_parameter_set_id_delta[i][j] = readGolombUE();
-				if(h264SEImsg->seq_parameter_set_id_delta[i][j] > 31){
-					h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)h264SEImsg->seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
-				}
 			}
 			h264SEImsg->num_pic_parameter_set_minus1[i] = readGolombUE();
 			for(int j = 0;j <= h264SEImsg->num_pic_parameter_set_minus1[i];++j){
@@ -1094,29 +924,11 @@ void H264BitstreamReader::readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const
 		if(h264SEImsg->bitstream_restriction_info_present_flag[i]){
 			h264SEImsg->motion_vector_over_pic_boundaries_flag[i] = readBits(1);
 			h264SEImsg->max_bytes_per_pic_denom[i] = readGolombUE();
-			if(h264SEImsg->max_bytes_per_pic_denom[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bytes_per_pic_denom[" << i <<"] value (" << (int)h264SEImsg->max_bytes_per_pic_denom[i] << ") not in valid range (0..16)").str());
-			}
 			h264SEImsg->max_bits_per_mb_denom[i] = readGolombUE();
-			if(h264SEImsg->max_bits_per_mb_denom[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)h264SEImsg->max_bits_per_mb_denom[i] << ") not in valid range (0..16)").str());
-			}
 			h264SEImsg->log2_max_mv_length_horizontal[i] = readGolombUE();
-			if(h264SEImsg->log2_max_mv_length_horizontal[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] log2_max_mv_length_horizontal[" << i <<"] value (" << (int)h264SEImsg->log2_max_mv_length_horizontal[i] << ") not in valid range (0..16)").str());
-			}
 			h264SEImsg->log2_max_mv_length_vertical[i] = readGolombUE();
-			if(h264SEImsg->log2_max_mv_length_vertical[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)h264SEImsg->log2_max_mv_length_vertical[i] << ") not in valid range (0..16)").str());
-			}
 			h264SEImsg->num_reorder_frames[i] = readGolombUE();
-			if(h264SEImsg->num_reorder_frames[i] > 16){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << (int)h264SEImsg->num_reorder_frames[i] << ") not in valid range (0..16)").str());
-			}
 			h264SEImsg->max_dec_frame_buffering[i] = readGolombUE();
-			if(h264SEImsg->num_reorder_frames[i] > activeSPS.MaxDpbFrames){
-				h264SEI.errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << h264SEImsg->num_reorder_frames[i] << ") not in valid range (0.." << (int)activeSPS.MaxDpbFrames << ")").str());
-			}
 		}
 	}
 }

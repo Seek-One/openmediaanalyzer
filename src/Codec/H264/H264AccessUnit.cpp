@@ -33,6 +33,7 @@ std::vector<H264NAL*> H264AccessUnit::getNALUnits() const{
 }
 
 void H264AccessUnit::addNALUnit(std::unique_ptr<H264NAL> NALUnit){
+    NALUnit->validate();
     NALUnits.push_back(std::move(NALUnit));
 }
 

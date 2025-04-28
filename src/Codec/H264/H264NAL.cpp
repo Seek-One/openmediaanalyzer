@@ -25,3 +25,22 @@ H264NAL::~H264NAL(){
 std::vector<std::string> H264NAL::dump_fields(){
 	return std::vector<std::string>();
 }
+
+void H264NAL::validate(){
+	if (forbidden_zero_bit != 0) {
+		errors.push_back("[H264 NAL Header] forbidden_zero_bit not equal to 0");
+	}
+	if(nal_ref_idc == 0){
+		switch(nal_unit_type){
+			case UnitType_SPS:
+				errors.push_back("[H264 NAL Header] Sequence parameter set marked as unimportant");
+				break;
+			case UnitType_PPS:
+				errors.push_back("[H264 NAL Header] Picture parameter set marked as unimportant");
+				break;
+			case UnitType_IDRFrame:
+				errors.push_back("[H264 NAL Header] IDR frame marked as unimportant");
+				break;
+		}
+	}
+}

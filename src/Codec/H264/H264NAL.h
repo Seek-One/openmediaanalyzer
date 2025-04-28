@@ -42,6 +42,7 @@ struct H264NAL {
 	std::vector<std::string> errors;
 
 	virtual std::vector<std::string> dump_fields();
+	virtual void validate();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264NAL_H_

@@ -103,6 +103,7 @@ struct H264Slice : public H264NAL {
 	uint16_t PrevRefFrameNum;
 
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 	H264PPS* getPPS() const;
 	H264SPS* getSPS() const;
 };

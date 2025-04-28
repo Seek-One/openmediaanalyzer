@@ -20,7 +20,9 @@ struct H264SEIMessage {
 	virtual ~H264SEIMessage() = default;
 	uint8_t payloadType;
 
+	std::vector<std::string> errors;
 	virtual std::vector<std::string> dump_fields();
+	virtual void validate();
 };
 
 struct H264SEI : public H264NAL {
@@ -31,6 +33,7 @@ struct H264SEI : public H264NAL {
     std::vector<H264SEIMessage*> messages;
 	
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 
@@ -42,6 +45,7 @@ struct H264SEIBufferingPeriod : public H264SEIMessage {
 	uint32_t vcl_initial_cpb_removal_delay[32];
 	uint32_t vcl_initial_cpb_removal_delay_offset[32];
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 struct H264SEIPicTiming : public H264SEIMessage {
@@ -67,6 +71,7 @@ struct H264SEIPicTiming : public H264SEIMessage {
 
 	uint8_t seq_parameter_set_id;
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 struct H264SEIPanScanRect : public H264SEIMessage {
@@ -94,7 +99,10 @@ struct H264SEIRecoveryPoint : public H264SEIMessage {
 	uint8_t exact_match_flag;
 	uint8_t broken_link_flag;
 	uint8_t changing_slice_group_idc;
+
+	uint8_t seq_parameter_set_id;
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 struct H264SEIDecRefPicMarkingRepetition : public H264SEIMessage {
@@ -125,7 +133,7 @@ struct H264SEIFullFrameFreeze : public H264SEIMessage {
 	~H264SEIFullFrameFreeze() = default;
 	uint16_t full_frame_freeze_repetition_period;
 	std::vector<std::string> dump_fields() override;
-
+	void validate() override;
 };
 
 struct H264SEIFullFrameFreezeRelease : public H264SEIMessage {
@@ -315,7 +323,11 @@ struct H264SEIMvcdViewScalabilityInfo : public H264SEIMessage {
 	uint8_t log2_max_mv_length_vertical[1024];
 	uint8_t num_reorder_frames[1024];
 	uint8_t max_dec_frame_buffering[1024];
+
+	uint8_t seq_parameter_seq_id;
+
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 struct H264SEIDepthRepresentationInfo : public H264SEIMessage {

@@ -1,8 +1,9 @@
 #include <cstring>
 #include <sstream>
 
+#include "H264SPS.h"
+
 #include "H264PPS.h"
-#include "H264NAL.h"
 
 H264PPS::H264PPS():
 	H264PPS(0, 0, 0, nullptr)
@@ -111,4 +112,80 @@ std::vector<std::string> H264PPS::dump_fields(){
 
 	// fields.push_back((std::ostringstream() << "second_chroma_qp_index_offset:" << (int)second_chroma_qp_index_offset).str());
 	return fields;
+}
+
+void H264PPS::validate(){
+	H264NAL::validate();
+	if(seq_parameter_set_id > 31){
+		errors.push_back((std::ostringstream() << "[H264 PPS] seq_parameter_set_id value (" << (int)seq_parameter_set_id << ") not in valid range (0..31)").str());
+	}
+	H264SPS* h264SPS;
+	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
+	if(referencedSPS == H264SPS::SPSMap.end()){
+		errors.push_back((std::ostringstream() << "[H264 PPS] reference to unknown SPS (" << (int)seq_parameter_set_id << ")").str());
+		return;
+	}
+	h264SPS = referencedSPS->second;
+
+	if (num_slice_groups_minus1 > 0) {
+		switch(slice_group_map_type){
+			case 0:
+				for (int iGroup = 0; iGroup <= num_slice_groups_minus1; iGroup++) {
+					if(run_length_minus1[iGroup] > h264SPS->PicSizeInMapUnits-1){
+						errors.push_back((std::ostringstream() << "[H264 PPS] run_length_minus1[" << iGroup << "] value (" << run_length_minus1[iGroup] << ") not in valid range (0.." << h264SPS->PicSizeInMapUnits-1 << ")").str());
+					}
+				}
+				break;
+			case 1: break;
+			case 2:
+				for (int iGroup = 0; iGroup < num_slice_groups_minus1; iGroup++) {
+					if(top_left[iGroup] > bottom_right[iGroup]){
+						errors.push_back((std::ostringstream() << "[H264 PPS] top_left[" << iGroup << "] value (" << top_left[iGroup] << ") should be less than or equal to bottom_right[" << iGroup << "] value (" << bottom_right[iGroup] << ")").str());
+					}
+					if(top_left[iGroup] % h264SPS->PicWidthInMbs > bottom_right[iGroup] % h264SPS->PicWidthInMbs){
+						errors.push_back((std::ostringstream() << "[H264 PPS] top_left[" << iGroup << "]%PicWidthInMbs value (" << top_left[iGroup]%h264SPS->PicWidthInMbs << ") should be less than or equal to bottom_right[" << iGroup << "]%PicWidthInMbs value (" << bottom_right[iGroup]%h264SPS->PicWidthInMbs << ")").str());
+					}
+				}
+				break;
+			case 3:
+			case 4:
+			case 5:
+				if(slice_group_change_rate_minus1 > h264SPS->PicSizeInMapUnits-1){
+					errors.push_back((std::ostringstream() << "[H264 PPS] slice_group_change_rate_minus1 value (" << slice_group_change_rate_minus1 << ") not in valid range (0.." << h264SPS->PicSizeInMapUnits-1 << ")").str());
+				}
+				break;
+			case 6:
+				if(pic_size_in_map_units_minus1 != h264SPS->PicSizeInMapUnits-1){
+					errors.push_back((std::ostringstream() << "[H264 PPS] pic_size_in_map_units_minus1 value (" << pic_size_in_map_units_minus1 << ") should be equal to " << h264SPS->PicSizeInMapUnits-1).str());
+				}
+				for (unsigned i = 0; i <= pic_size_in_map_units_minus1; i++) {
+					if(slice_group_id[i] > num_slice_groups_minus1){
+						errors.push_back((std::ostringstream() << "[H264 PPS] slice_group_id[" << i << "] value (" << (int)slice_group_id[i] << ") not in valid range (0.." << num_slice_groups_minus1 << ")").str());
+					}
+				}
+				break;
+			default:
+				errors.push_back((std::ostringstream() << "[H264 PPS] slice_group_map_type value (" << (int)slice_group_map_type << ") not in valid range (0..6)").str());
+				break;
+		}
+	}
+	if(num_ref_idx_l0_active_minus1 > 31){
+		errors.push_back((std::ostringstream() << "[H264 PPS] num_ref_idx_l0_active_minus1 value (" << (int)num_ref_idx_l0_active_minus1 << ") not in valid range (0..31)").str());
+	}
+	if(num_ref_idx_l1_active_minus1 > 31){
+		errors.push_back((std::ostringstream() << "[H264 PPS] num_ref_idx_l1_active_minus1 value (" << (int)num_ref_idx_l1_active_minus1 << ") not in valid range (0..31)").str());
+	}
+
+	if(weighted_bipred_idc > 2){
+		errors.push_back((std::ostringstream() << "[H264 PPS] weighted_bipred_idc value (" << (int)weighted_bipred_idc << ") not in valid range (0..2)").str());
+	}
+	if(pic_init_qp_minus26 < -26 - h264SPS->QpBdOffsetY || pic_init_qp_minus26 > 25){
+		errors.push_back((std::ostringstream() << "[H264 PPS] pic_init_qp_minus26 value (" << (int)pic_init_qp_minus26 << ") not in valid range (" << (int)(-26 - h264SPS->QpBdOffsetY ) << "..25)").str());
+	}
+	if(pic_init_qs_minus26 < -26 || pic_init_qs_minus26 > 25){
+		errors.push_back((std::ostringstream() << "[H264 PPS] pic_init_qs_minus26 value (" << (int)pic_init_qs_minus26 << ") not in valid range (-26..25)").str());
+	}
+	if(chroma_qp_index_offset < -12 || chroma_qp_index_offset > 12){
+		errors.push_back((std::ostringstream() << "[H264 PPS] chroma_qp_index_offset value (" << (int)chroma_qp_index_offset << ") not in valid range (-12..12)").str());
+	}
 }

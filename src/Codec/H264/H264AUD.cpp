@@ -19,3 +19,8 @@ std::vector<std::string> H264AUD::dump_fields(){
 	fields.push_back((std::ostringstream() << "primary_pic_type:" << (int)primary_pic_type).str());
 	return fields;
 }
+
+void H264AUD::validate(){
+	H264NAL::validate();
+	
+}

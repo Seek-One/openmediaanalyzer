@@ -55,6 +55,7 @@ struct H264PPS : public H264NAL {
 
 
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 	static inline std::unordered_map<uint8_t, H264PPS*> PPSMap;
 };
 

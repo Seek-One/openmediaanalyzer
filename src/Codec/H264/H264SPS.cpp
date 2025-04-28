@@ -275,6 +275,73 @@ std::vector<std::string> H264SPS::dump_fields(){
 	return fields;
 }
 
+void H264SPS::validate(){
+	if(seq_parameter_set_id > 31){
+		errors.push_back((std::ostringstream() << "[H264 SPS] seq_parameter_set_id value (" << (int)seq_parameter_set_id << ") not in valid range (0..31)").str());
+	}
+	switch(profile_idc) {
+		case 100:
+		case 110:
+		case 122:
+		case 244:
+		case 44:
+		case 83:
+		case 86:
+		case 118:
+		case 128:
+		case 138:
+		case 139:
+		case 134:
+			if(bit_depth_luma_minus8 > 6){
+				errors.push_back((std::ostringstream() << "[H264 SPS] bit_depth_luma_minus8  value (" << (int)bit_depth_luma_minus8  << ") not in valid range (0..6)").str());
+			}
+			if(bit_depth_chroma_minus8 > 6){
+				errors.push_back((std::ostringstream() << "[H264 SPS] bit_depth_chroma_minus8  value (" << (int)bit_depth_chroma_minus8  << ") not in valid range (0..6)").str());
+			}
+			break;
+		default:
+			break;
+	}
+
+	if(log2_max_frame_num_minus4 > 12){
+		errors.push_back((std::ostringstream() << "[H264 SPS] log2_max_frame_num_minus4 value (" << (int)log2_max_frame_num_minus4 << ") not in valid range (0..12)").str());
+	}
+	if(pic_order_cnt_type > 2){
+		errors.push_back((std::ostringstream() << "[H264 SPS] pic_order_cnt_type (" << (int)pic_order_cnt_type << ") not in valid range (0..2)").str());
+	}
+	if (pic_order_cnt_type == 0) {
+		if(log2_max_pic_order_cnt_lsb_minus4 > 12){
+			errors.push_back((std::ostringstream() << "[H264 SPS] log2_max_pic_order_cnt_lsb_minus4 value (" << (int)log2_max_frame_num_minus4 << ") not in valid range (0..12)").str());
+		}
+	} else if (pic_order_cnt_type == 1) {
+		if(num_ref_frames_in_pic_order_cnt_cycle > 255){
+			errors.push_back((std::ostringstream() << "[H264 SPS] num_ref_frames_in_pic_order_cnt_cycle value (" << (int)num_ref_frames_in_pic_order_cnt_cycle << ") not in valid range (0..255)").str());
+		}
+	}
+	if(max_num_ref_frames > MaxDpbFrames){
+		errors.push_back((std::ostringstream() << "[H264 SPS] max_num_ref_frames value (" << (int)max_num_ref_frames << ") not in valid range (0.." << (int)MaxDpbFrames << ")").str());
+	}
+
+	if (ChromaArrayType >= 1 && ChromaArrayType <= 3) {
+		if (separate_colour_plane_flag == 0) {
+			if (chroma_format_idc > 3) {
+				errors.push_back((std::ostringstream() << "[H264 SPS] chroma_format_idc value (" << (int)chroma_format_idc << ") not in valid range (0..3)").str());
+			}
+		}
+	}
+
+	if(frame_cropping_flag){
+		uint32_t frame_crop_left_limit = PicWidthInSamplesL/CropUnitX - frame_crop_right_offset+1; 
+		if(frame_crop_left_offset > frame_crop_left_limit){
+			errors.push_back((std::ostringstream() << "[H264 SPS] frame_crop_left_offset value (" << (int)frame_crop_left_offset << ") not in valid range (0.." << frame_crop_left_limit << ")").str());
+		};
+		uint32_t frame_crop_top_limit = 16*FrameHeightInMbs/CropUnitY - frame_crop_bottom_offset+1;
+		if(frame_crop_top_offset > frame_crop_top_limit){
+			errors.push_back((std::ostringstream() << "[H264 SPS] frame_crop_top_offset value (" << (int)frame_crop_top_offset << ") not in valid range (0.." << frame_crop_top_limit << ")").str());
+		}
+	}
+}
+
 uint8_t H264SPS::level_limit_index(){
 	if(level_idc == 11 && constraint_set3_flag == 1) return 1; // 1b
 	switch(level_idc){
@@ -307,3 +374,4 @@ uint16_t H264SPS::computeMaxFrameNumber(){
 	}
 	return 1 << (log2_max_frame_num_minus4+4);
 }
+

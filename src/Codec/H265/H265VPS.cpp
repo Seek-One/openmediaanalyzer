@@ -77,6 +77,7 @@ std::vector<std::string> H265VPS::dump_fields(){
 }
 
 void H265VPS::validate(){
+	H265NAL::validate();
 	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0) errors.push_back("[H265 VPS] vps_max_layers_minus1 not greater than 0");
 	if(vps_max_layers_minus1 > 62) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_layers_minus1 value (" << (int)vps_max_layers_minus1 << ") not in valid range (0..62)").str());
 	if(vps_max_sub_layers_minus1 > 6) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_sub_layers_minus1 value (" << (int)vps_max_sub_layers_minus1 << ") not in valid range (0..6)").str());

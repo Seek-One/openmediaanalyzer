@@ -111,3 +111,20 @@ std::vector<std::string> H265ProfileTierLevel::dump_fields(){
 	}
 	return fields;
 }
+
+void H265ProfileTierLevel::validate(uint8_t iProfilePresentFlag){
+	if (iProfilePresentFlag) {
+		if(general_profile_space != 0) errors.push_back("[H265 Profile tier level] general_profile_space not equal to 0");
+		if(!general_profile_compatibility_flag[general_profile_idc]) errors.push_back("[H265 Profile tier level] general_profile_compatibility_flag[general_profile_idc] not set");
+	}
+	for (uint8_t i = 0; i < sub_layer_profile_present_flag.size(); ++i) {
+		if(!iProfilePresentFlag && sub_layer_profile_present_flag[i]) errors.push_back((std::ostringstream() << "[H265 Profile tier level] sub_layer_profile_present_flag[" << i << "] set (profilePresentFlag not set)").str());
+	}
+
+	for (uint8_t i = 0; i < sub_layer_profile_present_flag.size(); ++i) {
+		if (sub_layer_profile_present_flag[i]) {
+			if(sub_layer_profile_space[i] != 0) errors.push_back((std::ostringstream() << "[H265 Profile tier level] sub_layer_profile_space[" << i << "] not equal to 0").str());
+			if(!sub_layer_profile_compatibility_flag[i][sub_layer_profile_idc[i]]) errors.push_back((std::ostringstream() << "[H265 Profile tier level] sub_layer_profile_compatibility_flag[" << i << "][sub_layer_profile_idc[" << i << "]] not set").str());
+		}
+	}
+}

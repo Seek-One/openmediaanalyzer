@@ -58,6 +58,7 @@ struct H265NAL {
 	bool isTSA() const;
 	bool isSTSA() const;
 	virtual std::vector<std::string> dump_fields();
+	virtual void validate();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265NAL_H_

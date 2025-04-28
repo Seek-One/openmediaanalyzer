@@ -41,6 +41,7 @@ struct H265VPS : public H265NAL {
 	static inline std::unordered_map<uint8_t, H265VPS*> VPSMap;
 
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 

@@ -15,6 +15,7 @@ struct H265SubLayerHrdParameters {
 	std::vector<uint8_t> cbr_flag;
 
 	std::vector<std::string> dump_fields(uint8_t sub_pic_hrd_params_present_flag);
+	void validate();
 };
 
 struct H265HrdParameters {
@@ -44,6 +45,7 @@ struct H265HrdParameters {
 	std::vector<std::string> errors;
 
 	std::vector<std::string> dump_fields(uint8_t commonInfPresentFlag);
+	void validate();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265HRD_PARAMETERS_H_

@@ -52,6 +52,7 @@ struct H265ProfileTierLevel {
 	std::vector<std::string> errors;
 	
 	std::vector<std::string> dump_fields();
+	void validate(uint8_t iProfilePresentFlag);
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_PROFILE_TIER_LEVEL_H_

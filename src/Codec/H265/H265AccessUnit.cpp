@@ -46,6 +46,7 @@ std::vector<H265NAL*> H265AccessUnit::getNALUnits() const{
 }
 
 void H265AccessUnit::addNALUnit(std::unique_ptr<H265NAL> NALUnit){
+    NALUnit->validate();
     NALUnits.push_back(std::move(NALUnit));
 }
 

@@ -1,5 +1,6 @@
 #include <sstream>
 #include <algorithm>
+#include <unordered_set>
 
 #include "H265HrdParameters.h"
 
@@ -73,4 +74,47 @@ std::vector<std::string> H265VPS::dump_fields(){
 	}
 	fields.push_back((std::ostringstream() << "vps_extension_flag:" << (int)vps_extension_flag).str());
 	return fields;
+}
+
+void H265VPS::validate(){
+	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0) errors.push_back("[H265 VPS] vps_max_layers_minus1 not greater than 0");
+	if(vps_max_layers_minus1 > 62) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_layers_minus1 value (" << (int)vps_max_layers_minus1 << ") not in valid range (0..62)").str());
+	if(vps_max_sub_layers_minus1 > 6) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_sub_layers_minus1 value (" << (int)vps_max_sub_layers_minus1 << ") not in valid range (0..6)").str());
+	if(vps_max_sub_layers_minus1 == 0 && !vps_temporal_id_nesting_flag) errors.push_back("[H265 VPS] vps_temporal_id_nesting_flag not set (singular temporal sub-layer)");
+	profile_tier_level.validate(1);
+	errors.insert(errors.end(), profile_tier_level.errors.begin(), profile_tier_level.errors.end());
+	profile_tier_level.errors.clear();
+	if(!vps_base_layer_internal_flag && vps_sub_layer_ordering_info_present_flag) errors.push_back("[H265 VPS] vps_sub_layer_ordering_info_present_flag set (no base layer)");
+	for (int i = (vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1); i <= vps_max_sub_layers_minus1; ++i) {
+		if(!vps_base_layer_internal_flag){
+			if(vps_max_dec_pic_buffering_minus1[i] != 0) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_dec_pic_buffering_minus1[" << i << "] value (" << vps_max_dec_pic_buffering_minus1[i] << ") not 0 (no base layer)").str());
+			if(vps_max_num_reorder_pics[i] != 0) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_num_reorder_pics[" << i << "] value (" << vps_max_num_reorder_pics[i] << ") not 0 (no base layer)").str());
+			if(vps_max_latency_increase_plus1[i] != 0) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_latency_increase_plus1[" << i << "] value (" << vps_max_latency_increase_plus1[i] << ") not 0 (no base layer)").str());
+		}
+	}
+	if(vps_max_layer_id > 62) errors.push_back((std::ostringstream() << "[H265 VPS] vps_max_layer_id value (" << (int)vps_max_layer_id << ") not in valid range (0..62)").str());
+	if(vps_max_layer_id > 1023) errors.push_back((std::ostringstream() << "[H265 VPS] vps_num_layer_sets_minus1 value (" << (int)vps_num_layer_sets_minus1 << ") not in valid range (0..1023)").str());
+	if (vps_timing_info_present_flag) {
+		if(vps_num_units_in_tick == 0) errors.push_back("[H265 VPS] vps_num_units_in_tick not greater than 0");
+		if(vps_time_scale == 0) errors.push_back("[H265 VPS] vps_time_scale not greater than 0");
+		if (vps_poc_proportional_to_timing_flag) {
+			if(vps_num_ticks_poc_diff_one_minus1 == UINT32_MAX) errors.push_back((std::ostringstream() << "[H265 VPS] vps_num_ticks_poc_diff_one_minus1 value (" << vps_num_ticks_poc_diff_one_minus1 << ") not in valid range (0..4294967294)").str());
+		}
+		if(vps_num_hrd_parameters > vps_num_layer_sets_minus1+1) errors.push_back((std::ostringstream() << "[H265 VPS] vps_num_hrd_parameters value (" << vps_num_hrd_parameters << ") not in valid range (0.." << vps_num_layer_sets_minus1+1 << ")").str());
+		for (uint32_t i = 0; i < vps_num_hrd_parameters; ++i) {
+			if((!vps_base_layer_internal_flag && hrd_layer_set_idx[i] == 0) || hrd_layer_set_idx[i] > vps_num_layer_sets_minus1){
+				errors.push_back((std::ostringstream() << "[H265 VPS] hrd_layer_set_idx[" << i << "] value (" << hrd_layer_set_idx[i] << ") not in valid range (" << (vps_base_layer_internal_flag ? 0 : 1) << ".." << vps_num_layer_sets_minus1 << ")").str());
+			}
+			hrd_parameters[i].validate();
+			errors.insert(errors.end(), hrd_parameters[i].errors.begin(), hrd_parameters[i].errors.end());
+			hrd_parameters[i].errors.clear();
+		}
+		std::unordered_set<uint32_t> seen_hrd_layer_set_idx;
+		for(uint32_t hrd_layer_set_index : hrd_layer_set_idx) {
+			if(!seen_hrd_layer_set_idx.insert(hrd_layer_set_index).second){
+				errors.push_back("[H265 VPS] Duplicate values of hrd_layer_set_idx detected");
+				break;
+			}
+		}
+	}
 }

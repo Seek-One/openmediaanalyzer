@@ -179,6 +179,7 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	h265SPS.CtbLog2SizeY = h265SPS.MinCbLog2SizeY + h265SPS.log2_diff_max_min_luma_coding_block_size;
 	h265SPS.MinCbSizeY = 1 << h265SPS.MinCbLog2SizeY;
 	h265SPS.CtbSizeY = 1 << h265SPS.CtbLog2SizeY;
+	h265SPS.MinTbLog2SizeY = h265SPS.log2_min_luma_transform_block_size_minus2 + 2;
 	h265SPS.PicWidthInMinCbsY = h265SPS.pic_width_in_luma_samples / h265SPS.MinCbSizeY;
 	h265SPS.PicWidthInCtbsY = H26XMath::ceil(h265SPS.pic_width_in_luma_samples, h265SPS.CtbSizeY);
 	h265SPS.PicHeightInMinCbsY = h265SPS.pic_height_in_luma_samples / h265SPS.MinCbSizeY;
@@ -189,12 +190,24 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	h265SPS.BitDepthY = 8 + h265SPS.bit_depth_luma_minus8;
 	h265SPS.QpBdOffsetY = 6 * h265SPS.bit_depth_luma_minus8;
 	h265SPS.BitDepthC = 8 + h265SPS.bit_depth_chroma_minus8;
+	h265SPS.PcmBitDepthY = h265SPS.pcm_sample_bit_depth_luma_minus1 + 1;
+	h265SPS.PcmBitDepthC = h265SPS.pcm_sample_bit_depth_chroma_minus1 + 1;
 	h265SPS.QpBdOffsetC = 6 * h265SPS.bit_depth_chroma_minus8;
+	h265SPS.Log2MinIpcmCbSizeY = h265SPS.log2_min_pcm_luma_coding_block_size_minus3+3;
+	h265SPS.Log2MaxIpcmCbSizeY = h265SPS.log2_diff_max_min_luma_coding_block_size + h265SPS.Log2MinIpcmCbSizeY;
+
 	
 	if(h265SPS.sps_range_extension_flag) h265SPS.sps_range_extension = readSPSRangeExtension();
 	if(h265SPS.sps_multilayer_extension_flag) h265SPS.sps_multilayer_extension = readSPSMultilayerExtension();
 	if(h265SPS.sps_3d_extension_flag) h265SPS.sps_3d_extension = readSPS3DExtension();
 	if(h265SPS.sps_scc_extension_flag) h265SPS.sps_scc_extension = readSPSSCCExtension(h265SPS);
+
+	uint32_t spsMaxLumaPs = H265SPS::MaxLumaPs[H265SPS::level_limit_index[h265SPS.profile_tier_level.general_level_idc]];
+	uint8_t maxDpbPicBuf = !h265SPS.sps_scc_extension_flag ? 6 : 7;
+	if(h265SPS.PicSizeInSamplesY <= (spsMaxLumaPs >> 2)) h265SPS.MaxDpbSize = std::min(4*maxDpbPicBuf, 16);
+	else if (h265SPS.PicSizeInSamplesY <= (spsMaxLumaPs >> 1)) h265SPS.MaxDpbSize = std::min(2*maxDpbPicBuf, 16);
+	else if (h265SPS.PicSizeInSamplesY <= ((3*spsMaxLumaPs) >> 2)) h265SPS.MaxDpbSize = std::min(4*maxDpbPicBuf/3, 16);
+	else h265SPS.MaxDpbSize = maxDpbPicBuf;
 }
 
 void H265BitstreamReader::readPPS(H265PPS& h265PPS)

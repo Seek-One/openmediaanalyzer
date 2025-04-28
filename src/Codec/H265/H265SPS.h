@@ -150,7 +150,7 @@ struct H265SPS : public H265NAL {
 	uint8_t bit_depth_chroma_minus8;
 	uint32_t log2_max_pic_order_cnt_lsb_minus4;
 	uint8_t sps_sub_layer_ordering_info_present_flag;
-	std::vector<uint32_t> sps_max_dec_pic_buffering_minus1;
+	std::vector<uint8_t> sps_max_dec_pic_buffering_minus1;
 	std::vector<uint32_t> sps_max_num_reorder_pics;
 	std::vector<uint32_t> sps_max_latency_increase_plus1;
 	uint32_t log2_min_luma_coding_block_size_minus3;
@@ -200,6 +200,7 @@ struct H265SPS : public H265NAL {
 	uint32_t CtbLog2SizeY;
 	uint32_t MinCbSizeY;
 	uint32_t CtbSizeY;
+	uint32_t MinTbLog2SizeY;
 	uint32_t PicWidthInMinCbsY;
 	uint32_t PicWidthInCtbsY;
 	uint32_t PicHeightInMinCbsY;
@@ -210,12 +211,58 @@ struct H265SPS : public H265NAL {
 	uint8_t BitDepthY;
 	uint16_t QpBdOffsetY;
 	uint8_t BitDepthC;
+	uint8_t PcmBitDepthY;
+	uint8_t PcmBitDepthC;
 	uint16_t QpBdOffsetC;
 	uint8_t ChromaArrayType;
+	uint8_t MaxDpbSize;
+	uint32_t Log2MinIpcmCbSizeY;
+	uint32_t Log2MaxIpcmCbSizeY;
 
 	static inline std::unordered_map<uint8_t, H265SPS*> SPSMap;
 
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
+
+	static inline std::unordered_map<uint8_t, uint8_t> level_limit_index = {
+		{30, 0},
+		{60, 1},
+		{63, 2},
+		{90, 3},
+		{93, 4},
+		{120, 5},
+		{123, 6},
+		{150, 7},
+		{153, 8},
+		{156, 9},
+		{180, 10},
+		{183, 11},
+		{186, 12},
+		{189, 13},
+		{210, 14},
+		{213, 15},
+		{216, 16}
+	};
+
+	static inline uint32_t MaxLumaPs[17] = {
+		36864,
+		122880,
+		245760,
+		552960,
+		983040,
+		2228224,
+		2228224,
+		8912896,
+		8912896,
+		8912896,
+		35651584,
+		35651584,
+		35651584,
+		80216064,
+		142606336,
+		142606336,
+		142606336
+	};
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265SPS_H_

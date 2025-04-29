@@ -195,6 +195,7 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	h265SPS.QpBdOffsetC = 6 * h265SPS.bit_depth_chroma_minus8;
 	h265SPS.Log2MinIpcmCbSizeY = h265SPS.log2_min_pcm_luma_coding_block_size_minus3+3;
 	h265SPS.Log2MaxIpcmCbSizeY = h265SPS.log2_diff_max_min_luma_coding_block_size + h265SPS.Log2MinIpcmCbSizeY;
+	h265SPS.MaxPicOrderCntLsb = 1 << (h265SPS.log2_max_pic_order_cnt_lsb_minus4+4);
 
 	
 	if(h265SPS.sps_range_extension_flag) h265SPS.sps_range_extension = readSPSRangeExtension();
@@ -292,6 +293,13 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 		std::cerr << "[H265 PPS] scc extension not supported\n";
 	}
 	// TODO: handle pps extensions data
+
+	auto referencedSPS = H265SPS::SPSMap.find(h265PPS.pps_seq_parameter_set_id);
+	H265SPS* pSps = referencedSPS == H265SPS::SPSMap.end() ? nullptr : referencedSPS->second;
+	if(!pSps) return;
+	h265PPS.TwoVersionsOfCurrDecPicFlag = h265PPS.pps_scc_extension.pps_curr_pic_ref_enabled_flag && 
+											(pSps->sample_adaptive_offset_enabled_flag || !h265PPS.pps_deblocking_filter_disabled_flag ||
+											h265PPS.deblocking_filter_override_enabled_flag);
 }
 
 void H265BitstreamReader::readSlice(H265Slice& h265Slice)
@@ -329,9 +337,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 
 	if (!h265Slice.dependent_slice_segment_flag) {
 		// Skip reserved flags
-		for (int i = 0; i < h265PPS->num_extra_slice_header_bits; ++i) {
-			skipBits(1);
-		}
+		skipBits(h265PPS->num_extra_slice_header_bits);
 		h265Slice.slice_type = (H265Slice::SliceType)readGolombUE();
 		if (h265PPS->output_flag_present_flag) {
 			h265Slice.pic_output_flag = readBits(1);
@@ -443,6 +449,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		// 	h265Slice.slice_cb_qp_offset = readGolombSE();
 		// 	h265Slice.slice_cr_qp_offset = readGolombSE();
 		// }
+		// h265Slice.SliceQpY = 26 + h265PPS->init_qp_minus26 + h265Slice.slice_qp_delta;
 		// if (h265PPS.pps_slice_chroma_qp_offsets_present_flag) {
 		// 	h265Slice.slice_act_y_qp_offset = readGolombSE();
 		// 	h265Slice.slice_act_cb_qp_offset = readGolombSE();
@@ -488,7 +495,6 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		if(!h265SPS) return;
 		h265Slice.CurrRpsIdx = h265SPS->num_short_term_ref_pic_sets;
 	}
-
 	h265Slice.DeltaPocMsbCycleLt.resize(h265Slice.NumLongTerm);
 	for (unsigned i = 0; i < h265Slice.NumLongTerm; ++i) {
 		uint32_t delta_poc_msb_cycle_lt = ((int)i < h265Slice.delta_poc_msb_cycle_lt.size()) ? h265Slice.delta_poc_msb_cycle_lt[i] : 0;

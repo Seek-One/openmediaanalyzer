@@ -371,7 +371,7 @@ void H265SPS::validate(){
 	if(PcmBitDepthY > BitDepthY) errors.push_back((std::ostringstream() << "[H265 SPS] PcmBitDepthY value (" << (int)PcmBitDepthY << ") not in valid range (0.." << BitDepthY << ")").str());
 	if(PcmBitDepthC > BitDepthC) errors.push_back((std::ostringstream() << "[H265 SPS] PcmBitDepthC value (" << (int)PcmBitDepthC << ") not in valid range (0.." << BitDepthC << ")").str());
 	if(Log2MinIpcmCbSizeY < std::min(MinCbLog2SizeY, 5u) || Log2MinIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[H265 SPS] Log2MinIpcmCbSizeY value (" << Log2MinIpcmCbSizeY << ") not in valid range (" << std::min(MinCbLog2SizeY, 5u) << ".." << std::min(CtbLog2SizeY, 5u) << ")").str());
-	if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[H265 SPS] Log2MaxIpcmCbSizeY value (" << Log2MinIpcmCbSizeY << ") not in valid range (0.." << std::min(CtbLog2SizeY, 5u) << ")").str());
+	if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[H265 SPS] Log2MaxIpcmCbSizeY value (" << Log2MaxIpcmCbSizeY << ") not in valid range (0.." << std::min(CtbLog2SizeY, 5u) << ")").str());
 	if(num_short_term_ref_pic_sets > 64) errors.push_back((std::ostringstream() << "[H265 SPS] num_short_term_ref_pic_sets value (" << num_short_term_ref_pic_sets << ") not in valid range (0..64)").str());
 	if(num_long_term_ref_pics_sps > 32) errors.push_back((std::ostringstream() << "[H265 SPS] num_long_term_ref_pics_sps value (" << num_long_term_ref_pics_sps << ") not in valid range (0..32)").str());
 }

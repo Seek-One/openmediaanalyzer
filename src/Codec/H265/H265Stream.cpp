@@ -100,7 +100,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265VPS>(m_pActiveVPS));
+			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265VPS>(m_pActiveVPS));
 			H265VPS::VPSMap.insert_or_assign(m_pActiveVPS->vps_video_parameter_set_id, m_pActiveVPS);
 			break;
 		}
@@ -111,7 +111,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265SPS>(m_pActiveSPS));
+			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SPS>(m_pActiveSPS));
 			H265SPS::SPSMap.insert_or_assign(m_pActiveSPS->sps_seq_parameter_set_id, m_pActiveSPS);
 			break;
 		}
@@ -122,7 +122,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265PPS>(m_pActivePPS));
+			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265PPS>(m_pActivePPS));
 			H265PPS::PPSMap.insert_or_assign(m_pActivePPS->pps_pic_parameter_set_id, m_pActivePPS);
 			break;
 		}
@@ -134,7 +134,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265SEI>(pSEI));
+			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SEI>(pSEI));
 			break;
 		}
 		default:{
@@ -146,10 +146,166 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pCurrentAccessUnit->NALUnits.push_back(std::unique_ptr<H265Slice>(pSlice));
+			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265Slice>(pSlice));
 			firstPicture = false; endOfSequenceFlag = false;
 			break;
 		}
 	}
 	return true;
+}
+
+void H265Stream::computePOC(){
+	if(m_pCurrentAccessUnit->POCDecoded) return;
+	H265Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	H265SPS* pCurrentSPS = pCurrentSlice->getSPS();
+	if(m_pCurrentAccessUnit->isIRAP() && pCurrentSlice->NoRaslOutputFlag){
+		m_pCurrentAccessUnit->PicOrderCntMsb = 0;
+	} else {
+		H265AccessUnit* prevTid0Pic = nullptr;
+		std::list<H265AccessUnit*> accessUnits = getLastAccessUnits(accessUnitCount());
+		accessUnits.pop_back(); // remove current access unit
+		for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !prevTid0Pic;++accessUnitIt){
+			H265AccessUnit* pAccessUnit = *accessUnitIt;
+			H265Slice* pSlice = pAccessUnit->slice();
+			if(pSlice && pSlice->TemporalId == 0 && !pAccessUnit->isRASL() && !pAccessUnit->isRADL() && !pAccessUnit->isSLNR()) prevTid0Pic = pAccessUnit;
+		}
+		if(!prevTid0Pic){
+			std::cerr << "[H265 Stream] Couldn't compute POC for non-initial IRAP picture : missing prevTid0Pic\n";
+			return;
+		}
+		uint32_t prevPicOrderCntLsb = prevTid0Pic->slice()->slice_pic_order_cnt_lsb;
+		int32_t prevPicOrderCntMsb = prevTid0Pic->PicOrderCntMsb;
+		if((pCurrentSlice->slice_pic_order_cnt_lsb < prevPicOrderCntLsb) &&
+		   ((prevPicOrderCntLsb-pCurrentSlice->slice_pic_order_cnt_lsb) >= (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb + pCurrentSPS->MaxPicOrderCntLsb;
+		} else if((pCurrentSlice->slice_pic_order_cnt_lsb > prevPicOrderCntLsb) &&
+		          ((pCurrentSlice->slice_pic_order_cnt_lsb - prevPicOrderCntLsb) > (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb - pCurrentSPS->MaxPicOrderCntLsb;
+		} else m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb;
+	}
+	m_pCurrentAccessUnit->PicOrderCntVal = m_pCurrentAccessUnit->PicOrderCntMsb + m_pCurrentAccessUnit->slice()->slice_pic_order_cnt_lsb;
+	m_pCurrentAccessUnit->POCDecoded = true;
+}
+
+void H265Stream::computeRPS(){
+	H265Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	H265SPS* pCurrentSPS = pCurrentSlice->getSPS();
+	std::list<H265AccessUnit*> accessUnits = getLastAccessUnits(accessUnitCount());
+	accessUnits.pop_back(); // remove current access unit
+	if(m_pCurrentAccessUnit->isIRAP() && pCurrentSlice->NoRaslOutputFlag){
+		for(H265AccessUnit* pAccessUnit : accessUnits) {
+			if(pAccessUnit->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id) pAccessUnit->status = H265AccessUnit::ReferenceStatus_Unused;
+		}
+	}
+	if(m_pCurrentAccessUnit->isIDR()){
+		m_pCurrentAccessUnit->PocStCurrBefore.resize(0);
+		m_pCurrentAccessUnit->PocStCurrAfter.resize(0);
+		m_pCurrentAccessUnit->PocStFoll.resize(0);
+		m_pCurrentAccessUnit->PocLtCurr.resize(0);
+		m_pCurrentAccessUnit->PocLtFoll.resize(0);
+	} else {
+		if(!pCurrentSPS) return;
+		H265ShortTermRefPicSet currRPS = pCurrentSPS->short_term_ref_pic_set[pCurrentSlice->CurrRpsIdx];
+		for(int i = 0;i < currRPS.NumNegativePics;++i){
+			if(currRPS.UsedByCurrPicS0[i]) m_pCurrentAccessUnit->PocStCurrBefore.push_back(m_pCurrentAccessUnit->PicOrderCntVal + currRPS.DeltaPocS0[i]);
+			else m_pCurrentAccessUnit->PocStFoll.push_back(m_pCurrentAccessUnit->PicOrderCntVal + currRPS.DeltaPocS0[i]);
+		}
+		for(int i = 0;i < currRPS.NumPositivePics;++i){
+			if(currRPS.UsedByCurrPicS1[i]) m_pCurrentAccessUnit->PocStCurrAfter.push_back(m_pCurrentAccessUnit->PicOrderCntVal + currRPS.DeltaPocS1[i]);
+			else m_pCurrentAccessUnit->PocStFoll.push_back(m_pCurrentAccessUnit->PicOrderCntVal + currRPS.DeltaPocS1[i]);
+		}
+		for(int i = 0;i < pCurrentSlice->num_long_term_sps + pCurrentSlice->num_long_term_pics;++i){
+			uint32_t pocLt = pCurrentSlice->PocLsbLt[i];
+			if(pCurrentSlice->delta_poc_msb_present_flag[i]){
+				pocLt += m_pCurrentAccessUnit->PicOrderCntVal - pCurrentSlice->DeltaPocMsbCycleLt[i]*pCurrentSPS->MaxPicOrderCntLsb - 
+						(m_pCurrentAccessUnit->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1));
+			}
+			if(pCurrentSlice->UsedByCurrPicLt[i]){
+				m_pCurrentAccessUnit->PocLtCurr.push_back(pocLt);
+				m_pCurrentAccessUnit->CurrDeltaPocMsbPresentFlag.push_back(pCurrentSlice->delta_poc_msb_present_flag[i]);
+			} else {
+				m_pCurrentAccessUnit->PocLtFoll.push_back(pocLt);
+				m_pCurrentAccessUnit->FollDeltaPocMsbPresentFlag.push_back(pCurrentSlice->delta_poc_msb_present_flag[i]);
+			}
+		}
+	}
+
+	for(H265AccessUnit* pAccessUnit : accessUnits) {
+		if(pAccessUnit->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id) pAccessUnit->status = H265AccessUnit::ReferenceStatus_Unused;
+	}
+	// TODO: double check if all pictures in the DPB are eligible to be used as reference pictures
+	m_pCurrentAccessUnit->RefPicSetLtCurr.resize(m_pCurrentAccessUnit->PocLtCurr.size());
+	for(int i = 0;i < m_pCurrentAccessUnit->PocLtCurr.size();++i){
+		m_pCurrentAccessUnit->RefPicSetLtCurr[i] = nullptr;
+		if(!m_pCurrentAccessUnit->CurrDeltaPocMsbPresentFlag[i]){
+			for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetLtCurr[i];++accessUnitIt){
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == m_pCurrentAccessUnit->PocLtCurr[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+					m_pCurrentAccessUnit->RefPicSetLtCurr[i] = *accessUnitIt;
+					m_pCurrentAccessUnit->RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		} else {
+			for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetLtCurr[i];++accessUnitIt){
+				if((*accessUnitIt)->PicOrderCntVal == m_pCurrentAccessUnit->PocLtCurr[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+					m_pCurrentAccessUnit->RefPicSetLtCurr[i] = *accessUnitIt;
+					m_pCurrentAccessUnit->RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		}
+	}
+	m_pCurrentAccessUnit->RefPicSetLtFoll.resize(m_pCurrentAccessUnit->PocLtFoll.size());
+	for(int i = 0;i < m_pCurrentAccessUnit->PocLtFoll.size();++i){
+		m_pCurrentAccessUnit->RefPicSetLtFoll[i] = nullptr;
+		if(!m_pCurrentAccessUnit->FollDeltaPocMsbPresentFlag[i]){
+			for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetLtCurr[i];++accessUnitIt){
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == m_pCurrentAccessUnit->PocLtFoll[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+					m_pCurrentAccessUnit->RefPicSetLtFoll[i] = *accessUnitIt;
+					m_pCurrentAccessUnit->RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		} else {
+			for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetLtCurr[i];++accessUnitIt){
+				if((*accessUnitIt)->PicOrderCntVal == m_pCurrentAccessUnit->PocLtFoll[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+					m_pCurrentAccessUnit->RefPicSetLtFoll[i] = *accessUnitIt;
+					m_pCurrentAccessUnit->RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		}
+	}
+
+	m_pCurrentAccessUnit->RefPicSetStCurrBefore.resize(m_pCurrentAccessUnit->PocStCurrBefore.size());
+	for(int i = 0;i < m_pCurrentAccessUnit->PocStCurrBefore.size();++i){
+		m_pCurrentAccessUnit->RefPicSetStCurrBefore[i] = nullptr;
+		for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetStCurrBefore[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == m_pCurrentAccessUnit->PocStCurrBefore[i] && (*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+				m_pCurrentAccessUnit->RefPicSetStCurrBefore[i] = *accessUnitIt;
+				m_pCurrentAccessUnit->RefPicSetStCurrBefore[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+	m_pCurrentAccessUnit->RefPicSetStCurrAfter.resize(m_pCurrentAccessUnit->PocStCurrAfter.size());
+	for(int i = 0;i < m_pCurrentAccessUnit->PocStCurrAfter.size();++i){
+		m_pCurrentAccessUnit->RefPicSetStCurrAfter[i] = nullptr;
+		for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetStCurrAfter[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == m_pCurrentAccessUnit->PocStCurrAfter[i] && (*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+				m_pCurrentAccessUnit->RefPicSetStCurrAfter[i] = *accessUnitIt;
+				m_pCurrentAccessUnit->RefPicSetStCurrAfter[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+	m_pCurrentAccessUnit->RefPicSetStFoll.resize(m_pCurrentAccessUnit->PocStFoll.size());
+	for(int i = 0;i < m_pCurrentAccessUnit->PocStFoll.size();++i){
+		m_pCurrentAccessUnit->RefPicSetStFoll[i] = nullptr;
+		for(auto accessUnitIt = accessUnits.rbegin();accessUnitIt != accessUnits.rend() && !m_pCurrentAccessUnit->RefPicSetStFoll[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == m_pCurrentAccessUnit->PocStFoll[i] && (*accessUnitIt)->slice()->nuh_layer_id == pCurrentSlice->nuh_layer_id){
+				m_pCurrentAccessUnit->RefPicSetStFoll[i] = *accessUnitIt;
+				m_pCurrentAccessUnit->RefPicSetStFoll[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+
 }

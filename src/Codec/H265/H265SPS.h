@@ -218,6 +218,7 @@ struct H265SPS : public H265NAL {
 	uint8_t MaxDpbSize;
 	uint32_t Log2MinIpcmCbSizeY;
 	uint32_t Log2MaxIpcmCbSizeY;
+	uint32_t MaxPicOrderCntLsb;
 
 	static inline std::unordered_map<uint8_t, H265SPS*> SPSMap;
 

@@ -28,7 +28,9 @@ std::vector<std::string> H265PPS3DExtension::dump_fields(){
 	return fields;
 }
 
-H265PPSSCCExtension::H265PPSSCCExtension(){}
+H265PPSSCCExtension::H265PPSSCCExtension(){
+	pps_curr_pic_ref_enabled_flag = 0;
+}
 
 std::vector<std::string> H265PPSSCCExtension::dump_fields(){
 	std::vector<std::string> fields;

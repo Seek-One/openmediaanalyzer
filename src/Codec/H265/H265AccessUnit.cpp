@@ -10,7 +10,9 @@
 
 #include "H265AccessUnit.h"
 
-H265AccessUnit::H265AccessUnit(){
+H265AccessUnit::H265AccessUnit():
+    POCDecoded(false), RPSDecoded(false)
+{
 }
 
 H265AccessUnit::~H265AccessUnit(){
@@ -67,6 +69,45 @@ std::optional<uint16_t> H265AccessUnit::frameNumber() const{
     H265Slice* pSlice = slice();
     if(!pSlice) return std::nullopt;
     return pSlice->slice_pic_order_cnt_lsb;
+}
+
+bool H265AccessUnit::isIRAP() const {
+    H265Slice* pSlice = slice();
+    if(!pSlice) return false;
+    return pSlice->isIRAP();
+}
+
+bool H265AccessUnit::isIDR() const {
+    H265Slice* pSlice = slice();
+    if(!pSlice) return false;
+    return pSlice->nal_unit_type == H265NAL::UnitType_IDR_N_LP || pSlice->nal_unit_type == H265NAL::UnitType_IDR_W_RADL;
+}
+
+bool H265AccessUnit::isRASL() const {
+    H265Slice* pSlice = slice();
+    if(!pSlice) return false;
+    return pSlice->nal_unit_type == H265NAL::UnitType_RASL_N || pSlice->nal_unit_type == H265NAL::UnitType_RASL_R;
+}
+
+bool H265AccessUnit::isRADL() const {
+    H265Slice* pSlice = slice();
+    if(!pSlice) return false;
+    return pSlice->nal_unit_type == H265NAL::UnitType_RADL_N || pSlice->nal_unit_type == H265NAL::UnitType_RADL_R;
+}
+
+bool H265AccessUnit::isSLNR() const {
+    H265Slice* pSlice = slice();
+    if(!pSlice) return false;
+    switch(pSlice->nal_unit_type){
+        case H265NAL::UnitType_TRAIL_N:
+        case H265NAL::UnitType_TSA_N:
+        case H265NAL::UnitType_STSA_N:
+        case H265NAL::UnitType_RADL_N:
+        case H265NAL::UnitType_RASL_N:
+            return true;
+        default: return false;
+    }
+    return false;
 }
 
 void H265AccessUnit::validate(){

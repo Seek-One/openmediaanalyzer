@@ -37,6 +37,8 @@ public:
 	void startDecodingProcess();
 
 	void computeRef();
+	void computePOC();
+	void computeRPS();
 
 public:
 	bool firstPicture;

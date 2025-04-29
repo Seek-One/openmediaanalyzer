@@ -141,6 +141,8 @@ struct H265PPS : public H265NAL {
 	H265PPS3DExtension pps_3d_extension;
 	H265PPSSCCExtension pps_scc_extension;
 
+	uint8_t TwoVersionsOfCurrDecPicFlag;
+
 	static inline std::unordered_map<uint8_t, H265PPS*> PPSMap;
 
 	std::vector<std::string> dump_fields() override;

@@ -61,6 +61,7 @@ bool H265NAL::isIRAP() const{
 		case H265NAL::UnitType_BLA_N_LP:
 		case H265NAL::UnitType_IDR_W_RADL:
 		case H265NAL::UnitType_IDR_N_LP:
+		case H265NAL::UnitType_CRA_NUT:
 			return true;
 	
 		default:

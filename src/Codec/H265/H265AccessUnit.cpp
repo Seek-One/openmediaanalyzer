@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <sstream>
 
 #include "H265NAL.h"
 #include "H265Slice.h"
@@ -149,7 +150,20 @@ void H265AccessUnit::validate(){
         }
     }
     // order-related checks
+    int lastVCLIndex = NALUnits.size();
+    for(int i = 0;i < NALUnits.size();++i) if(NALUnits[i]->isSlice()) lastVCLIndex = i;
+    for(int i = lastVCLIndex+1;i < NALUnits.size();++i){
+        switch(NALUnits[i]->nal_unit_type){
+            case H265NAL::UnitType_VPS:
+            case H265NAL::UnitType_SPS:
+            case H265NAL::UnitType_PPS:
+            case H265NAL::UnitType_SEI_PREFIX:
+                errors.push_back((std::ostringstream() << "[H265 Access unit] NAL unit of type " << NALUnits[i]->nal_unit_type << " found after last VCL unit").str());
+            default: continue;
+        }
+    }
     // VCL units order-related checks
+    if(!pSlices.front()->first_slice_segment_in_pic_flag) errors.push_back((std::ostringstream() << "[H265 Access unit] first_slice_segment_in_pic_flag not set for first VCL unit").str());
 }
 
 bool H265AccessUnit::isValid() const{

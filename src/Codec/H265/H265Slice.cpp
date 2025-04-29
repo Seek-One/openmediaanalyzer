@@ -350,12 +350,17 @@ void H265Slice::validate(){
 	if(pPps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced PPS has a greater nuh_layer_id value").str());
 	if(pSps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced SPS has a greater nuh_layer_id value").str());
 	if(slice_segment_address > pSps->PicSizeInCtbsY-1) errors.push_back((std::ostringstream() << "[H265 Slice] slice_segment_address value (" << slice_segment_address << ") not in valid range (0.." << pSps->PicSizeInCtbsY-1 << ")").str());
-	if(slice_type > 2) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value (" << (int)slice_type << ") not in valid range (0..2)").str());
-	if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23 && slice_type != 2 &&
-		nuh_layer_id == 0 && !pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value of an IRAP picture not equal to 2").str());
-	if(pSps->sps_max_dec_pic_buffering_minus1[TemporalId] == 0 && nuh_layer_id == 0 &&
-		!pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value not equal to 2").str());
-	if(colour_plane_id > 2) errors.push_back((std::ostringstream() << "[H265 Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
+	if(!pPps->dependent_slice_segments_enabled_flag){
+		if(slice_type > 2) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value (" << (int)slice_type << ") not in valid range (0..2)").str());
+		if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23 &&
+			nuh_layer_id == 0 && !pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag &&
+			slice_type != 2) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value of an IRAP picture not equal to 2").str());
+		if(pSps->sps_max_dec_pic_buffering_minus1[TemporalId] == 0 && nuh_layer_id == 0 &&
+			!pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag && slice_type != 2) {
+			errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value not equal to 2").str());
+		}
+		if(colour_plane_id > 2) errors.push_back((std::ostringstream() << "[H265 Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
+	}
 	if(slice_pic_order_cnt_lsb > pSps->MaxPicOrderCntLsb-1) errors.push_back((std::ostringstream() << "[H265 Slice] slice_pic_order_cnt_lsb value (" << slice_pic_order_cnt_lsb << ") not in valid range (0.." << pSps->MaxPicOrderCntLsb-1 << ")").str());
 	if(short_term_ref_pic_set_idx > pSps->num_short_term_ref_pic_sets-1) errors.push_back((std::ostringstream() << "[H265 Slice] short_term_ref_pic_set_idx value (" << (int)short_term_ref_pic_set_idx << ") not in valid range (0.." << pSps->num_short_term_ref_pic_sets-1 << ")").str());
 	if(num_long_term_sps > pSps->num_long_term_ref_pics_sps) errors.push_back((std::ostringstream() << "[H265 Slice] num_long_term_sps value (" << num_long_term_sps << ") not in valid range (0.." << pSps->num_long_term_ref_pics_sps << ")").str());

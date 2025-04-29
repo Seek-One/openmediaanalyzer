@@ -73,7 +73,7 @@ QWindowMain::QWindowMain(QWidget* parent)
                 emit openFramesTab();
                 break;
             case 1:
-                emit openSPSTab();
+                emit openVPSTab();
                 break;
             case 2:
                 emit openSPSTab();

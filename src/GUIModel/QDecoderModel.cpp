@@ -477,19 +477,19 @@ void QDecoderModel::framesTabOpened(){
 
 void QDecoderModel::vpsTabOpened(){
     m_tabIndex = 1;
-    emitVPSErrors();
+    if(m_pH265Stream && !m_pH265Stream->getGOPs().empty()) emitVPSErrors();
 }
 
 void QDecoderModel::spsTabOpened(){
     m_tabIndex = 2;
-    if(!m_pH264Stream->getGOPs().empty()) emitH264SPSErrors();
-    else if(!m_pH265Stream->getGOPs().empty()) emitH265SPSErrors();
+    if(m_pH264Stream &&!m_pH264Stream->getGOPs().empty()) emitH264SPSErrors();
+    else if(m_pH265Stream && !m_pH265Stream->getGOPs().empty()) emitH265SPSErrors();
 }
 
 void QDecoderModel::ppsTabOpened(){
     m_tabIndex = 3;
-    if(!m_pH264Stream->getGOPs().empty()) emitH264PPSErrors();
-    else if(!m_pH265Stream->getGOPs().empty()) emitH265PPSErrors();
+    if(m_pH264Stream && !m_pH264Stream->getGOPs().empty()) emitH264PPSErrors();
+    else if(m_pH265Stream &&!m_pH265Stream->getGOPs().empty()) emitH265PPSErrors();
 }
 
 void QDecoderModel::folderLoaded(){

@@ -93,7 +93,10 @@ bool H265NAL::isSTSA() const{
 }
 
 std::vector<std::string> H265NAL::dump_fields(){
-	return std::vector<std::string>();
+	std::vector<std::string> fields;
+	fields.push_back((std::ostringstream() << "nuh_layer_id:" << (int)nuh_layer_id).str());
+	fields.push_back((std::ostringstream() << "TemporalId:" << (int)TemporalId).str());
+	return fields;
 }
 
 void H265NAL::validate(){

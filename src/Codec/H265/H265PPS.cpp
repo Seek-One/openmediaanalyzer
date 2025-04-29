@@ -90,7 +90,7 @@ H265PPS::H265PPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 H265PPS::~H265PPS(){}
 
 std::vector<std::string> H265PPS::dump_fields(){
-	std::vector<std::string> fields;
+	std::vector<std::string> fields = H265NAL::dump_fields();
 	fields.push_back((std::ostringstream() << "pps_pic_parameter_set_id:" << (int)pps_pic_parameter_set_id).str());
 	fields.push_back((std::ostringstream() << "pps_seq_parameter_set_id:" << (int)pps_seq_parameter_set_id).str());
 	fields.push_back((std::ostringstream() << "dependent_slice_segments_enabled_flag:" << (int)dependent_slice_segments_enabled_flag).str());

@@ -32,7 +32,7 @@ H265VPS::H265VPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 }
 
 std::vector<std::string> H265VPS::dump_fields(){
-	std::vector<std::string> fields;
+	std::vector<std::string> fields = H265NAL::dump_fields();
 	fields.push_back((std::ostringstream() << "vps_video_parameter_set_id:" << (int)vps_video_parameter_set_id).str());
 	fields.push_back((std::ostringstream() << "vps_base_layer_internal_flag:" << (int)vps_base_layer_internal_flag).str());
 	fields.push_back((std::ostringstream() << "vps_base_layer_available_flag:" << (int)vps_base_layer_available_flag).str());

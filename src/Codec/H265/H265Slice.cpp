@@ -238,9 +238,7 @@ H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t
 // }
 
 std::vector<std::string> H265Slice::dump_fields(){
-	std::vector<std::string> fields;
-	fields.push_back((std::ostringstream() << "nuh_layer_id:" << (int)nuh_layer_id).str());
-	fields.push_back((std::ostringstream() << "TemporalId:" << (int)TemporalId).str());
+	std::vector<std::string> fields = H265NAL::dump_fields();
 	fields.push_back((std::ostringstream() << "first_slice_segment_in_pic_flag:" << (int)first_slice_segment_in_pic_flag).str());
 	if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23) fields.push_back((std::ostringstream() << "  no_output_of_prior_pics_flag:" << (int)no_output_of_prior_pics_flag).str());
 	fields.push_back((std::ostringstream() << "slice_pic_parameter_set_id:" << slice_pic_parameter_set_id).str());

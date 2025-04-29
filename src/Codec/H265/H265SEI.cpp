@@ -28,7 +28,7 @@ std::vector<std::string> H265SEIMessage::dump_fields(){
 }
 
 std::vector<std::string> H265SEI::dump_fields(){
-	std::vector<std::string> fields;
+	std::vector<std::string> fields = H265NAL::dump_fields();
 	for(H265SEIMessage* message : messages){
 		std::vector<std::string> msgFields = message->dump_fields();
 		fields.insert(fields.end(), msgFields.begin(), msgFields.end());

@@ -105,6 +105,7 @@ struct H265Slice : public H265NAL {
 	std::vector<uint8_t> slice_segment_header_extension_data_byte;
 
 	// Derived variables
+	uint32_t SliceQpY;
 	uint8_t IdrPicFlag;
 	uint8_t IRAPPicture;
 	uint8_t NoRaslOutputFlag;
@@ -119,23 +120,6 @@ struct H265Slice : public H265NAL {
 	// Specific variables for VDPAU
 	uint64_t NumShortTermPictureSliceHeaderBits;
 	uint64_t NumLongTermPictureSliceHeaderBits;
-
-	// Variable to handle the decoding process 8
-	uint8_t TargetDecLayerIdList; // 8.1.2
-	uint8_t HighestTid; // 8.1.2
-	bool SubPicHrdFlag; // 8.1.2
-	uint32_t PicOrderCntVal; // 8.3.1
-	uint32_t prevPicOrderCntLsb; // 8.3.1
-	uint32_t prevPicOrderCntMsb; // 8.3.1
-	uint32_t MaxPicOrderCntLsb; // 8.3.2
-	Int32Vector PocStCurrBefore; // 8.3.2
-	Int32Vector PocStCurrAfter; // 8.3.2
-	Int32Vector PocStFoll; // 8.3.2
-	Int32Vector PocLtCurr; // 8.3.2
-	Int32Vector PocLtFoll; // 8.3.2
-	UInt8Vector CurrDeltaPocMsbPresentFlag; // 8.3.2
-	UInt8Vector FollDeltaPocMsbPresentFlag; // 8.3.2
-
 
 	// Short-term picture lists
 	std::vector<int> RefPicSetStCurrBefore;
@@ -159,6 +143,7 @@ struct H265Slice : public H265NAL {
 	H265PPS* getPPS() const;
 	H265SPS* getSPS() const;
 	H265VPS* getVPS() const;
+	void validate() override;
 };
 
 

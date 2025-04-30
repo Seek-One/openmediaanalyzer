@@ -16,7 +16,7 @@ extern "C" {
 
 #include "QAccessUnitModel.h"
 
-#define GOP_LIMIT 4
+#define GOP_LIMIT 15
 #define ERR_MSG_LIMIT 15
 
 class QFolderView;
@@ -59,6 +59,7 @@ public slots:
     void vpsTabOpened();
     void spsTabOpened();
     void ppsTabOpened();
+    void frameDeleted(QUuid id);
 
 private:
     void emitStreamErrors();

@@ -15,6 +15,7 @@ QTimelineViewController::QTimelineViewController(QTimelineView* pTimelineView, Q
     connect(m_pTimelineView, &QTimelineView::selectAccessUnit, this, &QTimelineViewController::frameSelected);
 
     connect(this, &QTimelineViewController::selectFrame, m_pDecoderModel, &QDecoderModel::frameSelected);
+    connect(m_pTimelineView, &QTimelineView::deleteFrame, m_pDecoderModel, &QDecoderModel::frameDeleted);
 }
 
 QTimelineViewController::~QTimelineViewController(){

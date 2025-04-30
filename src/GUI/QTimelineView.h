@@ -27,6 +27,7 @@ public slots:
 
 signals:
     void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void deleteFrame(QUuid id);
 
 private:
     QHBoxLayout* m_pBarHBoxLayout;

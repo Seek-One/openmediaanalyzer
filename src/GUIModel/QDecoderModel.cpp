@@ -492,6 +492,10 @@ void QDecoderModel::ppsTabOpened(){
     else if(m_pH265Stream &&!m_pH265Stream->getGOPs().empty()) emitH265PPSErrors();
 }
 
+void QDecoderModel::frameDeleted(QUuid id){
+    if(m_decodedFrames[id]) m_decodedFrames.remove(id);
+}
+
 void QDecoderModel::folderLoaded(){
     validateCurrentGOP();
     emit updateTimelineUnits();

@@ -21,7 +21,7 @@ H265AccessUnit::~H265AccessUnit(){
 }
 
 H265Slice* H265AccessUnit::slice() const{
-    auto sliceIt = std::find_if(NALUnits.begin(), NALUnits.end(), [](auto& NALUnit){ 
+    auto sliceIt = std::find_if(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){ 
         return NALUnit->isSlice();
     });
     if(sliceIt != NALUnits.end()) return reinterpret_cast<H265Slice*>(sliceIt->get());

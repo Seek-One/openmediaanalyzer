@@ -46,8 +46,8 @@ bool H265NAL::isSlice(UnitType nal_unit_type)
 		case H265NAL::UnitType_BLA_N_LP:
 		case H265NAL::UnitType_IDR_W_RADL:
 		case H265NAL::UnitType_IDR_N_LP:
+		case H265NAL::UnitType_CRA_NUT:
 			return true;
-
 		default:
 			break;
 	}

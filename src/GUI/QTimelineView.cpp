@@ -2,8 +2,6 @@
 #include <QScrollBar>
 
 #include "../GUIModel/QAccessUnitModel.h"
-#include "../Codec/H264/H264AccessUnit.h"
-#include "../Codec/H265/H265AccessUnit.h"
 #include "QAccessUnitElement.h"
 
 #include "QTimelineView.h"
@@ -45,14 +43,8 @@ void QTimelineView::resetTimeline(){
 
 void QTimelineView::accessUnitsUpdated(){
     for(QSharedPointer<QAccessUnitElement> pTimelineAccessUnitElement : m_pAccessUnitElements){
-        if(pTimelineAccessUnitElement->m_pAccessUnitModel->isH264()){
-            if(std::get<const H264AccessUnit*>(pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-                QAccessUnitElement::m_maxSize = std::get<const H264AccessUnit*>(pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size();
-            }
-        } else if (pTimelineAccessUnitElement->m_pAccessUnitModel->isH265()){
-            if(std::get<const H265AccessUnit*>(pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-                QAccessUnitElement::m_maxSize = std::get<const H265AccessUnit*>(pTimelineAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size();
-            }
+        if(pTimelineAccessUnitElement->m_pAccessUnitModel->size() > QAccessUnitElement::m_maxSize){
+            QAccessUnitElement::m_maxSize = pTimelineAccessUnitElement->m_pAccessUnitModel->size();
         }
     }
     for(QSharedPointer<QAccessUnitElement> pAccessUnitElement : m_pAccessUnitElements) pAccessUnitElement->update();
@@ -65,17 +57,13 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
     // check for new max size first
     // existing access units may have been updated
     for(QSharedPointer<QAccessUnitElement> pAccessUnitElement : m_pAccessUnitElements){
-        if(pAccessUnitElement->m_pAccessUnitModel->isH264() && std::get<const H264AccessUnit*>(pAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-            QAccessUnitElement::m_maxSize = std::get<const H264AccessUnit*>(pAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size();
-        } else if(pAccessUnitElement->m_pAccessUnitModel->isH265() && std::get<const H265AccessUnit*>(pAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-            QAccessUnitElement::m_maxSize = std::get<const H265AccessUnit*>(pAccessUnitElement->m_pAccessUnitModel->m_pAccessUnit)->size();
+        if(pAccessUnitElement->m_pAccessUnitModel->size() > QAccessUnitElement::m_maxSize){
+            QAccessUnitElement::m_maxSize = pAccessUnitElement->m_pAccessUnitModel->size();
         }
     }
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pAccessUnitModels) {
-        if(pAccessUnitModel->isH264() && std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-            QAccessUnitElement::m_maxSize = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->size();
-        } else if (pAccessUnitModel->isH265() && std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->size() > QAccessUnitElement::m_maxSize){
-            QAccessUnitElement::m_maxSize = std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->size();
+        if(pAccessUnitModel->size() > QAccessUnitElement::m_maxSize){
+            QAccessUnitElement::m_maxSize = pAccessUnitModel->size();
         }
     }
     // update existing access units with the potential new max size

@@ -614,16 +614,16 @@ void QDecoderModel::validateH264GOP(){
         if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
         // PPS & SPS check : no exploitable frame numbers if either is absent
         if(!pSlice->getPPS() || !pSlice->getSPS()){
-            pAccessUnitModel->m_status = Status::REFERENCED_PPS_OR_SPS_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }
         noSPSorPPS = false;
         if(!encounteredIFrame && pSlice->slice_type != H264Slice::SliceType_I) {
-            pAccessUnitModel->m_status = Status::REFERENCED_IFRAME_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_IFRAME_MISSING;
             continue;
         }
         if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
-            pAccessUnitModel->m_status = Status::OUT_OF_ORDER;
+            pAccessUnitModel->m_status = QAccessUnitModel::OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->frame_num;
     }

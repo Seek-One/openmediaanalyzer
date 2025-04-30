@@ -271,15 +271,31 @@ void H265Slice::validate(){
 	for(int i = 0;i < delta_poc_msb_cycle_lt.size();++i){
 		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) errors.push_back((std::ostringstream() << "[H265 Slice] delta_poc_msb_cycle_lt[" << i << "] value (" << delta_poc_msb_cycle_lt[i] << ") not in valid range (0.." << delta_poc_msb_cycle_lt_limit << ")").str());
 	}
-	if(num_ref_idx_active_override_flag){
-		if(num_ref_idx_l0_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l0_active_minus1 value (" << num_ref_idx_l0_active_minus1 << ") not in valid range (0..14)").str());
-		if(num_ref_idx_l1_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l1_active_minus1 value (" << num_ref_idx_l1_active_minus1 << ") not in valid range (0..14)").str());
+	if(slice_type == SliceType_P || slice_type == SliceType_B){
+		if(num_ref_idx_active_override_flag){
+			if(num_ref_idx_l0_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l0_active_minus1 value (" << num_ref_idx_l0_active_minus1 << ") not in valid range (0..14)").str());
+			if(num_ref_idx_l1_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l1_active_minus1 value (" << num_ref_idx_l1_active_minus1 << ") not in valid range (0..14)").str());
+		}
+		if(collocated_from_l0_flag && (slice_type == SliceType_P || slice_type == SliceType_B)  && collocated_ref_idx > num_ref_idx_l0_active_minus1){
+			errors.push_back((std::ostringstream() << "[H265 Slice] collocated_ref_idx value (" << collocated_ref_idx << ") not in valid range (0.." << num_ref_idx_l0_active_minus1 << ")").str());
+		}
+		// if(slice_temporal_mvp_enabled_flag) ...
+		// pred_weight_table
+		if(five_minus_max_num_merge_cand > 4) errors.push_back((std::ostringstream() << "[H265 Slice] five_minus_max_num_merge_cand value (" << five_minus_max_num_merge_cand << ") not in valid range (0..4)").str());
 	}
-	if(collocated_from_l0_flag && (slice_type == SliceType_P || slice_type == SliceType_B)  && collocated_ref_idx > num_ref_idx_l0_active_minus1){
-		errors.push_back((std::ostringstream() << "[H265 Slice] collocated_ref_idx value (" << collocated_ref_idx << ") not in valid range (0.." << num_ref_idx_l0_active_minus1 << ")").str());
+	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) errors.push_back((std::ostringstream() << "[H265 Slice] SliceQpY value (" << SliceQpY << ") not in valid range (" << -pSps->QpBdOffsetY << "..51)").str());
+	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) errors.push_back((std::ostringstream() << "[H265 Slice] slice_cb_qp_offset value (" << slice_cb_qp_offset << ") not in valid range (-12..12)").str());
+	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) errors.push_back((std::ostringstream() << "[H265 Slice] slice_cr_qp_offset value (" << slice_cr_qp_offset << ") not in valid range (-12..12)").str());
+	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) errors.push_back((std::ostringstream() << "[H265 Slice] slice_beta_offset_div2 value (" << slice_beta_offset_div2 << ") not in valid range (-6..6)").str());
+	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) errors.push_back((std::ostringstream() << "[H265 Slice] slice_tc_offset_div2 value (" << slice_tc_offset_div2 << ") not in valid range (-6..6)").str());
+	uint32_t num_entry_point_offsets_limit = num_entry_point_offsets;
+	if(!pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
+		num_entry_point_offsets_limit = pSps->PicHeightInCtbsY-1;
+	} else if (pPps->tiles_enabled_flag && !pPps->entropy_coding_sync_enabled_flag){
+		num_entry_point_offsets_limit = (pPps->num_tile_columns_minus1+1)*(pPps->num_tile_rows_minus1+1)-1;
+	} else if (pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
+		num_entry_point_offsets_limit = (pPps->num_tile_columns_minus1+1)*pSps->PicHeightInCtbsY-1;
 	}
-	// if(slice_temporal_mvp_enabled_flag) ...
-	// pred_weight_table
-	// if(five_minus_max_num_merge_cand > 4) errors.push_back((std::ostringstream() << "[H265 Slice] five_minus_max_num_merge_cand value (" << five_minus_max_num_merge_cand << ") not in valid range (0..4)").str());
-
+	if(num_entry_point_offsets > num_entry_point_offsets_limit) errors.push_back((std::ostringstream() << "[H265 Slice] num_entry_point_offsets value (" << num_entry_point_offsets << ") not in valid range (0.." << num_entry_point_offsets_limit << ")").str()); 
+	if(offset_len_minus1 > 31) errors.push_back((std::ostringstream() << "[H265 Slice] offset_len_minus1 value (" << offset_len_minus1 << ") not in valid range (0..31)").str()); 
 }

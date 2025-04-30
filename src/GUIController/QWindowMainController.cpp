@@ -64,7 +64,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pDecoderModel, &QDecoderModel::updateErrorView, pWindowMain, &QWindowMain::errorViewToggled);
 
     connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::stopRunning);
-    // QWorkerThread::execWorker(m_pStreamModel, false);
+    QWorkerThread::execWorker(m_pStreamModel, false);
 }
 
 void QWindowMainController::folderOpened(){

@@ -6,7 +6,7 @@
 QAccessUnitElement::QAccessUnitElement(QWidget* parent)
     : QWidget(parent), m_selected(false), m_hovered(false), m_interactable(true)
 {
-    setMinimumSize(4, 125);
+    setMinimumSize(15, 100);
     setMouseTracking(true);
 }
 

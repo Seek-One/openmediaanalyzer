@@ -16,7 +16,7 @@ extern "C" {
 
 #include "QAccessUnitModel.h"
 
-#define GOP_LIMIT 15
+#define GOP_LIMIT 4
 #define ERR_MSG_LIMIT 15
 
 class QFolderView;

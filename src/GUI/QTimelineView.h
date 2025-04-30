@@ -6,7 +6,7 @@
 #include <QScrollArea>
 #include <list>
 
-#define SCROLL_CLAMP_RIGHT_THRESHOLD 0.975
+#define SCROLL_CLAMP_RIGHT_THRESHOLD 0.925
 
 class QAccessUnitModel;
 class QAccessUnitElement;
@@ -29,7 +29,8 @@ signals:
     void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
 
 private:
-    QHBoxLayout* m_pHBoxLayout;
+    QHBoxLayout* m_pBarHBoxLayout;
+    QHBoxLayout* m_pCounterHBoxLayout;
     std::list<QSharedPointer<QAccessUnitElement>> m_pAccessUnitElements;
     QScrollArea* m_pScrollArea;
 };

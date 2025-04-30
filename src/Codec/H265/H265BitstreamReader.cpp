@@ -437,54 +437,63 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 			if ((h265PPS->weighted_pred_flag && h265Slice.slice_type == H265Slice::SliceType_P) ||
 				(h265PPS->weighted_bipred_flag && h265Slice.slice_type == H265Slice::SliceType_B))
 			{
-				std::cerr << "[H265::bitstream] pred_weight_table() not handled\n";
+				std::cerr << "[H265 Slice] pred_weight_table() not handled\n";
+				return;
 			}
-			// h265Slice.five_minus_max_num_merge_cand = readGolombUE();
-			// No SPS extentions handled
-			// if( motion_vector_resolution_control_idc = = 2 )
-			// 	use_integer_mv_flag
+			h265Slice.five_minus_max_num_merge_cand = readGolombUE();
+			if(h265SPS->sps_scc_extension.motion_vector_resolution_control_idc == 2 )
+				h265Slice.use_integer_mv_flag = readBits(1);
 		}
-		// h265Slice.slice_qp_delta = readGolombSE();
-		// if (h265PPS.pps_slice_chroma_qp_offsets_present_flag) {
-		// 	h265Slice.slice_cb_qp_offset = readGolombSE();
-		// 	h265Slice.slice_cr_qp_offset = readGolombSE();
-		// }
-		// h265Slice.SliceQpY = 26 + h265PPS->init_qp_minus26 + h265Slice.slice_qp_delta;
-		// if (h265PPS.pps_slice_chroma_qp_offsets_present_flag) {
-		// 	h265Slice.slice_act_y_qp_offset = readGolombSE();
-		// 	h265Slice.slice_act_cb_qp_offset = readGolombSE();
-		// 	h265Slice.slice_act_cr_qp_offset = readGolombSE();
-		// }
-		// // PPS rang not handled
-		// if (h265PPS.chroma_qp_offset_list_enabled_flag) {
-		// 	h265Slice.cu_chroma_qp_offset_enabled_flag = readBits(1);
-		// }
+		h265Slice.slice_qp_delta = readGolombSE();
+		H265PPS* h265PPS = h265Slice.getPPS();
+		if(!h265PPS){
+			std::cerr << "[H265 Slice] Reference to unknown PPS, parsing aborted\n";
+			return;
+		}
+		if (h265PPS->pps_slice_chroma_qp_offsets_present_flag) {
+			h265Slice.slice_cb_qp_offset = readGolombSE();
+			h265Slice.slice_cr_qp_offset = readGolombSE();
+		}
+		h265Slice.SliceQpY = 26 + h265PPS->init_qp_minus26 + h265Slice.slice_qp_delta;
+		if (h265PPS->pps_scc_extension.pps_slice_act_qp_offsets_present_flag) {
+			std::cerr << "[H265 Slice] PPS SCC extension not supported, parsing aborted\n";
+			return;
+			// h265Slice.slice_act_y_qp_offset = readGolombSE();
+			// h265Slice.slice_act_cb_qp_offset = readGolombSE();
+			// h265Slice.slice_act_cr_qp_offset = readGolombSE();
+		}
 
-	// 	if (h265PPS.deblocking_filter_override_enabled_flag) {
-	// 		h265Slice.deblocking_filter_override_flag = readBits(1);
-	// 	}
-	// 	if (h265Slice.deblocking_filter_override_flag) {
-	// 		h265Slice.slice_deblocking_filter_disabled_flag = readBits(1);
-	// 		if (!h265Slice.slice_deblocking_filter_disabled_flag) {
-	// 			h265Slice.slice_beta_offset_div2 = readGolombSE();
-	// 			h265Slice.slice_tc_offset_div2 = readGolombSE();
-	// 		}
-	// 	}
-	// 	if (h265PPS.pps_loop_filter_across_slices_enabled_flag &&
-	// 		(h265Slice.slice_sao_luma_flag || h265Slice.slice_sao_chroma_flag || !h265Slice.slice_deblocking_filter_disabled_flag))
-	// 	{
-	// 		h265Slice.slice_loop_filter_across_slices_enabled_flag = readBits(1);
-	// 	}
-	// }
-	// if (h265PPS.tiles_enabled_flag || h265PPS.entropy_coding_sync_enabled_flag) {
-	// 	h265Slice.num_entry_point_offsets = readGolombUE();
-	// 	if (h265Slice.num_entry_point_offsets > 0) {
-	// 		h265Slice.offset_len_minus1 = readGolombUE();
-	// 		h265Slice.entry_point_offset_minus1.resize(h265Slice.num_entry_point_offsets);
-	// 		for (unsigned i = 0; i < h265Slice.num_entry_point_offsets; ++i) {
-	// 			h265Slice.entry_point_offset_minus1[i] = readBits(h265Slice.offset_len_minus1 + 1);
-	// 		}
-	// 	}
+		if (h265PPS->pps_range_extension.chroma_qp_offset_list_enabled_flag) {
+			std::cerr << "[H265 Slice] PPS range extension not supported, parsing aborted\n";
+			return;
+			// h265Slice.cu_chroma_qp_offset_enabled_flag = readBits(1);
+		}
+
+		if (h265PPS->deblocking_filter_override_enabled_flag) {
+			h265Slice.deblocking_filter_override_flag = readBits(1);
+		}
+		if (h265Slice.deblocking_filter_override_flag) {
+			h265Slice.slice_deblocking_filter_disabled_flag = readBits(1);
+			if (!h265Slice.slice_deblocking_filter_disabled_flag) {
+				h265Slice.slice_beta_offset_div2 = readGolombSE();
+				h265Slice.slice_tc_offset_div2 = readGolombSE();
+			}
+		}
+		if (h265PPS->pps_loop_filter_across_slices_enabled_flag &&
+			(h265Slice.slice_sao_luma_flag || h265Slice.slice_sao_chroma_flag || !h265Slice.slice_deblocking_filter_disabled_flag))
+		{
+			h265Slice.slice_loop_filter_across_slices_enabled_flag = readBits(1);
+		}
+	}
+	if (h265PPS->tiles_enabled_flag || h265PPS->entropy_coding_sync_enabled_flag) {
+		h265Slice.num_entry_point_offsets = readGolombUE();
+		if (h265Slice.num_entry_point_offsets > 0) {
+			h265Slice.offset_len_minus1 = readGolombUE();
+			h265Slice.entry_point_offset_minus1.resize(h265Slice.num_entry_point_offsets);
+			for (unsigned i = 0; i < h265Slice.num_entry_point_offsets; ++i) {
+				h265Slice.entry_point_offset_minus1[i] = readBits(h265Slice.offset_len_minus1 + 1);
+			}
+		}
 	}
 
 	// Compute derived variables

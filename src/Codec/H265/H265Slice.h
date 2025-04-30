@@ -10,6 +10,7 @@
 #include "H265VPS.h"
 
 struct H265Slice;
+struct H265AccessUnit;
 
 struct RefPicListsModification {
 
@@ -87,6 +88,7 @@ struct H265Slice : public H265NAL {
 	uint32_t collocated_ref_idx;
 	H265PredWeightTable pred_weight_table;
 	uint32_t five_minus_max_num_merge_cand;
+	uint8_t use_integer_mv_flag;
 	int32_t slice_qp_delta;
 	int32_t slice_cb_qp_offset;
 	int32_t slice_cr_qp_offset;
@@ -121,24 +123,10 @@ struct H265Slice : public H265NAL {
 	uint64_t NumShortTermPictureSliceHeaderBits;
 	uint64_t NumLongTermPictureSliceHeaderBits;
 
-	// Short-term picture lists
-	std::vector<int> RefPicSetStCurrBefore;
-	std::vector<int> RefPicSetStCurrAfter;
-	std::list<int> RefPicSetStFoll;
-
-	// Long-term picture lists
-	std::vector<int> RefPicSetLtCurr;
-	std::list<int> RefPicSetLtFoll;
-
 	// Reference picture lists
-	std::vector<int> RefPicList0; // 8.3.4 (For P-slice)
-	std::vector<int> RefPicList1; // 8.3.4 (For B-slice)
-	std::vector<int> RefPicListTemp0;
-	std::vector<int> RefPicListTemp1;
+	std::vector<H265AccessUnit*> RefPicList0; // 8.3.4 (For P-slice)
+	std::vector<H265AccessUnit*> RefPicList1; // 8.3.4 (For B-slice)
 
-
-	void decodeRPS();
-	void computeRef();
 	std::vector<std::string> dump_fields() override;
 	H265PPS* getPPS() const;
 	H265SPS* getSPS() const;

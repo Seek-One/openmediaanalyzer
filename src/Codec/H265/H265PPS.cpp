@@ -6,7 +6,9 @@
 #include "H265PPS.h"
 
 
-H265PPSRangeExtension::H265PPSRangeExtension(){}
+H265PPSRangeExtension::H265PPSRangeExtension(){
+	chroma_qp_offset_list_enabled_flag = 0;
+}
 
 std::vector<std::string> H265PPSRangeExtension::dump_fields(){
 	std::vector<std::string> fields;
@@ -30,6 +32,7 @@ std::vector<std::string> H265PPS3DExtension::dump_fields(){
 
 H265PPSSCCExtension::H265PPSSCCExtension(){
 	pps_curr_pic_ref_enabled_flag = 0;
+	pps_slice_act_qp_offsets_present_flag = 0;
 }
 
 std::vector<std::string> H265PPSSCCExtension::dump_fields(){

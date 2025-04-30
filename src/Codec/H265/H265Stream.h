@@ -39,6 +39,7 @@ public:
 	void computeRef();
 	void computePOC();
 	void computeRPS();
+	void computeRPL();
 
 public:
 	bool firstPicture;

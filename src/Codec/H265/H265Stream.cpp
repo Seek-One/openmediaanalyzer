@@ -307,5 +307,66 @@ void H265Stream::computeRPS(){
 			}
 		}
 	}
+}
 
+void H265Stream::computeRPL(){
+	H265Slice* pCurrentSlice = m_pCurrentAccessUnit->slices().back();
+	H265PPS* h265PPS = pCurrentSlice->getPPS();
+	// 8.3.4 Decoding process for reference picture lists construction
+	uint32_t NumRpsCurrTempList0 = std::max(pCurrentSlice->num_ref_idx_l0_active_minus1+1, pCurrentSlice->NumPicTotalCurr);
+	uint32_t rIdx = 0;
+	std::vector<H265AccessUnit*> RefPicListTemp0;
+	if(pCurrentSlice->slice_type == H265Slice::SliceType_P) {
+		while (rIdx < NumRpsCurrTempList0) {
+			for (int i = 0; i < m_pCurrentAccessUnit->PocStCurrBefore.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(m_pCurrentAccessUnit->RefPicSetStCurrBefore[i]);
+			}
+			for (int i = 0; i < m_pCurrentAccessUnit->PocStCurrAfter.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(m_pCurrentAccessUnit->RefPicSetStCurrAfter[i]);
+			}
+			for (int i = 0; i < m_pCurrentAccessUnit->PocLtCurr.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(m_pCurrentAccessUnit->RefPicSetLtCurr[i]);
+			}
+			if (h265PPS->pps_extension_present_flag) {
+				std::cerr << "[H265 Slice] pps_extension_present_flag not handled\n";
+				//RefPicListTemp0[rIdx++] = currPic;
+			}
+		}
+		for (rIdx = 0; rIdx <= pCurrentSlice->num_ref_idx_l0_active_minus1; rIdx++) {
+			H265AccessUnit* val = pCurrentSlice->ref_pic_lists_modification.ref_pic_list_modification_flag_l0
+					  ? RefPicListTemp0[pCurrentSlice->ref_pic_lists_modification.list_entry_l0[rIdx]] : RefPicListTemp0[rIdx];
+			pCurrentSlice->RefPicList0.push_back(val);
+		}
+		/*
+		if( m_pps.pps_curr_pic_ref_enabled_flag && !ref_pic_lists_modification.ref_pic_list_modification_flag_l0 &&
+			NumRpsCurrTempList0 > ( num_ref_idx_l0_active_minus1 + 1 ) ) {
+			RefPicList0[num_ref_idx_l0_active_minus1] = currPic
+		}*/
+	}
+
+	std::vector<H265AccessUnit*> RefPicListTemp1;
+	uint32_t NumRpsCurrTempList1 = std::max(pCurrentSlice->num_ref_idx_l1_active_minus1+1, pCurrentSlice->NumPicTotalCurr);
+	if(pCurrentSlice->slice_type == H265Slice::SliceType_B) {
+		rIdx = 0;
+		while (rIdx < NumRpsCurrTempList1) {
+			for (int i = 0; i < m_pCurrentAccessUnit->PocStCurrAfter.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(m_pCurrentAccessUnit->RefPicSetStCurrAfter[i]);
+			}
+			for (int i = 0; i < m_pCurrentAccessUnit->PocStCurrBefore.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(m_pCurrentAccessUnit->RefPicSetStCurrBefore[i]);
+			}
+			for (int i = 0; i < m_pCurrentAccessUnit->PocLtCurr.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(m_pCurrentAccessUnit->RefPicSetLtCurr[i]);
+			}
+			/*
+			if (m_pps.pps_curr_pic_ref_enabled_flag) {
+				RefPicListTemp1[rIdx++] = currPic;
+			}*/
+		}
+		for (rIdx = 0; rIdx <= pCurrentSlice->num_ref_idx_l1_active_minus1; rIdx++)
+		{
+			H265AccessUnit* val = pCurrentSlice->ref_pic_lists_modification.ref_pic_list_modification_flag_l1 ? RefPicListTemp1[pCurrentSlice->ref_pic_lists_modification.list_entry_l1[rIdx]] : RefPicListTemp1[rIdx];
+			pCurrentSlice->RefPicList1.push_back(val);
+		}
+	}
 }

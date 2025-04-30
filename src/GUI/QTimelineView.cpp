@@ -14,23 +14,24 @@ QTimelineView::QTimelineView(QWidget* parent)
     setMinimumHeight(200);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    m_pBarHBoxLayout = new QHBoxLayout(this);
-    m_pBarHBoxLayout->setSpacing(0);
-    m_pCounterHBoxLayout = new QHBoxLayout(this);
-    m_pCounterHBoxLayout->setSpacing(0);
-    QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
-    pVBoxLayout->setSpacing(0);
-
-    QWidget* barContainerWidget = new QWidget(this);
-    barContainerWidget->setLayout(m_pBarHBoxLayout);
-    QWidget* counterContainerWidget = new QWidget(this);
+    QWidget* containerContainerWidget = new QWidget(this);
+    QWidget* barContainerWidget = new QWidget(containerContainerWidget);
+    QWidget* counterContainerWidget = new QWidget(containerContainerWidget);
+    QVBoxLayout* pVBoxLayout = new QVBoxLayout(containerContainerWidget);
+    m_pBarHBoxLayout = new QHBoxLayout(barContainerWidget);
+    m_pCounterHBoxLayout = new QHBoxLayout(counterContainerWidget);
+    
     counterContainerWidget->setLayout(m_pCounterHBoxLayout);
-    pVBoxLayout->addWidget(barContainerWidget);
-    pVBoxLayout->addWidget(counterContainerWidget);
+    containerContainerWidget->setLayout(pVBoxLayout);
+    barContainerWidget->setLayout(m_pBarHBoxLayout);
+
+    m_pBarHBoxLayout->setSpacing(0);
+    m_pCounterHBoxLayout->setSpacing(0);
+    pVBoxLayout->setSpacing(0);
     pVBoxLayout->setContentsMargins(0, 0, 0, 0);
 
-    QWidget* containerContainerWidget = new QWidget(this);
-    containerContainerWidget->setLayout(pVBoxLayout);
+    pVBoxLayout->addWidget(barContainerWidget);
+    pVBoxLayout->addWidget(counterContainerWidget);
 
     m_pScrollArea = new QScrollArea(this);
     m_pScrollArea->setWidgetResizable(true);

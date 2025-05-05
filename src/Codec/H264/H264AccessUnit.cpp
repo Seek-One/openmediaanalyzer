@@ -80,7 +80,7 @@ H264NAL* H264AccessUnit::last() const{
 void H264AccessUnit::validate(){
     errors.clear();
     H264Slice* pPrimarySlice = primary_coded_slice();
-    if(!pPrimarySlice) errors.push_back("[H264 Access Unit] No primary coded picture detected");
+    if(!pPrimarySlice) errors.push_back("No primary coded picture detected");
 
     int AUDs = 0;
     H264AUD* AUDUnit = nullptr;
@@ -89,13 +89,13 @@ void H264AccessUnit::validate(){
         ++AUDs;
     }
     if(AUDs > 0){
-        if(NALUnits[0]->nal_unit_type != H264NAL::UnitType_AUD) errors.push_back("[H264 Access Unit] Access unit delimiter not in first position");
-        if(AUDs > 1) errors.push_back("[H264 Access Unit] Multiple access unit delimiters detected");
+        if(NALUnits[0]->nal_unit_type != H264NAL::UnitType_AUD) errors.push_back("Access unit delimiter not in first position");
+        if(AUDs > 1) errors.push_back("Multiple access unit delimiters detected");
         std::vector<uint8_t> allowedSliceTypes = H264AUD::slice_type_values[AUDUnit->primary_pic_type];
         for(auto& NALUnit : NALUnits){
             if(H264Slice::isSlice(NALUnit.get()) &&
             std::find(allowedSliceTypes.begin(), allowedSliceTypes.end(), reinterpret_cast<H264Slice*>(NALUnit.get())->slice_type-1) == allowedSliceTypes.end()){
-                errors.push_back("[H264 Access Unit] Slice type not in values allowed by access unit delimiter");
+                errors.push_back("Slice type not in values allowed by access unit delimiter");
             }
         }
     }
@@ -104,13 +104,13 @@ void H264AccessUnit::validate(){
         if(NALUnits[i]->nal_unit_type == H264NAL::UnitType_SEI){
             if(i+1 < NALUnits.size()){
                 if(NALUnits[i+1]->nal_unit_type != H264NAL::UnitType_SEI && !H264Slice::isSlice(NALUnits[i+1].get())){
-                    errors.push_back("[H264 Access Unit] SEI units block is not preceding the primary coded picture");
+                    errors.push_back("SEI units block is not preceding the primary coded picture");
                 }
             }
             H264SEI* SEIUnit = reinterpret_cast<H264SEI*>(NALUnits[i].get());
             for(int j = 0;j < SEIUnit->messages.size();++j){
                 if(SEIUnit->messages[j]->payloadType == SEI_BUFFERING_PERIOD && j != 0){
-                    errors.push_back("[H264 Access Unit] SEI buffering period message not leading SEI unit");
+                    errors.push_back("SEI buffering period message not leading SEI unit");
                 }
             }
         }
@@ -124,7 +124,7 @@ void H264AccessUnit::validate(){
                 lastSliceRedundantPicCnt = -1;
                 continue;
             }
-            if((int)pSlice->redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("[H264 Access Unit] Pictures are not ordered in ascending order of redundant_pic_cnt");
+            if((int)pSlice->redundant_pic_cnt <= lastSliceRedundantPicCnt) errors.push_back("Pictures are not ordered in ascending order of redundant_pic_cnt");
             lastSliceRedundantPicCnt = (int)pSlice->redundant_pic_cnt;
         }
     }

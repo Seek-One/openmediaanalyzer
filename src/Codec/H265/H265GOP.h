@@ -17,6 +17,7 @@ struct H265GOP {
     uint32_t count() const;
     uint64_t size() const;
     std::vector<H265AccessUnit*> getAccessUnits() const;
+    void validate();
 
     bool hasIDR;
     std::vector<std::unique_ptr<H265AccessUnit>> accessUnits;

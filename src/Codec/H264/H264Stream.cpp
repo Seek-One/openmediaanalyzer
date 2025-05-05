@@ -232,6 +232,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 					m_GOPs.push_back(std::make_unique<H264GOP>());
 					m_GOPs.back()->accessUnits.push_back(std::move(previousGOP->accessUnits.back()));
 					previousGOP->accessUnits.pop_back();
+					previousGOP->validate();
+					errors.insert(errors.end(), previousGOP->errors.begin(), previousGOP->errors.end());
+					previousGOP->errors.clear();
+					for(int i = 0;errors.size() > ERR_MSG_LIMIT && i < errors.size() - ERR_MSG_LIMIT;++i) errors.pop_front();
 				}
 				if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) m_GOPs.back()->hasIDR = true;
 			} 

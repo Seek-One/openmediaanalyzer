@@ -17,7 +17,6 @@ extern "C" {
 #include "QAccessUnitModel.h"
 
 #define GOP_LIMIT 15
-#define ERR_MSG_LIMIT 15
 
 class QFolderView;
 class H264Stream;
@@ -68,9 +67,8 @@ private:
     void emitH265PPSErrors();
     void checkForNewGOP();
     void validateCurrentGOP();
-    void validateH264GOP();
-    void validateH265GOP();
-    void addStreamError(QString err);
+    void validateH264GOPFrames();
+    void validateH265GOPFrames();
     QImage* decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* getQImageFromH264Frame(const AVFrame* pFrame);

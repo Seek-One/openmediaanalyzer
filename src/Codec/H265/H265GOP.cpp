@@ -35,3 +35,7 @@ std::vector<H265AccessUnit*> H265GOP::getAccessUnits() const {
     });
     return pAccessUnits;
 }
+
+void H265GOP::validate(){
+    
+}

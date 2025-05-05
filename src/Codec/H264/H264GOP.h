@@ -17,6 +17,7 @@ struct H264GOP {
     uint64_t size() const;
     std::vector<H264Slice*> slices() const;
     std::vector<H264AccessUnit*> getAccessUnits() const;
+    void validate();
 
     std::vector<std::unique_ptr<H264AccessUnit>> accessUnits;
     bool hasIDR;

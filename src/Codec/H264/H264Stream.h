@@ -16,6 +16,8 @@
 #include "H264Slice.h"
 #include "H264SPS.h"
 
+#define ERR_MSG_LIMIT 15
+
 struct H264GOP;
 
 struct PictureOrderCount {
@@ -52,7 +54,7 @@ public:
 	// Variables derived from bitstream
 	uint8_t MbaffFrameFlag;
 
-	std::vector<std::string> errors;
+	std::deque<std::string> errors;
 
 private:
 	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength) override;

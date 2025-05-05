@@ -45,6 +45,8 @@ public:
 	bool firstPicture;
 	bool endOfSequenceFlag;
 
+	std::deque<std::string> errors;
+
 private:
 	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength);
 

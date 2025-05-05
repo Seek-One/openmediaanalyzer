@@ -36,10 +36,30 @@ std::vector<H264AccessUnit*> H264GOP::getAccessUnits() const {
 
 std::vector<H264Slice*> H264GOP::slices() const {
     std::vector<H264Slice*> pSlices;
-    for(auto& access_unit : accessUnits){
-        H264Slice* pSlice = access_unit->slice();
+    for(auto& accessUnit : accessUnits){
+        H264Slice* pSlice = accessUnit->slice();
         if(pSlice) pSlices.push_back(pSlice);
     }
     return pSlices;
+}
+
+void H264GOP::validate(){
+    uint16_t prevFrameNumber = 0;
+    bool encounteredIFrame = false;
+    bool noSPSorPPS = true;
+    uint16_t maxFrameNumber = 0;
+    for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){        
+        if(accessUnit->empty() || !accessUnit->slice()) continue;
+        const H264Slice* pSlice = accessUnit->slice();
+        if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
+        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
+        if(!pSlice->getPPS() || !pSlice->getSPS()){
+            continue;
+        }
+        noSPSorPPS = false;
+        prevFrameNumber = pSlice->frame_num;
+    }
+    if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");
+    if(!encounteredIFrame) errors.push_back("[GOP] No I-frame detected");
 }
 

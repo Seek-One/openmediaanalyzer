@@ -210,6 +210,11 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
     for(H264GOP* pGOP : GOPs){
         for(H264AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
     }
+    m_streamErrors.clear();
+    std::transform(m_pH264Stream->errors.begin(), m_pH264Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
+        return QString(err.c_str());
+    });
+
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
@@ -291,6 +296,10 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     for(H265GOP* pGOP : GOPs){
         for(H265AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
     }
+    m_streamErrors.clear();
+    std::transform(m_pH265Stream->errors.begin(), m_pH265Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
+        return QString(err.c_str());
+    });
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
@@ -503,12 +512,28 @@ void QDecoderModel::frameDeleted(QUuid id){
 }
 
 void QDecoderModel::folderLoaded(){
+    m_streamErrors.clear();
+    std::deque<H264GOP*> h264GOPs = m_pH264Stream->getGOPs();
+    std::deque<H265GOP*> h265GOPs = m_pH265Stream->getGOPs();
+    if(!h264GOPs.empty()){
+        h264GOPs.back()->validate();
+        std::transform(m_pH264Stream->errors.begin(), m_pH264Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
+        h264GOPs.back()->errors.clear();
+    } else if(!h265GOPs.empty()){
+        h265GOPs.back()->validate();
+        std::transform(m_pH265Stream->errors.begin(), m_pH265Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
+        h265GOPs.back()->errors.clear();
+    }
     validateCurrentGOP();
     emit updateTimelineUnits();
 }
 
 void QDecoderModel::emitStreamErrors(){
-    if(m_pH264Stream && !m_pSelectedFrameModel) emit updateErrorView("Stream errors", m_streamErrors);
+    if(!m_pSelectedFrameModel) emit updateErrorView("Stream errors", m_streamErrors);
 }
 
 void QDecoderModel::emitH264SPSErrors(){
@@ -605,13 +630,13 @@ void QDecoderModel::checkForNewGOP(){
 void QDecoderModel::validateCurrentGOP(){
     if(m_currentGOPModel.empty()) return;
     if(m_currentGOPModel.front()->isH264()){
-        validateH264GOP();
+        validateH264GOPFrames();
     } else if(m_currentGOPModel.front()->isH265()){
-        validateH265GOP();
+        validateH265GOPFrames();
     }
 }
 
-void QDecoderModel::validateH264GOP(){
+void QDecoderModel::validateH264GOPFrames(){
     uint16_t prevFrameNumber = 0;
     bool encounteredIFrame = false;
     bool noSPSorPPS = true;
@@ -637,16 +662,9 @@ void QDecoderModel::validateH264GOP(){
         }
         prevFrameNumber = pSlice->frame_num;
     }
-    if(maxFrameNumber+1 != m_currentGOPModel.size() && !noSPSorPPS) addStreamError("[GOP] Skipped frames detected");
-    if(!encounteredIFrame) addStreamError("[GOP] No I-frame detected");
 }
 
-void QDecoderModel::validateH265GOP(){}
-
-void QDecoderModel::addStreamError(QString err){
-    m_streamErrors.push_back(err);
-    if(m_streamErrors.size() > ERR_MSG_LIMIT) m_streamErrors.pop_front();
-}
+void QDecoderModel::validateH265GOPFrames(){}
 
 // https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format
 QImage* QDecoderModel::getQImageFromH264Frame(const AVFrame* pFrame) {

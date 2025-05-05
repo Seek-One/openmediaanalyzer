@@ -11,8 +11,8 @@ QStatusView::QStatusView(QWidget* parent)
     pGridLayout->addWidget(m_pFrameValidity, 0, 1);
     pGridLayout->addWidget(m_pStreamSize, 0, 2);
 
-    m_pStreamSize->setText("Current stream size : 0B");
-    m_pFrameValidity->setText("Valid frames : 0/0 (100%)");
+    m_pStreamSize->setText(tr("Current stream size : 0B"));
+    m_pFrameValidity->setText(tr("Valid frames : 0/0 (100%)"));
     show();
 }
 
@@ -24,16 +24,16 @@ void QStatusView::sizeUpdated(uint64_t size){
     float sizeGB = size/(float)1e9;
     float sizeMB = size/(float)1e6;
     float sizeKB = size/(float)1e3;
-    if(sizeGB > 10) m_pStreamSize->setText("Current stream size : " + QString::number(sizeGB) + "GB");
-    else if(sizeMB > 10) m_pStreamSize->setText("Current stream size : " + QString::number(sizeMB) + "MB");
-    else m_pStreamSize->setText("Current stream size : " + QString::number(sizeKB) + "KB");
+    if(sizeGB > 10) m_pStreamSize->setText(tr("Current stream size : ") + QString::number(sizeGB) + tr("GB"));
+    else if(sizeMB > 10) m_pStreamSize->setText(tr("Current stream size : ") + QString::number(sizeMB) + tr("MB"));
+    else m_pStreamSize->setText(tr("Current stream size : ") + QString::number(sizeKB) + tr("KB"));
 }
 
 void QStatusView::validityUpdated(uint32_t valid, uint32_t total){
-    if(total == 0) m_pFrameValidity->setText("Valid frames : 0/0 (100%)");
+    if(total == 0) m_pFrameValidity->setText(tr("Valid frames : 0/0 (100%)"));
     else {
         float percentage = 100*valid/total;
-        m_pFrameValidity->setText("Valid frames : " + QString::number(valid) + "/" + QString::number(total) + "(" + QString::number(percentage) + "%)");
+        m_pFrameValidity->setText(tr("Valid frames : ") + QString::number(valid) + "/" + QString::number(total) + " (" + QString::number(percentage) + "%)");
     }
 
 }

@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QTranslator>
 
 #include "GUI/QWindowMain.h"
 #include "GUIController/QWindowMainController.h"
@@ -6,6 +7,9 @@
 int main(int argc, char *argv[]){
     QApplication app(argc, argv);
     app.setApplicationName("Open Media Analyzer");
+    QTranslator translator;
+    if (translator.load(QLocale("fr"), "", "", "ts"))
+        app.installTranslator(&translator);
 
     QWindowMain* pWindowMain = new QWindowMain();
     if(pWindowMain) pWindowMain->show();

@@ -9,7 +9,7 @@
 #include "QTimelineView.h"
 
 QTimelineView::QTimelineView(QWidget* parent)
-    : QGroupBox("Video timeline", parent)
+    : QGroupBox(tr("Video timeline"), parent)
 {
     setMinimumHeight(200);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

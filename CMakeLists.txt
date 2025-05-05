@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt5 REQUIRED COMPONENTS Gui)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS LinguistTools) 
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
@@ -146,6 +147,34 @@ set(LIBRARIES
     lib/Threading/QWorkerThread.cpp
     lib/Threading/QWorkerThread.h
 )
+
+set (I18N_FILES
+	src/GUI/QAccessUnitElement.cpp
+	src/GUI/QErrorView.cpp
+	src/GUI/QFolderView.cpp
+	src/GUI/QStatusView.cpp
+	src/GUI/QTimelineView.cpp
+	src/GUI/QVideoFrameView.cpp
+	src/GUI/QWindowMain.cpp
+    src/GUIModel/QDecoderModel.cpp
+)
+
+set(TS_FILES
+    ts/fr.ts
+)
+
+set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/ts")
+
+option (UPDATE_TRANSLATIONS "Update source translation ts/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)" ON)
+if (UPDATE_TRANSLATIONS)
+	qt5_create_translation(qm_FILES ${TS_FILES} ${I18N_FILES} OPTIONS -locations none)
+else (UPDATE_TRANSLATIONS)
+	qt5_add_translation(qm_FILES ${TS_FILES})
+endif (UPDATE_TRANSLATIONS)
+
+add_custom_target(update_ts ALL DEPENDS ${qm_FILES})
+
+install(FILES ${QM_FILES} DESTINATION ts)
 
 add_executable(${APPLICATION_EXE_NAME}
     ${APPLICATION_SOURCES}

@@ -4,7 +4,7 @@
 #include "QErrorView.h"
 
 QErrorView::QErrorView(QWidget* parent)
-    : QGroupBox("Errors", parent)
+    : QGroupBox(tr("Errors"), parent)
 {
     m_pListWidget = new QListWidget(this);
     m_pListWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

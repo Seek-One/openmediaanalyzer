@@ -4,7 +4,7 @@
 #include "QFolderView.h"
 
 QFolderView::QFolderView(QWidget* parent)
-    : QGroupBox("Loaded folder : None", parent)
+    : QGroupBox(tr("Loaded folder : None"), parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     m_pTreeView = new QTreeView(this);
@@ -24,5 +24,5 @@ void QFolderView::setFolder(QFileSystemModel* pModel){
     for (int col = 1; col < m_pTreeView->model()->columnCount(); ++col) m_pTreeView->setColumnHidden(col, true);
     const QString& path = pModel->rootPath();
     m_pTreeView->setRootIndex(pModel->index(path));
-    setTitle("Loaded folder : " + path.split('/').last());
+    setTitle(tr("Loaded folder : ") + path.split('/').last());
 }

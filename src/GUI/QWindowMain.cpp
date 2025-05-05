@@ -38,7 +38,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     pGridLayout->addWidget(m_pVideoFrameView, 0, 1, 2, 2);
     m_pTabWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     pGridLayout->addWidget(m_pTabWidget, 0, 3, m_pErrorView->isVisibleTo(this) ? 2 : 3, 1);
-    m_pTabWidget->addTab(m_pFrameInfoView, "Access unit");
+    m_pTabWidget->addTab(m_pFrameInfoView, tr("Access unit"));
     m_pTabWidget->addTab(m_pVPSInfoView, "VPS");
     m_pTabWidget->addTab(m_pSPSInfoView, "SPS");
     m_pTabWidget->addTab(m_pPPSInfoView, "PPS");
@@ -47,14 +47,14 @@ QWindowMain::QWindowMain(QWidget* parent)
     pGridLayout->addWidget(m_pErrorView, 2, 3, 1, 1);
 
 
-    QMenu *pFileMenu = menuBar()->addMenu(tr("&File"));
+    QMenu *pFileMenu = menuBar()->addMenu(tr("File"));
     {
-        QAction* pOpenFolderAction = new QAction(tr("&Open folder..."), this);
+        QAction* pOpenFolderAction = new QAction(tr("Open folder..."), this);
         pOpenFolderAction->setShortcut(QKeySequence("Ctrl+O"));
         connect(pOpenFolderAction, &QAction::triggered, [this]() {
             emit openFolderClicked();
         });
-        QAction* pOpenStreamAction = new QAction(tr("&Open \"stream\"..."), this);
+        QAction* pOpenStreamAction = new QAction(tr("Open \"stream\"..."), this);
         connect(pOpenStreamAction, &QAction::triggered, [this]() {
             emit openStreamClicked();
         });

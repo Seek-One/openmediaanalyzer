@@ -30,8 +30,6 @@ public:
     QDecoderModel();
 
     virtual ~QDecoderModel();
-
-    static inline QStringList headers = {"field", "value"};
     
     static QStandardItem* modelItemFromFields(std::vector<std::string> fields, QString header);
     QStringList m_streamErrors;

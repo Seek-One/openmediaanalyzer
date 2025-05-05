@@ -3,7 +3,7 @@
 #include "QVideoFrameView.h"
 
 QVideoFrameView::QVideoFrameView(QWidget* parent)
-    : QGroupBox("Video preview", parent), m_pImage(nullptr)
+    : QGroupBox(tr("Video preview"), parent), m_pImage(nullptr)
 {
     m_pWidget = new QWidget(this);
     show();

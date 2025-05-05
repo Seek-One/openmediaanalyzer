@@ -66,8 +66,8 @@ void QAccessUnitElement::leaveEvent(QEvent* event) {
 void QAccessUnitElement::updateBar(){
     m_pAccessUnitModel->setDisplayedFrameNumber();
     m_pAccessUnitModel->setSliceType();
-    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString("Frame #" + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
-    else m_text = QString("Frame #?");
+    if(m_pAccessUnitModel->m_displayedFrameNum) m_text = QString(tr("Frame #") + QString::number(m_pAccessUnitModel->m_displayedFrameNum.value()));
+    else m_text = QString(tr("Frame #?"));
     switch(m_pAccessUnitModel->m_sliceType){
         case QAccessUnitModel::SliceType_B:
             m_barColor = QColor::fromRgb(0, 255, 255);

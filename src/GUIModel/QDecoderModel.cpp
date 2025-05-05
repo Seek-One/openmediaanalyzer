@@ -79,50 +79,55 @@ QStandardItem* QDecoderModel::modelItemFromFields(std::vector<std::string> field
 
 void buildH264SPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H264SPS::SPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "SPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("SPS Unit #") + QString::number(entry.first)));
     }
     emit pDecoderModel->updateSPSInfoView(model);
 }
 
 void buildH264PPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H264PPS::PPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "PPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("PPS Unit #") + QString::number(entry.first)));
     }
     emit pDecoderModel->updatePPSInfoView(model);
 }
 
 void buildVPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265VPS::VPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "VPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("VPS Unit #") + QString::number(entry.first)));
     }
     emit pDecoderModel->updateVPSInfoView(model);
 }
 
 void buildH265SPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265SPS::SPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "SPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("SPS Unit #") + QString::number(entry.first)));
     }
     emit pDecoderModel->updateSPSInfoView(model);
 }
 
 void buildH265PPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265PPS::PPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), "PPS Unit #" + QString::number(entry.first)));
+        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("PPS Unit #") + QString::number(entry.first)));
     }
     emit pDecoderModel->updatePPSInfoView(model);
 }
@@ -366,22 +371,22 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
         for(auto& NALUnit : std::get<const H264AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H264NAL::UnitType_AUD:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Access Unit Delimiter"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Access Unit Delimiter")));
                     break;
                 case H264NAL::UnitType_NonIDRFrame:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Non-IDR Picture"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Non-IDR Picture")));
                     break;
                 case H264NAL::UnitType_IDRFrame:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "IDR Picture"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("IDR Picture")));
                     break;
                 case H264NAL::UnitType_PPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Picture Parameter Set"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Picture Parameter Set")));
                     break;
                 case H264NAL::UnitType_SPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Sequence Parameter Set"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Sequence Parameter Set")));
                     break;
                 case H264NAL::UnitType_SEI:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Supplemental Enhancement Information"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Supplemental Enhancement Information")));
                     break;
             }
         }
@@ -389,67 +394,67 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
         for(auto& NALUnit : std::get<const H265AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H265NAL::UnitType_TRAIL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Trailing picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Trailing picture (N)")));
                     break;
                 case H265NAL::UnitType_TRAIL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Trailing picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Trailing picture (R)")));
                     break;
                 case H265NAL::UnitType_TSA_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Temporal sub-layer access picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Temporal sub-layer access picture (N)")));
                     break;
                 case H265NAL::UnitType_TSA_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Temporal sub-layer access picture (R)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Temporal sub-layer access picture (R)")));
                     break;
                 case H265NAL::UnitType_STSA_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Step-wise temporal sub-layer access picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Step-wise temporal sub-layer access picture (N)")));
                     break;
                 case H265NAL::UnitType_STSA_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Step-wise temporal sub-layer access picture (R)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Step-wise temporal sub-layer access picture (R)")));
                     break;
                 case H265NAL::UnitType_RADL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Random access decodable leading picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access decodable leading picture (N)")));
                     break;
                 case H265NAL::UnitType_RADL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Random access decodable leading picture (R)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access decodable leading picture (R)")));
                     break;
                 case H265NAL::UnitType_RASL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Random access skipped leading picture (N)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access skipped leading picture (N)")));
                     break;
                 case H265NAL::UnitType_RASL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Random access skipped leading picture (R)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access skipped leading picture (R)")));
                     break;
                 case H265NAL::UnitType_BLA_W_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Broken link access picture (with LP)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (with LP)")));
                     break;
                 case H265NAL::UnitType_BLA_W_RADL:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Broken link access picture (with RADL pictures)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (with RADL pictures)")));
                     break;
                 case H265NAL::UnitType_BLA_N_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Broken link access picture (no LP)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (no LP)")));
                     break;
                 case H265NAL::UnitType_IDR_W_RADL:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Instantaneous decoder refresh picture (with RADL pictures)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Instantaneous decoding refresh picture (with RADL pictures)")));
                     break;
                 case H265NAL::UnitType_IDR_N_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Instantaneous decoder refresh picture (no LP)"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Instantaneous decoding refresh picture (no LP)")));
                     break;
                 case H265NAL::UnitType_CRA_NUT:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Clean random access picture"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Clean random access picture")));
                     break;
                 case H265NAL::UnitType_VPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Video parameter set"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Video parameter set")));
                     break;
                 case H265NAL::UnitType_SPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Sequence parameter set"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Sequence parameter set")));
                     break;
                 case H265NAL::UnitType_PPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Picture parameter set"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Picture parameter set")));
                     break;
                 case H265NAL::UnitType_SEI_PREFIX:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Prefix supplemental enhancement information"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Prefix supplemental enhancement information")));
                     break;
                 case H265NAL::UnitType_SEI_SUFFIX:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), "Suffix supplemental enhancement information"));
+                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Suffix supplemental enhancement information")));
                     break;
             }
         }
@@ -458,14 +463,15 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
 
 void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderLabels(QDecoderModel::headers);
+    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     m_pSelectedFrameModel = pAccessUnitModel;
     if(pAccessUnitModel) {
         modelFromAccessUnit(model, pAccessUnitModel->m_pAccessUnit);
-        if(m_tabIndex == 0) emit updateErrorView("Access unit errors", errorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit));
+        if(m_tabIndex == 0) emit updateErrorView(tr("Access unit errors"), errorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit));
         if(m_decodedFrames[pAccessUnitModel->m_id]) emit updateVideoFrameView(m_decodedFrames[pAccessUnitModel->m_id]);
     } else if(m_tabIndex == 0){
-        emit updateErrorView("Stream errors", m_streamErrors);
+        emit updateErrorView(tr("Stream errors"), m_streamErrors);
     }
     emit updateFrameInfoView(model);
 }
@@ -510,12 +516,12 @@ void QDecoderModel::emitH264SPSErrors(){
     for(auto SPSEntry : H264SPS::SPSMap){
         H264SPS* pSps = SPSEntry.second;
         if(pSps->errors.empty()) continue;
-        errors.push_back("SPS #" + QString::number(pSps->seq_parameter_set_id));
+        errors.push_back(tr("SPS #") + QString::number(pSps->seq_parameter_set_id));
         std::transform(pSps->errors.begin(), pSps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }
-    emit updateErrorView("SPS errors", errors);
+    emit updateErrorView(tr("SPS errors"), errors);
 }
 
 void QDecoderModel::emitH264PPSErrors(){
@@ -528,7 +534,7 @@ void QDecoderModel::emitH264PPSErrors(){
             return " - " + QString(err.c_str());
         });
     }
-    emit updateErrorView("PPS errors", errors);
+    emit updateErrorView(tr("PPS errors"), errors);
 }
 
 void QDecoderModel::emitVPSErrors(){
@@ -536,24 +542,24 @@ void QDecoderModel::emitVPSErrors(){
     for(auto VPSEntry : H265VPS::VPSMap){
         H265VPS* pVps = VPSEntry.second;
         if(pVps->errors.empty()) continue;
-        errors.push_back("VPS #" + QString::number(pVps->vps_video_parameter_set_id));
+        errors.push_back(tr("VPS #") + QString::number(pVps->vps_video_parameter_set_id));
         std::transform(pVps->errors.begin(), pVps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }
-    emit updateErrorView("VPS errors", errors);
+    emit updateErrorView(tr("VPS errors"), errors);
 }
 void QDecoderModel::emitH265SPSErrors(){
     QStringList errors;
     for(auto SPSEntry : H265SPS::SPSMap){
         H265SPS* pSps = SPSEntry.second;
         if(pSps->errors.empty()) continue;
-        errors.push_back("SPS #" + QString::number(pSps->sps_seq_parameter_set_id));
+        errors.push_back(tr("SPS #") + QString::number(pSps->sps_seq_parameter_set_id));
         std::transform(pSps->errors.begin(), pSps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }
-    emit updateErrorView("SPS errors", errors);
+    emit updateErrorView(tr("SPS errors"), errors);
 }
 
 void QDecoderModel::emitH265PPSErrors(){
@@ -561,12 +567,12 @@ void QDecoderModel::emitH265PPSErrors(){
     for(auto PPSEntry : H265PPS::PPSMap){
         H265PPS* pPps = PPSEntry.second;
         if(pPps->errors.empty()) continue;
-        errors.push_back("PPS #" + QString::number(pPps->pps_pic_parameter_set_id));
+        errors.push_back(tr("PPS #") + QString::number(pPps->pps_pic_parameter_set_id));
         std::transform(pPps->errors.begin(), pPps->errors.end(), std::back_inserter(errors), [](const std::string& err){
             return " - " + QString(err.c_str());
         });
     }
-    emit updateErrorView("PPS errors", errors);
+    emit updateErrorView(tr("PPS errors"), errors);
 }
 
 /* Checks if the most recent access unit is the start of a new GOP.

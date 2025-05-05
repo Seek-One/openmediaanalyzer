@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR">
+<context>
+    <name>QAccessUnitElement</name>
+    <message>
+        <source>Frame #</source>
+        <translation>Image #</translation>
+    </message>
+    <message>
+        <source>Frame #?</source>
+        <translation>Image #?</translation>
+    </message>
+</context>
+<context>
+    <name>QDecoderModel</name>
+    <message>
+        <source>Access Unit Delimiter</source>
+        <translation>Délimiteur d&apos;unité d&apos;accès</translation>
+    </message>
+    <message>
+        <source>Non-IDR Picture</source>
+        <translation>Image non-IDR</translation>
+    </message>
+    <message>
+        <source>IDR Picture</source>
+        <translation>Image IDR</translation>
+    </message>
+    <message>
+        <source>Picture Parameter Set</source>
+        <translation>Ensemble de Paramètres Image</translation>
+    </message>
+    <message>
+        <source>Sequence Parameter Set</source>
+        <translation>Ensemble de Paramètres Séquence</translation>
+    </message>
+    <message>
+        <source>Supplemental Enhancement Information</source>
+        <translation>Informations d&apos;Amélioration Supplémentaires</translation>
+    </message>
+    <message>
+        <source>Trailing picture (N)</source>
+        <translation>Image secondaire (N)</translation>
+    </message>
+    <message>
+        <source>Trailing picture (R)</source>
+        <translation>Image secondaire (R)</translation>
+    </message>
+    <message>
+        <source>Temporal sub-layer access picture (N)</source>
+        <translation>Image d&apos;accès à une sous-couche temporelle (N)</translation>
+    </message>
+    <message>
+        <source>Temporal sub-layer access picture (R)</source>
+        <translation>Image d&apos;accès à une sous-couche temporelle (R)</translation>
+    </message>
+    <message>
+        <source>Step-wise temporal sub-layer access picture (N)</source>
+        <translation>Image d&apos;accès à une sous-couche temporelle par paliers (N)</translation>
+    </message>
+    <message>
+        <source>Step-wise temporal sub-layer access picture (R)</source>
+        <translation>Image d&apos;accès à une sous-couche temporelle par paliers (R)</translation>
+    </message>
+    <message>
+        <source>Random access decodable leading picture (N)</source>
+        <translation>Image primaire directement décodable (N)</translation>
+    </message>
+    <message>
+        <source>Random access decodable leading picture (R)</source>
+        <translation>Image primaire directement décodable (R)</translation>
+    </message>
+    <message>
+        <source>Random access skipped leading picture (N)</source>
+        <translation>Image primaire directement sautable (N)</translation>
+    </message>
+    <message>
+        <source>Random access skipped leading picture (R)</source>
+        <translation>Image primaire directement sautable (R)</translation>
+    </message>
+    <message>
+        <source>Broken link access picture (with LP)</source>
+        <translation>Image d&apos;accès à une chaîne brisée (avec IP)</translation>
+    </message>
+    <message>
+        <source>Broken link access picture (with RADL pictures)</source>
+        <translation>Image d&apos;accès à une chaîne brisée (avec images IPDD)</translation>
+    </message>
+    <message>
+        <source>Broken link access picture (no LP)</source>
+        <translation>Image d&apos;accès à une chaîne brisée (sans IP)</translation>
+    </message>
+    <message>
+        <source>Clean random access picture</source>
+        <translation>Image à accès direct propre</translation>
+    </message>
+    <message>
+        <source>Video parameter set</source>
+        <translation>Ensemble de Paramètres Vidéo</translation>
+    </message>
+    <message>
+        <source>Sequence parameter set</source>
+        <translation>Ensemble de Paramètres Séquence</translation>
+    </message>
+    <message>
+        <source>Picture parameter set</source>
+        <translation>Ensemble de Paramètres Image</translation>
+    </message>
+    <message>
+        <source>Prefix supplemental enhancement information</source>
+        <translation>Informations d&apos;Améliortation Supplémentaires préfixes</translation>
+    </message>
+    <message>
+        <source>Suffix supplemental enhancement information</source>
+        <translation>Informations d&apos;Amélioration Supplémentaires suffixes</translation>
+    </message>
+    <message>
+        <source>Access unit errors</source>
+        <translation>Erreurs d&apos;unité d&apos;accès</translation>
+    </message>
+    <message>
+        <source>Stream errors</source>
+        <translation>Erreurs du flux</translation>
+    </message>
+    <message>
+        <source>SPS #</source>
+        <translation>SPS #</translation>
+    </message>
+    <message>
+        <source>SPS errors</source>
+        <translation>Erreurs SPS</translation>
+    </message>
+    <message>
+        <source>PPS errors</source>
+        <translation>Erreurs PPS</translation>
+    </message>
+    <message>
+        <source>VPS #</source>
+        <translation>VPS #</translation>
+    </message>
+    <message>
+        <source>VPS errors</source>
+        <translation>Erreurs VPS</translation>
+    </message>
+    <message>
+        <source>PPS #</source>
+        <translation>PPS #</translation>
+    </message>
+    <message>
+        <source>Instantaneous decoding refresh picture (with RADL pictures)</source>
+        <translation>Image rafraîchissant instantanément le décodage (avec images IPDD)</translation>
+    </message>
+    <message>
+        <source>Instantaneous decoding refresh picture (no LP)</source>
+        <translation>Image rafraîchissant instantanément le décodage (sans IP)</translation>
+    </message>
+    <message>
+        <source>SPS Unit #</source>
+        <translation>Unité SPS #</translation>
+    </message>
+    <message>
+        <source>PPS Unit #</source>
+        <translation>Unité PPS #</translation>
+    </message>
+    <message>
+        <source>VPS Unit #</source>
+        <translation>Unité VPS #</translation>
+    </message>
+    <message>
+        <source>field</source>
+        <translation>champ</translation>
+    </message>
+    <message>
+        <source>value</source>
+        <translation>valeur</translation>
+    </message>
+</context>
+<context>
+    <name>QErrorView</name>
+    <message>
+        <source>Errors</source>
+        <translation>Erreurs</translation>
+    </message>
+</context>
+<context>
+    <name>QFolderView</name>
+    <message>
+        <source>Loaded folder : None</source>
+        <translation>Dossier chargé : Aucun</translation>
+    </message>
+    <message>
+        <source>Loaded folder : </source>
+        <translation>Dossier chargé : </translation>
+    </message>
+</context>
+<context>
+    <name>QStatusView</name>
+    <message>
+        <source>Current stream size : 0B</source>
+        <translation>Taille actuelle du flux : 0o</translation>
+    </message>
+    <message>
+        <source>Valid frames : 0/0 (100%)</source>
+        <translation>Images valides : 0/0 (100%)</translation>
+    </message>
+    <message>
+        <source>Current stream size : </source>
+        <translation>Taille actuelle du flux : </translation>
+    </message>
+    <message>
+        <source>GB</source>
+        <translation>Go</translation>
+    </message>
+    <message>
+        <source>MB</source>
+        <translation>Mo</translation>
+    </message>
+    <message>
+        <source>KB</source>
+        <translation>Ko</translation>
+    </message>
+    <message>
+        <source>Valid frames : </source>
+        <translation>Images valides : </translation>
+    </message>
+</context>
+<context>
+    <name>QTimelineView</name>
+    <message>
+        <source>Video timeline</source>
+        <translation>Chronologie vidéo</translation>
+    </message>
+</context>
+<context>
+    <name>QVideoFrameView</name>
+    <message>
+        <source>Video preview</source>
+        <translation>Aperçu de la vidéo</translation>
+    </message>
+</context>
+<context>
+    <name>QWindowMain</name>
+    <message>
+        <source>Access unit</source>
+        <translation>Unité d&apos;accès</translation>
+    </message>
+    <message>
+        <source>File</source>
+        <translation>Fichier</translation>
+    </message>
+    <message>
+        <source>Open folder...</source>
+        <translation>Ouvrir un dossier...</translation>
+    </message>
+    <message>
+        <source>Open &quot;stream&quot;...</source>
+        <translation>Ouvrir un &quot;flux&quot;...</translation>
+    </message>
+</context>
+</TS>

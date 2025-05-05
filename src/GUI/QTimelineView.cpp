@@ -119,6 +119,7 @@ void QTimelineView::accessUnitsRemoved(uint32_t count){
 
 void QTimelineView::accessUnitSelected(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     for(QSharedPointer<QAccessUnitElement> pAccessUnitElement : m_pAccessUnitElements){
+        if(pAccessUnitModel && pAccessUnitModel->m_id == pAccessUnitElement->m_pAccessUnitModel->m_id) continue;
         pAccessUnitElement->m_selected = false;
         pAccessUnitElement->update();
     }

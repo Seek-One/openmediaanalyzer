@@ -25,9 +25,6 @@ protected:
 
     void leaveEvent(QEvent *event);
 
-public slots:
-    void accessUnitSelected();
-
 signals:
     void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
     

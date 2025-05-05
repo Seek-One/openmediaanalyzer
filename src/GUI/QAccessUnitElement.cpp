@@ -37,17 +37,12 @@ void QAccessUnitElement::paintEvent(QPaintEvent* event) {
     setToolTip(m_text);
 }
 
-void QAccessUnitElement::accessUnitSelected(){
-    m_selected = false;
-    update();
-}
-
 void QAccessUnitElement::mousePressEvent(QMouseEvent* event) {
     if(!m_interactable) return;
     if (event->button() == Qt::LeftButton) {
-        emit selectAccessUnit(m_pAccessUnitModel);
         m_selected = !m_selected;
         update();
+        emit selectAccessUnit(m_selected ? m_pAccessUnitModel : nullptr);
     }
 }
 

@@ -278,6 +278,7 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
+    qDebug() << GOPs.size();
     if(GOPs.size() > GOP_LIMIT){
         // try to remove GOPs preceding the first GOP with an IDR first
         bool foundIDR = false;

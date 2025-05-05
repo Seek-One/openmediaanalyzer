@@ -20,6 +20,7 @@ struct H265GOP {
     void validate();
 
     bool hasIDR;
+    bool hasSlice;
     std::vector<std::unique_ptr<H265AccessUnit>> accessUnits;
     std::vector<std::string> errors;
 };

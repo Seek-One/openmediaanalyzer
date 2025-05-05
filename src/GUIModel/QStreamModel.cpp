@@ -71,7 +71,10 @@ void QStreamModel::processFile(const QString& filePath){
     fileStream.seekg(0, std::ios::beg);
     uint8_t* buffer = new uint8_t[fileSize];
     fileStream.read(reinterpret_cast<char*>(buffer), fileSize);
-    emit loadFile(buffer, fileSize);
+    QString fileExtension = filePath.split('.').back(); 
+    if(fileExtension == "h264") emit loadH264File(buffer, fileSize);
+    else if (fileExtension == "h265") emit loadH265File(buffer, fileSize);
+    else delete[] buffer;
     fileStream.close();
 }
 

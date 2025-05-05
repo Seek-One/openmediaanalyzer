@@ -146,8 +146,25 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
+			if(pSlice->slice_type == H265Slice::SliceType_I && (!currentAccessUnitSlice || currentAccessUnitSlice->slice_pic_order_cnt_lsb != pSlice->slice_pic_order_cnt_lsb)){ // I-frame marks new GOP
+				// move access unit inserted in the previous GOP to a new one,
+				// unless it's the very first access unit of the GOP (access units can start with
+				// non-slice NAL units)
+				if(m_GOPs.back()->hasSlice){ 
+					H265GOP* previousGOP = m_GOPs.back().get();
+					m_GOPs.push_back(std::make_unique<H265GOP>());
+					m_GOPs.back()->accessUnits.push_back(std::move(previousGOP->accessUnits.back()));
+					previousGOP->accessUnits.pop_back();
+					previousGOP->validate();
+					errors.insert(errors.end(), previousGOP->errors.begin(), previousGOP->errors.end());
+					previousGOP->errors.clear();
+					for(int i = 0;errors.size() > ERR_MSG_LIMIT && i < errors.size() - ERR_MSG_LIMIT;++i) errors.pop_front();
+				}
+				if(pSlice->nal_unit_type == H265NAL::UnitType_IDR_N_LP || pSlice->nal_unit_type == H265NAL::UnitType_IDR_W_RADL) m_GOPs.back()->hasIDR = true;
+			} 
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265Slice>(pSlice));
 			firstPicture = false; endOfSequenceFlag = false;
+			m_GOPs.back()->hasSlice = true;
 			break;
 		}
 	}

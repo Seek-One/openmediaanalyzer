@@ -16,6 +16,8 @@
 #include "H265VPS.h"
 #include "H265GOP.h"
 
+#define ERR_MSG_LIMIT 15
+
 class H265Stream: public H26XStream {
 public:
 	H265Stream();

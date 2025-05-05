@@ -7,7 +7,8 @@
 
 #include "H265GOP.h"
 
-H265GOP::H265GOP(){
+H265GOP::H265GOP():
+    hasIDR(false), hasSlice(false){
 }
 
 H265GOP::~H265GOP(){

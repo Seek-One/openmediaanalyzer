@@ -107,8 +107,8 @@ std::vector<std::string> H265Slice::dump_fields(){
 		fields.push_back((std::ostringstream() << "  slice_type:" << (int)slice_type).str());
 		if(h265PPS->output_flag_present_flag) fields.push_back((std::ostringstream() << "    pic_output_flag:" << (int)pic_output_flag).str());
 		if(h265SPS->separate_colour_plane_flag == 1) fields.push_back((std::ostringstream() << "    colour_plane_id:" << (int)colour_plane_id).str());
+		fields.push_back((std::ostringstream() << "    slice_pic_order_cnt_lsb:" << slice_pic_order_cnt_lsb).str());
 		if(!IdrPicFlag){
-			fields.push_back((std::ostringstream() << "    slice_pic_order_cnt_lsb:" << slice_pic_order_cnt_lsb).str());
 			fields.push_back((std::ostringstream() << "    short_term_ref_pic_set_sps_flag:" << (int)short_term_ref_pic_set_sps_flag).str());
 			if(!short_term_ref_pic_set_sps_flag){
 				std::vector<std::string> shortTermRefPicSetFields = h265SPS->short_term_ref_pic_set[h265SPS->num_short_term_ref_pic_sets].dump_fields(h265SPS->num_short_term_ref_pic_sets, h265SPS->num_short_term_ref_pic_sets);

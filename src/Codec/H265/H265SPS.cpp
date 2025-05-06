@@ -377,3 +377,8 @@ void H265SPS::validate(){
 	if(num_short_term_ref_pic_sets > 64) errors.push_back((std::ostringstream() << "[H265 SPS] num_short_term_ref_pic_sets value (" << num_short_term_ref_pic_sets << ") not in valid range (0..64)").str());
 	if(num_long_term_ref_pics_sps > 32) errors.push_back((std::ostringstream() << "[H265 SPS] num_long_term_ref_pics_sps value (" << num_long_term_ref_pics_sps << ") not in valid range (0..32)").str());
 }
+
+uint16_t H265SPS::computeMaxFrameNumber() const{
+	if(log2_max_pic_order_cnt_lsb_minus4 >= 12) return UINT16_MAX;
+	return 1 << (log2_max_pic_order_cnt_lsb_minus4+4);
+}

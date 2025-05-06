@@ -222,6 +222,8 @@ struct H265SPS : public H265NAL {
 
 	static inline std::unordered_map<uint8_t, H265SPS*> SPSMap;
 
+	uint16_t computeMaxFrameNumber() const;
+
 	std::vector<std::string> dump_fields() override;
 	void validate() override;
 

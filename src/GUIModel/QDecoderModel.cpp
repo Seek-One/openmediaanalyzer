@@ -278,7 +278,6 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
-    qDebug() << GOPs.size();
     if(GOPs.size() > GOP_LIMIT){
         // try to remove GOPs preceding the first GOP with an IDR first
         bool foundIDR = false;
@@ -665,7 +664,33 @@ void QDecoderModel::validateH264GOPFrames(){
     }
 }
 
-void QDecoderModel::validateH265GOPFrames(){}
+void QDecoderModel::validateH265GOPFrames(){
+    uint16_t prevFrameNumber = 0;
+    bool encounteredIFrame = false;
+    bool noSPSorPPS = true;
+    uint16_t maxFrameNumber = 0;
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){        
+        const H265AccessUnit* pAccessUnit = std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit);
+        if(pAccessUnit->empty() || !pAccessUnit->slice()) continue;
+        const H265Slice* pSlice = pAccessUnit->slice();
+        if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+        if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
+        // PPS & SPS check : no exploitable frame numbers if either is absent
+        if(!pSlice->getPPS() || !pSlice->getSPS()){
+            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_PPS_OR_SPS_MISSING;
+            continue;
+        }
+        noSPSorPPS = false;
+        if(!encounteredIFrame && pSlice->slice_type != H265Slice::SliceType_I) {
+            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_IFRAME_MISSING;
+            continue;
+        }
+        if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
+            pAccessUnitModel->m_status = QAccessUnitModel::OUT_OF_ORDER;
+        }
+        prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+    }
+}
 
 // https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format
 QImage* QDecoderModel::getQImageFromH264Frame(const AVFrame* pFrame) {

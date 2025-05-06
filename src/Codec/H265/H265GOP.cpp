@@ -38,5 +38,21 @@ std::vector<H265AccessUnit*> H265GOP::getAccessUnits() const {
 }
 
 void H265GOP::validate(){
-    
+    uint16_t prevFrameNumber = 0;
+    bool encounteredIFrame = false;
+    bool noSPSorPPS = true;
+    uint16_t maxFrameNumber = 0;
+    for(const std::unique_ptr<H265AccessUnit>& accessUnit : accessUnits){        
+        if(accessUnit->empty() || !accessUnit->slice()) continue;
+        const H265Slice* pSlice = accessUnit->slice();
+        if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+        if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
+        if(!pSlice->getPPS() || !pSlice->getSPS()){
+            continue;
+        }
+        noSPSorPPS = false;
+        prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+    }
+    if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");
+    if(!encounteredIFrame) errors.push_back("[GOP] No I-frame detected");
 }

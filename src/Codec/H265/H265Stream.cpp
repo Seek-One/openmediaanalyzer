@@ -142,11 +142,11 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
 			bitstreamReader.readSlice(*pSlice);
-			if(pSlice->nuh_layer_id == 0 && currentAccessUnitSlice && currentAccessUnitSlice->slice_pic_order_cnt_lsb != pSlice->slice_pic_order_cnt_lsb){
+			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			if(pSlice->slice_type == H265Slice::SliceType_I && (!currentAccessUnitSlice || currentAccessUnitSlice->slice_pic_order_cnt_lsb != pSlice->slice_pic_order_cnt_lsb)){ // I-frame marks new GOP
+			if(pSlice->slice_type == H265Slice::SliceType_I && pSlice->first_slice_segment_in_pic_flag){ // I-frame marks new GOP
 				// move access unit inserted in the previous GOP to a new one,
 				// unless it's the very first access unit of the GOP (access units can start with
 				// non-slice NAL units)

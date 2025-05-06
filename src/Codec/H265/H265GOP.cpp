@@ -46,11 +46,11 @@ void H265GOP::validate(){
         accessUnit->validate();
         if(accessUnit->empty() || !accessUnit->slice()) continue;
         const H265Slice* pSlice = accessUnit->slice();
+        if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
+        noSPSorPPS = false;
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
-        if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
         else if(!encounteredIFrame) accessUnit->errors.push_back("No reference I-frame");
-        noSPSorPPS = false;
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
     }
     if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");

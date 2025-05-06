@@ -238,6 +238,8 @@ void H265Slice::validate(){
 		errors.push_back((std::ostringstream() << "[H265 Slice] reference to unknown SPS (" << (int)pPps->pps_seq_parameter_set_id << ")").str());
 		return;
 	}
+	H265VPS* pVps = getVPS();
+	if(!pVps) errors.push_back((std::ostringstream() << "[H265 Slice] reference to unknown VPS (" << (int)pSps->sps_video_parameter_set_id << ")").str());
 	if(pPps->TemporalId > TemporalId) errors.push_back((std::ostringstream() << "[H265 Slice] referenced PPS has a greater TemporalId value").str());
 	if(pPps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced PPS has a greater nuh_layer_id value").str());
 	if(pSps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced SPS has a greater nuh_layer_id value").str());

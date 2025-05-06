@@ -645,7 +645,7 @@ void QDecoderModel::validateH265GOPFrames(){
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
         // PPS & SPS check : no exploitable frame numbers if either is absent
-        if(!pSlice->getPPS() || !pSlice->getSPS()){
+        if(!pSlice->getPPS() || !pSlice->getSPS() || !pSlice->getVPS()){
             pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }

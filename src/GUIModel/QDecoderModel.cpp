@@ -487,6 +487,7 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
 
 void QDecoderModel::framesTabOpened(){
     m_tabIndex = 0;
+    if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), errorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
     emitStreamErrors();
 }
 

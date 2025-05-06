@@ -11,7 +11,7 @@ public:
     virtual ~QErrorView();
 
 public slots:
-    void setErrors(QString title, QStringList errors);
+    void setErrors(QString title, QStringList minorErrors, QStringList majorErrors);
 
 private:
     QListWidget* m_pListWidget;

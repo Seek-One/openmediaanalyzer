@@ -9,7 +9,8 @@ QStatusViewController::QStatusViewController(QStatusView* pStatusView, QDecoderM
     : m_pStatusView(pStatusView), m_pDecoderModel(pDecoderModel)
 {
     connect(m_pDecoderModel, &QDecoderModel::updateSize, m_pStatusView, &QStatusView::sizeUpdated);
-    connect(m_pDecoderModel, &QDecoderModel::updateValidity, m_pStatusView, &QStatusView::validityUpdated);
+    connect(m_pDecoderModel, &QDecoderModel::updateValidity, m_pStatusView, &QStatusView::frameValidityUpdated);
+    connect(m_pDecoderModel, &QDecoderModel::updateStatus, m_pStatusView, &QStatusView::streamStatusUpdated);
 }
 
 QStatusViewController::~QStatusViewController(){

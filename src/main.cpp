@@ -7,10 +7,8 @@
 int main(int argc, char *argv[]){
     QApplication app(argc, argv);
     app.setApplicationName("Open Media Analyzer");
-    QTranslator translator;
-    if (translator.load(QLocale("fr"), "", "", "ts"))
-        app.installTranslator(&translator);
-
+    // QTranslator translator;
+    // if (translator.load(QLocale("fr"), "", "", "ts")) app.installTranslator(&translator);
     QWindowMain* pWindowMain = new QWindowMain();
     if(pWindowMain) pWindowMain->show();
 

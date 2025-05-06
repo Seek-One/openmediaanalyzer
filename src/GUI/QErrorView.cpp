@@ -18,15 +18,24 @@ QErrorView::~QErrorView(){
 
 }
 
-void QErrorView::setErrors(QString title, QStringList errors){
+void QErrorView::setErrors(QString title, QStringList minorErrors, QStringList majorErrors){
     while(m_pListWidget->takeItem(0));
-    if(errors.empty()){
+    if(minorErrors.empty() && majorErrors.empty()){
         setTitle("");
         hide();
         return;
     }
     setTitle(title);
-    m_pListWidget->addItems(errors);
+    for(QString err : majorErrors){
+        QListWidgetItem* errItem = new QListWidgetItem(err);
+        errItem->setForeground(Qt::red);
+        m_pListWidget->addItem(errItem);
+    }
+    for(QString err : minorErrors){
+        QListWidgetItem* errItem = new QListWidgetItem(err);
+        errItem->setForeground(Qt::darkYellow);
+        m_pListWidget->addItem(errItem);
+    }
     show();
 }
 

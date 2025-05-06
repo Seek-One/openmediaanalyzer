@@ -162,26 +162,26 @@ std::vector<std::string> H265PPS::dump_fields(){
 
 void H265PPS::validate(){
 	H265NAL::validate();
-	if(pps_pic_parameter_set_id > 63) errors.push_back((std::ostringstream() << "[PPS] pps_pic_parameter_set_id value (" << (int)pps_pic_parameter_set_id << ") not in valid range (0..63)").str());
-	if(pps_seq_parameter_set_id > 15) errors.push_back((std::ostringstream() << "[PPS] pps_seq_parameter_set_id value(" << (int)pps_seq_parameter_set_id << ") not in valid range (0..63)").str());
+	if(pps_pic_parameter_set_id > 63) minorErrors.push_back((std::ostringstream() << "[PPS] pps_pic_parameter_set_id value (" << (int)pps_pic_parameter_set_id << ") not in valid range (0..63)").str());
+	if(pps_seq_parameter_set_id > 15) minorErrors.push_back((std::ostringstream() << "[PPS] pps_seq_parameter_set_id value(" << (int)pps_seq_parameter_set_id << ") not in valid range (0..63)").str());
 	auto referencedSPS = H265SPS::SPSMap.find(pps_seq_parameter_set_id);
 	H265SPS* pSps = nullptr;
 	if(referencedSPS == H265SPS::SPSMap.end()) {
-		errors.push_back((std::ostringstream() << "[PPS] reference to unknown SPS (" << (int)pps_seq_parameter_set_id << ")").str());
+		majorErrors.push_back((std::ostringstream() << "[PPS] reference to unknown SPS (" << (int)pps_seq_parameter_set_id << ")").str());
 		return;
 	}
 	pSps = referencedSPS->second;
-	if(num_extra_slice_header_bits > 2) errors.push_back((std::ostringstream() << "[PPS] num_extra_slice_header_bits value (" << (int)num_extra_slice_header_bits << ") not in valid range (0..2)").str());
-	if(num_ref_idx_l0_default_active_minus1 > 14) errors.push_back((std::ostringstream() << "[PPS] num_ref_idx_l0_default_active_minus1 value (" << (int)num_ref_idx_l0_default_active_minus1 << ") not in valid range (0..14)").str());
-	if(num_ref_idx_l1_default_active_minus1 > 14) errors.push_back((std::ostringstream() << "[PPS] num_ref_idx_l1_default_active_minus1 value (" << (int)num_ref_idx_l1_default_active_minus1 << ") not in valid range (0..14)").str());
-	if(init_qp_minus26 < -26 - pSps->QpBdOffsetY || init_qp_minus26 > 25) errors.push_back((std::ostringstream() << "[PPS] init_qp_minus26 value (" << (int)init_qp_minus26 << ") not in valid range (" << -26 - pSps->QpBdOffsetY << "..25)").str());
-	if(diff_cu_qp_delta_depth > pSps->log2_diff_max_min_luma_coding_block_size) errors.push_back((std::ostringstream() << "[PPS] diff_cu_qp_delta_depth value (" << diff_cu_qp_delta_depth << ") not in valid range (0.." << pSps->log2_diff_max_min_luma_coding_block_size << ")").str());
-	if(pps_cb_qp_offset < -12 || pps_cb_qp_offset > 12) errors.push_back((std::ostringstream() << "[PPS] pps_cb_qp_offset value (" << pps_cb_qp_offset << ") not in valid range (-12..12)").str());
-	if(pps_cr_qp_offset < -12 || pps_cr_qp_offset > 12) errors.push_back((std::ostringstream() << "[PPS] pps_cr_qp_offset value (" << pps_cr_qp_offset << ") not in valid range (-12..12)").str());
-	if(num_tile_columns_minus1 > pSps->PicWidthInCtbsY-1) errors.push_back((std::ostringstream() << "[PPS] num_tile_columns_minus1 value (" << num_tile_columns_minus1 << ") not in valid range (0.." << pSps->PicWidthInCtbsY-1 << ")").str());
-	if(num_tile_rows_minus1 > pSps->PicHeightInCtbsY-1) errors.push_back((std::ostringstream() << "[PPS] num_tile_rows_minus1 value (" << num_tile_rows_minus1 << ") not in valid range (0.." << pSps->PicHeightInCtbsY-1 << ")").str());
-	if(tiles_enabled_flag && num_tile_columns_minus1 == 0 && num_tile_rows_minus1 == 0) errors.push_back("[PPS] num_tile_columns_minus1 and num_tile_rows_minus1 both equal to 0 with set tiles_enabled_flag");
-	if(pps_beta_offset_div2 < -6 || pps_beta_offset_div2 > 6) errors.push_back((std::ostringstream() << "[PPS] pps_beta_offset_div2 value (" << pps_beta_offset_div2 << ") not in valid range (-6..6)").str());
-	if(pps_tc_offset_div2 < -6 || pps_tc_offset_div2 > 6) errors.push_back((std::ostringstream() << "[PPS] pps_tc_offset_div2 value (" << pps_tc_offset_div2 << ") not in valid range (-6..6)").str());
-	if(log2_parallel_merge_level_minus2 > pSps->CtbLog2SizeY-2) errors.push_back((std::ostringstream() << "[PPS] log2_parallel_merge_level_minus2 value (" << log2_parallel_merge_level_minus2 << ") not in valid range (0.." << pSps->CtbLog2SizeY-2 << ")").str());
+	if(num_extra_slice_header_bits > 2) minorErrors.push_back((std::ostringstream() << "[PPS] num_extra_slice_header_bits value (" << (int)num_extra_slice_header_bits << ") not in valid range (0..2)").str());
+	if(num_ref_idx_l0_default_active_minus1 > 14) minorErrors.push_back((std::ostringstream() << "[PPS] num_ref_idx_l0_default_active_minus1 value (" << (int)num_ref_idx_l0_default_active_minus1 << ") not in valid range (0..14)").str());
+	if(num_ref_idx_l1_default_active_minus1 > 14) minorErrors.push_back((std::ostringstream() << "[PPS] num_ref_idx_l1_default_active_minus1 value (" << (int)num_ref_idx_l1_default_active_minus1 << ") not in valid range (0..14)").str());
+	if(init_qp_minus26 < -26 - pSps->QpBdOffsetY || init_qp_minus26 > 25) minorErrors.push_back((std::ostringstream() << "[PPS] init_qp_minus26 value (" << (int)init_qp_minus26 << ") not in valid range (" << -26 - pSps->QpBdOffsetY << "..25)").str());
+	if(diff_cu_qp_delta_depth > pSps->log2_diff_max_min_luma_coding_block_size) minorErrors.push_back((std::ostringstream() << "[PPS] diff_cu_qp_delta_depth value (" << diff_cu_qp_delta_depth << ") not in valid range (0.." << pSps->log2_diff_max_min_luma_coding_block_size << ")").str());
+	if(pps_cb_qp_offset < -12 || pps_cb_qp_offset > 12) minorErrors.push_back((std::ostringstream() << "[PPS] pps_cb_qp_offset value (" << pps_cb_qp_offset << ") not in valid range (-12..12)").str());
+	if(pps_cr_qp_offset < -12 || pps_cr_qp_offset > 12) minorErrors.push_back((std::ostringstream() << "[PPS] pps_cr_qp_offset value (" << pps_cr_qp_offset << ") not in valid range (-12..12)").str());
+	if(num_tile_columns_minus1 > pSps->PicWidthInCtbsY-1) minorErrors.push_back((std::ostringstream() << "[PPS] num_tile_columns_minus1 value (" << num_tile_columns_minus1 << ") not in valid range (0.." << pSps->PicWidthInCtbsY-1 << ")").str());
+	if(num_tile_rows_minus1 > pSps->PicHeightInCtbsY-1) minorErrors.push_back((std::ostringstream() << "[PPS] num_tile_rows_minus1 value (" << num_tile_rows_minus1 << ") not in valid range (0.." << pSps->PicHeightInCtbsY-1 << ")").str());
+	if(tiles_enabled_flag && num_tile_columns_minus1 == 0 && num_tile_rows_minus1 == 0) minorErrors.push_back("[PPS] num_tile_columns_minus1 and num_tile_rows_minus1 both equal to 0 with set tiles_enabled_flag");
+	if(pps_beta_offset_div2 < -6 || pps_beta_offset_div2 > 6) minorErrors.push_back((std::ostringstream() << "[PPS] pps_beta_offset_div2 value (" << pps_beta_offset_div2 << ") not in valid range (-6..6)").str());
+	if(pps_tc_offset_div2 < -6 || pps_tc_offset_div2 > 6) minorErrors.push_back((std::ostringstream() << "[PPS] pps_tc_offset_div2 value (" << pps_tc_offset_div2 << ") not in valid range (-6..6)").str());
+	if(log2_parallel_merge_level_minus2 > pSps->CtbLog2SizeY-2) minorErrors.push_back((std::ostringstream() << "[PPS] log2_parallel_merge_level_minus2 value (" << log2_parallel_merge_level_minus2 << ") not in valid range (0.." << pSps->CtbLog2SizeY-2 << ")").str());
 }

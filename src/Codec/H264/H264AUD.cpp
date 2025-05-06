@@ -22,5 +22,4 @@ std::vector<std::string> H264AUD::dump_fields(){
 
 void H264AUD::validate(){
 	H264NAL::validate();
-	
 }

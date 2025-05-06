@@ -4,6 +4,7 @@
 
 #include "H264AccessUnit.h"
 #include "H264Slice.h"
+#include "H264SPS.h"
 
 #include "H264GOP.h"
 
@@ -56,10 +57,25 @@ void H264GOP::validate(){
         if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
         noSPSorPPS = false;
         if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
-        else if(!encounteredIFrame) accessUnit->errors.push_back("No reference I-frame");
+        else if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
+        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
+            majorErrors.push_back("[GOP] Out of order frames detected");
+        }
         prevFrameNumber = pSlice->frame_num;
     }
-    if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");
-    if(!encounteredIFrame) errors.push_back("[GOP] No I-frame detected");
+    if(maxFrameNumber+1 != count() && !noSPSorPPS) majorErrors.push_back("[GOP] Skipped frames detected");
+    if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
+}
+
+bool H264GOP::hasMajorErrors() const {
+    return !majorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H264AccessUnit>& accessUnit){
+        return acc || accessUnit->hasMajorErrors();
+    });
+}
+
+bool H264GOP::hasMinorErrors() const {
+    return !minorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H264AccessUnit>& accessUnit){
+        return acc || accessUnit->hasMinorErrors();
+    });
 }
 

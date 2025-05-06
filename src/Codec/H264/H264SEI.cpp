@@ -45,7 +45,7 @@ void H264SEI::validate(){
 	H264NAL::validate();
 	for(H264SEIMessage* message : messages){
 		message->validate();
-		errors.insert(errors.end(), message->errors.begin(), message->errors.end());
+		minorErrors.insert(minorErrors.end(), message->errors.begin(), message->errors.end());
 		message->errors.clear();
 	}
 }

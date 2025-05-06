@@ -39,7 +39,8 @@ struct H264NAL {
 	uint32_t nal_size;
 	uint8_t* nal_data;
 
-	std::vector<std::string> errors;
+	std::vector<std::string> minorErrors;
+	std::vector<std::string> majorErrors;
 
 	virtual std::vector<std::string> dump_fields();
 	virtual void validate();

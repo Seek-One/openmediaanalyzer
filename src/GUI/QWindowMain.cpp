@@ -127,10 +127,10 @@ QVideoFrameView* QWindowMain::getVideoFrameView(){
     return m_pVideoFrameView;
 }
 
-void QWindowMain::errorViewToggled(QString _, QStringList errors){
+void QWindowMain::errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors){
     QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
     layout->removeWidget(m_pTabWidget);
-    layout->addWidget(m_pTabWidget, 0, 3, errors.empty() ? 3 : 2, 1);
+    layout->addWidget(m_pTabWidget, 0, 3, minorErrors.empty() && majorErrors.empty() ? 3 : 2, 1);
 }
 
 void QWindowMain::closeEvent(QCloseEvent* event){

@@ -156,9 +156,14 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 					m_GOPs.back()->accessUnits.push_back(std::move(previousGOP->accessUnits.back()));
 					previousGOP->accessUnits.pop_back();
 					previousGOP->validate();
-					errors.insert(errors.end(), previousGOP->errors.begin(), previousGOP->errors.end());
-					previousGOP->errors.clear();
-					for(int i = 0;errors.size() > ERR_MSG_LIMIT && i < errors.size() - ERR_MSG_LIMIT;++i) errors.pop_front();
+
+					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());
+					previousGOP->minorErrors.clear();
+					for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+
+					majorErrors.insert(majorErrors.end(), previousGOP->majorErrors.begin(), previousGOP->majorErrors.end());
+					previousGOP->majorErrors.clear();
+					for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 				}
 				if(pSlice->nal_unit_type == H265NAL::UnitType_IDR_N_LP || pSlice->nal_unit_type == H265NAL::UnitType_IDR_W_RADL) m_GOPs.back()->hasIDR = true;
 			} 

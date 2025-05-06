@@ -26,12 +26,20 @@ class QDecoderModel : public QObject
 {
     Q_OBJECT
 public:
+    enum StreamStatus {
+        StreamStatus_OK,
+        StreamStatus_NonConformant,
+        StreamStatus_Damaged,
+        StreamStatus_NoStream
+    };
+
     QDecoderModel();
 
     virtual ~QDecoderModel();
     
     static QStandardItem* modelItemFromFields(std::vector<std::string> fields, QString header);
-    QStringList m_streamErrors;
+    QStringList m_minorStreamErrors;
+    QStringList m_majorStreamErrors;
 
 signals:
     void updateTimelineUnits();
@@ -41,9 +49,10 @@ signals:
     void updateSPSInfoView(QStandardItemModel* pModel);
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
-    void updateErrorView(QString title, QStringList errors);
+    void updateErrorView(QString title, QStringList minorErrors, QStringList majorErrors);
     void updateSize(uint64_t size);
     void updateValidity(uint32_t valid, uint32_t total);
+    void updateStatus(StreamStatus status);
     void updateVideoFrameView(QSharedPointer<QImage> pImage);
 
 public slots:
@@ -71,9 +80,11 @@ private:
     void validateH265GOPFrames();
     void updateH264StatusBarSize();
     void updateH264StatusBarValidity();
+    void updateH264StatusBarStatus();
     void updateH264StatusBar();
     void updateH265StatusBarSize();
     void updateH265StatusBarValidity();
+    void updateH265StatusBarStatus();
     void updateH265StatusBar();
     QImage* decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);

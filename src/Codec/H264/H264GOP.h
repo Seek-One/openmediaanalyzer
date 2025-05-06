@@ -18,11 +18,14 @@ struct H264GOP {
     std::vector<H264Slice*> slices() const;
     std::vector<H264AccessUnit*> getAccessUnits() const;
     void validate();
+    bool hasMajorErrors() const;
+    bool hasMinorErrors() const;
 
     std::vector<std::unique_ptr<H264AccessUnit>> accessUnits;
     bool hasIDR;
     bool hasSlice;
-    std::vector<std::string> errors;
+    std::vector<std::string> minorErrors;
+    std::vector<std::string> majorErrors;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264GOP_H_

@@ -16,7 +16,7 @@
 #include "H265VPS.h"
 #include "H265GOP.h"
 
-#define ERR_MSG_LIMIT 15
+#define ERR_MSG_LIMIT 8
 
 class H265Stream: public H26XStream {
 public:
@@ -47,7 +47,8 @@ public:
 	bool firstPicture;
 	bool endOfSequenceFlag;
 
-	std::deque<std::string> errors;
+	std::deque<std::string> minorErrors;
+	std::deque<std::string> majorErrors;
 
 private:
 	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength);

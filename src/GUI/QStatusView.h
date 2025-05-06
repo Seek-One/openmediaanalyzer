@@ -3,6 +3,8 @@
 #include <QStandardItemModel>
 #include <QLabel>
 
+#include "../GUIModel/QDecoderModel.h"
+
 class QStatusView : public QWidget
 {
     Q_OBJECT
@@ -12,9 +14,11 @@ public:
 
 public slots:
     void sizeUpdated(uint64_t size);
-    void validityUpdated(uint32_t valid, uint32_t total);
+    void frameValidityUpdated(uint32_t valid, uint32_t total);
+    void streamStatusUpdated(QDecoderModel::StreamStatus status);
 
 private:
     QLabel* m_pStreamSize;
     QLabel* m_pFrameValidity;
+    QLabel* m_pStreamStatus;
 };

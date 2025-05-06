@@ -34,12 +34,15 @@ struct H265AccessUnit {
     bool isSLNR() const;
     void validate();
     bool isValid() const;
+    bool hasMajorErrors() const;
+    bool hasMinorErrors() const;
 
     std::vector<std::unique_ptr<H265NAL>> NALUnits;
     int32_t PicOrderCntVal;
     uint32_t PicOrderCntMsb;
     bool POCDecoded;
-    std::vector<std::string> errors;
+    std::vector<std::string> minorErrors;
+    std::vector<std::string> majorErrors;
     ReferenceStatus status;
 
     // Variables to handle the decoding process 8

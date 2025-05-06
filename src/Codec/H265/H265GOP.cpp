@@ -46,13 +46,28 @@ void H265GOP::validate(){
         accessUnit->validate();
         if(accessUnit->empty() || !accessUnit->slice()) continue;
         const H265Slice* pSlice = accessUnit->slice();
-        if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
+        if(!pSlice->getPPS() || !pSlice->getSPS() || !pSlice->getVPS()) continue;
         noSPSorPPS = false;
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
-        else if(!encounteredIFrame) accessUnit->errors.push_back("No reference I-frame");
+        else if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+        if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
+            majorErrors.push_back("[GOP] Out of order frames detected");
+        }
     }
-    if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");
-    if(!encounteredIFrame) errors.push_back("[GOP] No I-frame detected");
+    if(maxFrameNumber+1 != count() && !noSPSorPPS) majorErrors.push_back("[GOP] Skipped frames detected");
+    if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
+}
+
+bool H265GOP::hasMajorErrors() const {
+    return !majorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H265AccessUnit>& accessUnit){
+        return acc || accessUnit->hasMajorErrors();
+    });
+}
+
+bool H265GOP::hasMinorErrors() const {
+    return !minorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H265AccessUnit>& accessUnit){
+        return acc || accessUnit->hasMinorErrors();
+    });
 }

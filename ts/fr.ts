@@ -223,6 +223,22 @@
         <source>Valid frames : </source>
         <translation>Images valides : </translation>
     </message>
+    <message>
+        <source>Stream status : OK</source>
+        <translation>État du flux : OK</translation>
+    </message>
+    <message>
+        <source>Stream status : Non conformant</source>
+        <translation type="vanished">État du flux : Non conforme</translation>
+    </message>
+    <message>
+        <source>Stream status : Damaged</source>
+        <translation>État du flux : Endommagé</translation>
+    </message>
+    <message>
+        <source>Stream status : Non-conforming</source>
+        <translation>État du flux : non conforme</translation>
+    </message>
 </context>
 <context>
     <name>QTimelineView</name>

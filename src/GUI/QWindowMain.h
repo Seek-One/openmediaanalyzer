@@ -31,7 +31,7 @@ public:
     QVideoFrameView* getVideoFrameView();
 
 public slots:
-    void errorViewToggled(QString _, QStringList errors);
+    void errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors);
 
 signals:
     void openFolderClicked();

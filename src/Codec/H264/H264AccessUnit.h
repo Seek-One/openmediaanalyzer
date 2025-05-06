@@ -14,7 +14,8 @@ struct H264AccessUnit {
     ~H264AccessUnit();
 
     std::vector<std::unique_ptr<H264NAL>> NALUnits;
-    std::vector<std::string> errors;
+    std::vector<std::string> minorErrors;
+    std::vector<std::string> majorErrors;
     bool hasFrameGaps;
 
     bool empty() const;
@@ -28,6 +29,8 @@ struct H264AccessUnit {
     H264NAL* last() const;
     void validate();
     bool isValid() const;
+    bool hasMajorErrors() const;
+    bool hasMinorErrors() const;
     bool hasNonReferencePicture() const;
     bool hasReferencePicture() const;
 };

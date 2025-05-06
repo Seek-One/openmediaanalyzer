@@ -166,8 +166,11 @@ void H265PPS::validate(){
 	if(pps_seq_parameter_set_id > 15) errors.push_back((std::ostringstream() << "[H265 PPS] pps_seq_parameter_set_id value(" << (int)pps_seq_parameter_set_id << ") not in valid range (0..63)").str());
 	auto referencedSPS = H265SPS::SPSMap.find(pps_seq_parameter_set_id);
 	H265SPS* pSps = nullptr;
-	if(referencedSPS == H265SPS::SPSMap.end()) errors.push_back((std::ostringstream() << "[H265 PPS] reference to unknown SPS (" << (int)pps_seq_parameter_set_id << ")").str());
-	else pSps = referencedSPS->second;
+	if(referencedSPS == H265SPS::SPSMap.end()) {
+		errors.push_back((std::ostringstream() << "[H265 PPS] reference to unknown SPS (" << (int)pps_seq_parameter_set_id << ")").str());
+		return;
+	}
+	pSps = referencedSPS->second;
 	if(num_extra_slice_header_bits > 2) errors.push_back((std::ostringstream() << "[H265 PPS] num_extra_slice_header_bits value (" << (int)num_extra_slice_header_bits << ") not in valid range (0..2)").str());
 	if(num_ref_idx_l0_default_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 PPS] num_ref_idx_l0_default_active_minus1 value (" << (int)num_ref_idx_l0_default_active_minus1 << ") not in valid range (0..14)").str());
 	if(num_ref_idx_l1_default_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 PPS] num_ref_idx_l1_default_active_minus1 value (" << (int)num_ref_idx_l1_default_active_minus1 << ") not in valid range (0..14)").str());

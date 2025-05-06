@@ -138,7 +138,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			break;
 		}
 		default:{
-			if (!m_currentNAL.isSlice()) std::cerr << "[H265 Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
+			if (!m_currentNAL.isSlice()) std::cerr << "[Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
 			bitstreamReader.readSlice(*pSlice);
@@ -187,7 +187,7 @@ void H265Stream::computePOC(){
 			if(pSlice && pSlice->TemporalId == 0 && !pAccessUnit->isRASL() && !pAccessUnit->isRADL() && !pAccessUnit->isSLNR()) prevTid0Pic = pAccessUnit;
 		}
 		if(!prevTid0Pic){
-			std::cerr << "[H265 Stream] Couldn't compute POC for non-initial IRAP picture : missing prevTid0Pic\n";
+			std::cerr << "[Stream] Couldn't compute POC for non-initial IRAP picture : missing prevTid0Pic\n";
 			return;
 		}
 		uint32_t prevPicOrderCntLsb = prevTid0Pic->slice()->slice_pic_order_cnt_lsb;
@@ -345,7 +345,7 @@ void H265Stream::computeRPL(){
 				RefPicListTemp0.push_back(m_pCurrentAccessUnit->RefPicSetLtCurr[i]);
 			}
 			if (h265PPS->pps_extension_present_flag) {
-				std::cerr << "[H265 Slice] pps_extension_present_flag not handled\n";
+				std::cerr << "[Slice] pps_extension_present_flag not handled\n";
 				//RefPicListTemp0[rIdx++] = currPic;
 			}
 		}

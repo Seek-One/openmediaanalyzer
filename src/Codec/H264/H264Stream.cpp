@@ -505,12 +505,12 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		// }
 
 		if(!foundNoGaps){ // if(!foundNoGaps && !foundGaps){
-			pSlice->errors.push_back("[H264 Slice Frame number] Couldn't derive PrevRefFrameNumber");
+			pSlice->errors.push_back("[Slice Frame number] Couldn't derive PrevRefFrameNumber");
 			return;
 		}
 	}	
 	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame && pSlice->frame_num != 0){
-		pSlice->errors.push_back("[H264 Slice Frame number] frame_num of an IDR picture should be 0");
+		pSlice->errors.push_back("[Slice Frame number] frame_num of an IDR picture should be 0");
 		return;
 	} 
 	if(pSlice->frame_num == pSlice->PrevRefFrameNum){
@@ -538,7 +538,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 		bool precedingPreviousReference = precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice() && precedingPreviousAccessUnit->primary_coded_slice()->nal_ref_idc == 0;
 		if(!consecutive || !oppositeParities || (!precedingIsIDR && !markingPictureOperation && !precedingPreviousPrimaryPic && !precedingPreviousReference)){
-			pSlice->errors.push_back("[H264 Slice Frame number] frame_num shouldn't be equal to PrevRefFrameNum");
+			pSlice->errors.push_back("[Slice Frame number] frame_num shouldn't be equal to PrevRefFrameNum");
 			return;
 		}
 	} else {
@@ -553,14 +553,14 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 			H264Slice* previousSlice = pAccessUnit->slice();
 			if(previousSlice && previousSlice->nal_ref_idc != 0 && !previousSlice->drpm.long_term_reference_flag){
 				if(std::find(UnusedShortTermFrameNums.begin(), UnusedShortTermFrameNums.end(), previousSlice->frame_num) != UnusedShortTermFrameNums.end()){
-					pSlice->errors.push_back("[H264 Slice Frame number] Previous frame/field has a frame_num marked as unused");
+					pSlice->errors.push_back("[Slice Frame number] Previous frame/field has a frame_num marked as unused");
 					return;
 				}
 			}
 		}
 		if(!pSlice->getSPS()->gaps_in_frame_num_value_allowed_flag){
 			if(pSlice->frame_num != ((pSlice->PrevRefFrameNum+1)%MaxFrameNum)){
-				pSlice->errors.push_back("[H264 Slice Frame number] frame_num isn't directly succeeding PrevRefFrameNum");
+				pSlice->errors.push_back("[Slice Frame number] frame_num isn't directly succeeding PrevRefFrameNum");
 				return;
 			}
 		} else {

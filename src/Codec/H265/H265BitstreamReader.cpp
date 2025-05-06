@@ -281,16 +281,16 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 		skipBits(4);
 	}
 	if(h265PPS.pps_range_extension_flag){
-		std::cerr << "[H265 PPS] range extension not supported\n";
+		std::cerr << "[PPS] range extension not supported\n";
 	}
 	if(h265PPS.pps_multilayer_extension_flag){
-		std::cerr << "[H265 PPS] multilayer extension not supported\n";
+		std::cerr << "[PPS] multilayer extension not supported\n";
 	}
 	if(h265PPS.pps_3d_extension_flag){
-		std::cerr << "[H265 PPS] 3d extension not supported\n";
+		std::cerr << "[PPS] 3d extension not supported\n";
 	}
 	if(h265PPS.pps_scc_extension_flag){
-		std::cerr << "[H265 PPS] scc extension not supported\n";
+		std::cerr << "[PPS] scc extension not supported\n";
 	}
 	// TODO: handle pps extensions data
 
@@ -437,7 +437,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 			if ((h265PPS->weighted_pred_flag && h265Slice.slice_type == H265Slice::SliceType_P) ||
 				(h265PPS->weighted_bipred_flag && h265Slice.slice_type == H265Slice::SliceType_B))
 			{
-				std::cerr << "[H265 Slice] pred_weight_table() not handled\n";
+				std::cerr << "[Slice] pred_weight_table() not handled\n";
 				return;
 			}
 			h265Slice.five_minus_max_num_merge_cand = readGolombUE();
@@ -447,7 +447,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		h265Slice.slice_qp_delta = readGolombSE();
 		H265PPS* h265PPS = h265Slice.getPPS();
 		if(!h265PPS){
-			std::cerr << "[H265 Slice] Reference to unknown PPS, parsing aborted\n";
+			std::cerr << "[Slice] Reference to unknown PPS, parsing aborted\n";
 			return;
 		}
 		if (h265PPS->pps_slice_chroma_qp_offsets_present_flag) {
@@ -456,7 +456,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		}
 		h265Slice.SliceQpY = 26 + h265PPS->init_qp_minus26 + h265Slice.slice_qp_delta;
 		if (h265PPS->pps_scc_extension.pps_slice_act_qp_offsets_present_flag) {
-			std::cerr << "[H265 Slice] PPS SCC extension not supported, parsing aborted\n";
+			std::cerr << "[Slice] PPS SCC extension not supported, parsing aborted\n";
 			return;
 			// h265Slice.slice_act_y_qp_offset = readGolombSE();
 			// h265Slice.slice_act_cb_qp_offset = readGolombSE();
@@ -464,7 +464,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		}
 
 		if (h265PPS->pps_range_extension.chroma_qp_offset_list_enabled_flag) {
-			std::cerr << "[H265 Slice] PPS range extension not supported, parsing aborted\n";
+			std::cerr << "[Slice] PPS range extension not supported, parsing aborted\n";
 			return;
 			// h265Slice.cu_chroma_qp_offset_enabled_flag = readBits(1);
 		}

@@ -193,22 +193,22 @@ std::vector<std::string> H264Slice::dump_fields(){
 
 void H264Slice::validate(){
 	if(slice_type == H264Slice::SliceType_Unspecified){
-		errors.push_back("[H264 Slice] Invalid slice type");
+		errors.push_back("[Slice] Invalid slice type");
 	}
 	if(pic_parameter_set_id > 255){
-		errors.push_back((std::ostringstream() << "[H264 Slice] pic_parameter_set_id value (" << (int)pic_parameter_set_id << ") not in valid range (0.255)").str());
+		errors.push_back((std::ostringstream() << "[Slice] pic_parameter_set_id value (" << (int)pic_parameter_set_id << ") not in valid range (0.255)").str());
 	}
 	H264PPS* pH264PPS;
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()){
-		errors.push_back((std::ostringstream() << "[H264 Slice] reference to unknown PPS (" << (int)pic_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[Slice] reference to unknown PPS (" << (int)pic_parameter_set_id << ")").str());
 		return;
 	}
 	pH264PPS = referencedPPS->second;
 	H264SPS* pH264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(pH264PPS->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		errors.push_back((std::ostringstream() << "[H264 Slice] This unit's PPS is referencing an unknown SPS (" << (int)pH264PPS->seq_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[Slice] This unit's PPS is referencing an unknown SPS (" << (int)pH264PPS->seq_parameter_set_id << ")").str());
 		return;
 	}
 	pH264SPS = referencedSPS->second;
@@ -216,29 +216,29 @@ void H264Slice::validate(){
 		switch(slice_type){
 			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
 			default:
-				errors.push_back((std::ostringstream() << "[H264 Slice] slice_type value (" << (int)slice_type-1 << ") of IDR should be in {2, 4, 7, 9}").str());
+				errors.push_back((std::ostringstream() << "[Slice] slice_type value (" << (int)slice_type-1 << ") of IDR should be in {2, 4, 7, 9}").str());
 				break;
 		}
 	}
 	if (pH264SPS->separate_colour_plane_flag){
 		if(colour_plane_id > 2){
-			errors.push_back((std::ostringstream() << "[H264 Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
+			errors.push_back((std::ostringstream() << "[Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
 		}
 	}
 
 	if(slice_type == H264Slice::SliceType_I && frame_num != 0){
 		
-		errors.push_back((std::ostringstream() << "[H264 Slice] frame_num of an IDR picture (" << (int)frame_num << ") should be 0").str());
+		errors.push_back((std::ostringstream() << "[Slice] frame_num of an IDR picture (" << (int)frame_num << ") should be 0").str());
 	}
 
 	if (pH264SPS->pic_order_cnt_type == 0){
 		if(pic_order_cnt_lsb > pH264SPS->MaxPicOrderCntLsb-1){
-			errors.push_back((std::ostringstream() << "[H264 Slice] pic_order_cnt_lsb value (" << (int)pic_order_cnt_lsb << ") not in valid range (0.." << pH264SPS->MaxPicOrderCntLsb-1 << ")").str());
+			errors.push_back((std::ostringstream() << "[Slice] pic_order_cnt_lsb value (" << (int)pic_order_cnt_lsb << ") not in valid range (0.." << pH264SPS->MaxPicOrderCntLsb-1 << ")").str());
 		}
 	}
 	if (pH264PPS->redundant_pic_cnt_present_flag){
 		if(redundant_pic_cnt > 127){
-			errors.push_back((std::ostringstream() << "[H264 Slice] redundant_pic_cnt (" << (int)redundant_pic_cnt << ") not in valid range (0..127)").str());
+			errors.push_back((std::ostringstream() << "[Slice] redundant_pic_cnt (" << (int)redundant_pic_cnt << ") not in valid range (0..127)").str());
 		}
 	}
 }

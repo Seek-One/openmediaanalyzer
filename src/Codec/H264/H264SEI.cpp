@@ -75,12 +75,12 @@ std::vector<std::string> H264SEIBufferingPeriod::dump_fields(){
 void H264SEIBufferingPeriod::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[SEI Buffering period] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
 		return;
 	}
 	H264SPS* pH264SPS = referencedSPS->second;
 	if(seq_parameter_set_id > 31){
-		errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] seq_parameter_set_id value (" << (int)seq_parameter_set_id << ") not in valid range (0..31)").str());
+		errors.push_back((std::ostringstream() << "[SEI Buffering period] seq_parameter_set_id value (" << (int)seq_parameter_set_id << ") not in valid range (0..31)").str());
 	}
 
 	if(pH264SPS->nal_hrd_parameters_present_flag){
@@ -89,7 +89,7 @@ void H264SEIBufferingPeriod::validate(){
 			int BitRate = (pH264SPS->nal_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->nal_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
 			if(nal_initial_cpb_removal_delay[SchedSelIdx] == 0 || nal_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] nal_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << nal_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
+				errors.push_back((std::ostringstream() << "[SEI Buffering period] nal_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << nal_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
 			}
 		}
 	}
@@ -100,7 +100,7 @@ void H264SEIBufferingPeriod::validate(){
 			int BitRate = (pH264SPS->vcl_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->vcl_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
 			if(vcl_initial_cpb_removal_delay[SchedSelIdx] == 0 || vcl_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.push_back((std::ostringstream() << "[H264 SEI Buffering period] vcl_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << vcl_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
+				errors.push_back((std::ostringstream() << "[SEI Buffering period] vcl_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << vcl_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
 			}
 		}
 	}
@@ -155,12 +155,12 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 void H264SEIPicTiming::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[SEI Pic timing] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	if(pSps->pic_struct_present_flag){
-		if(pic_struct > 8) errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] pic_struct value (" << pic_struct << ") not in valid range (0..8)").str());
+		if(pic_struct > 8) errors.push_back((std::ostringstream() << "[SEI Pic timing] pic_struct value (" << pic_struct << ") not in valid range (0..8)").str());
 		int NumClockTS = 0;
 		switch(pic_struct){
 			case 0: case 1: case 2: 
@@ -176,19 +176,19 @@ void H264SEIPicTiming::validate(){
 		for(int i = 0;i < NumClockTS;++i){
 			if(clock_timestamp_flag[i]){
 				if(ct_type[i] > 2){
-					errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] ct_type[" << i << "] value (" << ct_type[i] << ") not in valid range (0..2)").str());
+					errors.push_back((std::ostringstream() << "[SEI Pic timing] ct_type[" << i << "] value (" << ct_type[i] << ") not in valid range (0..2)").str());
 				}
 				if(counting_type[i] > 6){
-					errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] counting_type[" << i << "] value (" << counting_type[i] << ") not in valid range (0..6)").str());
+					errors.push_back((std::ostringstream() << "[SEI Pic timing] counting_type[" << i << "] value (" << counting_type[i] << ") not in valid range (0..6)").str());
 				}
 				if(seconds_value[i] > 59){
-					errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] seconds_value[" << i << "] value (" << seconds_value[i] << ") not in valid range (0..59)").str());
+					errors.push_back((std::ostringstream() << "[SEI Pic timing] seconds_value[" << i << "] value (" << seconds_value[i] << ") not in valid range (0..59)").str());
 				}
 				if(minutes_value[i] > 59){
-					errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] minutes_value[" << i << "] value (" << minutes_value[i] << ") not in valid range (0..59)").str());
+					errors.push_back((std::ostringstream() << "[SEI Pic timing] minutes_value[" << i << "] value (" << minutes_value[i] << ") not in valid range (0..59)").str());
 				}
 				if(hours_value[i] > 23){
-					errors.push_back((std::ostringstream() << "[H264 SEI Pic timing] hours_value[" << i << "] value (" << hours_value[i] << ") not in valid range (0..23)").str());
+					errors.push_back((std::ostringstream() << "[SEI Pic timing] hours_value[" << i << "] value (" << hours_value[i] << ") not in valid range (0..23)").str());
 				}
 			}
 		}
@@ -238,13 +238,13 @@ std::vector<std::string> H264SEIRecoveryPoint::dump_fields(){
 void H264SEIRecoveryPoint::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.push_back((std::ostringstream() << "[H264 SEI Recovery point] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[SEI Recovery point] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	int MaxNumFrames = pow(2, 4+pSps->log2_max_frame_num_minus4);
 	if(recovery_frame_cnt > MaxNumFrames-1){
-		errors.push_back((std::ostringstream() << "[H264 SEI Recovery point] recovery_frame_cnt value (" << recovery_frame_cnt << ") not in valid range (0.." << MaxNumFrames-1 << ")").str());
+		errors.push_back((std::ostringstream() << "[SEI Recovery point] recovery_frame_cnt value (" << recovery_frame_cnt << ") not in valid range (0.." << MaxNumFrames-1 << ")").str());
 	}
 }
 
@@ -257,7 +257,7 @@ std::vector<std::string> H264SEIFullFrameFreeze::dump_fields(){
 
 void H264SEIFullFrameFreeze::validate(){
 	if(full_frame_freeze_repetition_period > 16384){
-		errors.push_back((std::ostringstream() << "[H264 SEI Full frame freeze] full_frame_freeze_repetition_period value (" << full_frame_freeze_repetition_period << ") not in valid range (0..16384)").str());
+		errors.push_back((std::ostringstream() << "[SEI Full frame freeze] full_frame_freeze_repetition_period value (" << full_frame_freeze_repetition_period << ") not in valid range (0..16384)").str());
 	}
 }
 
@@ -389,71 +389,71 @@ std::vector<std::string> H264SEIMvcdViewScalabilityInfo::dump_fields(){
 
 void H264SEIMvcdViewScalabilityInfo::validate(){
 	if(num_operation_points_minus1 > 1023){
-		errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_operation_points_minus1 value (" << (int)num_operation_points_minus1 << ") not in valid range (0..1023)").str());
+		errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_operation_points_minus1 value (" << (int)num_operation_points_minus1 << ") not in valid range (0..1023)").str());
 	}
 	for(int i = 0;i <= num_operation_points_minus1;++i){
 		if(num_target_output_views_minus1[i] > 1023){
-			errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_target_output_views_minus1[" << i <<"] value (" << num_target_output_views_minus1[i] << ") not in valid range (0..1023)").str());
+			errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_target_output_views_minus1[" << i <<"] value (" << num_target_output_views_minus1[i] << ") not in valid range (0..1023)").str());
 		}
 		for(int j = 0;j <= num_target_output_views_minus1[i];++j){
 			if(view_id[i][j] > 1023){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] view_id[" << i <<"][" << j << "] value (" << view_id[i][j] << ") not in valid range (0..1023)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] view_id[" << i <<"][" << j << "] value (" << view_id[i][j] << ") not in valid range (0..1023)").str());
 			}
 		}
 		if(frm_rate_info_present_flag[i]){
 			if(constant_frm_rate_idc[i] > 2){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] constant_frm_rate_idc[" << i <<"] value (" << (int)constant_frm_rate_idc[i] << ") not in valid range (0..2)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] constant_frm_rate_idc[" << i <<"] value (" << (int)constant_frm_rate_idc[i] << ") not in valid range (0..2)").str());
 			}
 		}
 		if(view_dependency_info_present_flag[i]){
 			if(num_directly_dependant_views[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_directly_dependant_views[" << i <<"] value (" << (int)num_directly_dependant_views[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_directly_dependant_views[" << i <<"] value (" << (int)num_directly_dependant_views[i] << ") not in valid range (0..16)").str());
 			}
 			for(int j = 0;j < num_directly_dependant_views[i];++j){
 				if(directly_dependant_view_id[i][j] > 1023){
-					errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] directly_dependant_view_id[" << i <<"][" << j << "] value (" << (int)directly_dependant_view_id[i][j] << ") not in valid range (0..1023)").str());
+					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] directly_dependant_view_id[" << i <<"][" << j << "] value (" << (int)directly_dependant_view_id[i][j] << ") not in valid range (0..1023)").str());
 				}
 			}
 		}
 		if(parameters_sets_info_present_flag[i]) {
 			if(num_seq_parameter_sets[i] > 32){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_seq_parameter_sets[" << i <<"] value (" << (int)num_seq_parameter_sets[i] << ") not in valid range (0..32)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_seq_parameter_sets[" << i <<"] value (" << (int)num_seq_parameter_sets[i] << ") not in valid range (0..32)").str());
 			}
 			for(int j = 0;j <= num_seq_parameter_sets[i];++j){
 				if(seq_parameter_set_id_delta[i][j] > 31){
-					errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
+					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
 				}
 			}
 			if(num_subset_seq_parameter_set_minus1[i] > 32){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_subset_seq_parameter_set_minus1[" << i <<"] value (" << (int)num_subset_seq_parameter_set_minus1[i] << ") not in valid range (0..32)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_subset_seq_parameter_set_minus1[" << i <<"] value (" << (int)num_subset_seq_parameter_set_minus1[i] << ") not in valid range (0..32)").str());
 			}
 			for(int j = 0;j <= num_subset_seq_parameter_set_minus1[i];++j){
 				if(seq_parameter_set_id_delta[i][j] > 31){
-					errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
+					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
 				}
 			}
 		}
 		if(bitstream_restriction_info_present_flag[i]){
 			if(max_bytes_per_pic_denom[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bytes_per_pic_denom[" << i <<"] value (" << (int)max_bytes_per_pic_denom[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bytes_per_pic_denom[" << i <<"] value (" << (int)max_bytes_per_pic_denom[i] << ") not in valid range (0..16)").str());
 			}
 			if(max_bits_per_mb_denom[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)max_bits_per_mb_denom[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)max_bits_per_mb_denom[i] << ") not in valid range (0..16)").str());
 			}
 			if(log2_max_mv_length_horizontal[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] log2_max_mv_length_horizontal[" << i <<"] value (" << (int)log2_max_mv_length_horizontal[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] log2_max_mv_length_horizontal[" << i <<"] value (" << (int)log2_max_mv_length_horizontal[i] << ") not in valid range (0..16)").str());
 			}
 			if(log2_max_mv_length_vertical[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)log2_max_mv_length_vertical[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)log2_max_mv_length_vertical[i] << ") not in valid range (0..16)").str());
 			}
 			if(num_reorder_frames[i] > 16){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << (int)num_reorder_frames[i] << ") not in valid range (0..16)").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << (int)num_reorder_frames[i] << ") not in valid range (0..16)").str());
 			}
 			auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_seq_id);
 			if(referencedSPS == H264SPS::SPSMap.end()) return;
 			H264SPS* pSps = referencedSPS->second;
 			if(num_reorder_frames[i] > pSps->MaxDpbFrames){
-				errors.push_back((std::ostringstream() << "[H264 SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << num_reorder_frames[i] << ") not in valid range (0.." << (int)pSps->MaxDpbFrames << ")").str());
+				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << num_reorder_frames[i] << ") not in valid range (0.." << (int)pSps->MaxDpbFrames << ")").str());
 			}
 		}
 	}

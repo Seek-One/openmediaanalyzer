@@ -326,56 +326,56 @@ std::vector<std::string> H265SPS::dump_fields(){
 
 void H265SPS::validate(){
 	H265NAL::validate();
-	if(sps_max_sub_layers_minus1 > 6) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_sub_layers_minus1 value (" << (int)sps_max_sub_layers_minus1 << ") not in valid range (0..6)").str());
+	if(sps_max_sub_layers_minus1 > 6) errors.push_back((std::ostringstream() << "[SPS] sps_max_sub_layers_minus1 value (" << (int)sps_max_sub_layers_minus1 << ") not in valid range (0..6)").str());
 	auto referencedVPS = H265VPS::VPSMap.find(sps_video_parameter_set_id);
 	H265VPS* pVps = nullptr;
-	if(referencedVPS == H265VPS::VPSMap.end()) errors.push_back((std::ostringstream() << "[H265 SPS] reference to unknown VPS (" << (int)sps_video_parameter_set_id << ")").str());
+	if(referencedVPS == H265VPS::VPSMap.end()) errors.push_back((std::ostringstream() << "[SPS] reference to unknown VPS (" << (int)sps_video_parameter_set_id << ")").str());
 	else pVps = referencedVPS->second;
-	if(pVps && sps_max_sub_layers_minus1 > pVps->vps_max_sub_layers_minus1) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_sub_layers_minus1 value (" << (int)sps_max_sub_layers_minus1 << ") not less or equal to vps_max_sub_layers_minus1 value (" << (int)pVps->vps_max_sub_layers_minus1 << ")").str());
-	if(pVps && pVps->vps_temporal_id_nesting_flag && !sps_temporal_id_nesting_flag) errors.push_back((std::ostringstream() << "[H265 SPS] sps_temporal_id_nesting_flag not set (as enforced by vps_temporal_id_nesting_flag)").str());
-	if(sps_max_sub_layers_minus1 == 0 && !sps_temporal_id_nesting_flag)errors.push_back((std::ostringstream() << "[H265 SPS] sps_temporal_id_nesting_flag not set (as enforced by sps_max_sub_layers_minus1)").str());
-	if(sps_seq_parameter_set_id > 15) errors.push_back((std::ostringstream() << "[H265 SPS] sps_seq_parameter_set_id value (" << (int)sps_seq_parameter_set_id << ") not in valid range (0..15)").str());
-	if(chroma_format_idc > 3) errors.push_back((std::ostringstream() << "[H265 SPS] chroma_format_idc value (" << (int)chroma_format_idc << ") not in valid range (0..3)").str());
-	if(pic_width_in_luma_samples == 0) errors.push_back((std::ostringstream() << "[H265 SPS] pic_width_in_luma_samples value equal to 0").str());
-	if(pic_width_in_luma_samples%MinCbSizeY != 0) errors.push_back((std::ostringstream() << "[H265 SPS] pic_width_in_luma_samples value not an integer multiple of MinCbSizeY").str());
-	if(pic_height_in_luma_samples == 0) errors.push_back((std::ostringstream() << "[H265 SPS] pic_height_in_luma_samples value equal to 0").str());
-	if(pic_height_in_luma_samples%MinCbSizeY != 0) errors.push_back((std::ostringstream() << "[H265 SPS] pic_height_in_luma_samples value not an integer multiple of MinCbSizeY").str());
+	if(pVps && sps_max_sub_layers_minus1 > pVps->vps_max_sub_layers_minus1) errors.push_back((std::ostringstream() << "[SPS] sps_max_sub_layers_minus1 value (" << (int)sps_max_sub_layers_minus1 << ") not less or equal to vps_max_sub_layers_minus1 value (" << (int)pVps->vps_max_sub_layers_minus1 << ")").str());
+	if(pVps && pVps->vps_temporal_id_nesting_flag && !sps_temporal_id_nesting_flag) errors.push_back((std::ostringstream() << "[SPS] sps_temporal_id_nesting_flag not set (as enforced by vps_temporal_id_nesting_flag)").str());
+	if(sps_max_sub_layers_minus1 == 0 && !sps_temporal_id_nesting_flag)errors.push_back((std::ostringstream() << "[SPS] sps_temporal_id_nesting_flag not set (as enforced by sps_max_sub_layers_minus1)").str());
+	if(sps_seq_parameter_set_id > 15) errors.push_back((std::ostringstream() << "[SPS] sps_seq_parameter_set_id value (" << (int)sps_seq_parameter_set_id << ") not in valid range (0..15)").str());
+	if(chroma_format_idc > 3) errors.push_back((std::ostringstream() << "[SPS] chroma_format_idc value (" << (int)chroma_format_idc << ") not in valid range (0..3)").str());
+	if(pic_width_in_luma_samples == 0) errors.push_back((std::ostringstream() << "[SPS] pic_width_in_luma_samples value equal to 0").str());
+	if(pic_width_in_luma_samples%MinCbSizeY != 0) errors.push_back((std::ostringstream() << "[SPS] pic_width_in_luma_samples value not an integer multiple of MinCbSizeY").str());
+	if(pic_height_in_luma_samples == 0) errors.push_back((std::ostringstream() << "[SPS] pic_height_in_luma_samples value equal to 0").str());
+	if(pic_height_in_luma_samples%MinCbSizeY != 0) errors.push_back((std::ostringstream() << "[SPS] pic_height_in_luma_samples value not an integer multiple of MinCbSizeY").str());
 	if(conformance_window_flag){
 		uint32_t conformanceWindowOffsetWidth = SubWidthC*(conf_win_left_offset+conf_win_right_offset);
-		if(conformanceWindowOffsetWidth >= pic_width_in_luma_samples) errors.push_back((std::ostringstream() << "[H265 SPS] conformanceWindowOffsetWidth value (" << conformanceWindowOffsetWidth << ") greater or equal to pic_width_in_luma_samples").str());
+		if(conformanceWindowOffsetWidth >= pic_width_in_luma_samples) errors.push_back((std::ostringstream() << "[SPS] conformanceWindowOffsetWidth value (" << conformanceWindowOffsetWidth << ") greater or equal to pic_width_in_luma_samples").str());
 		uint32_t conformanceWindowOffsetHeight = SubHeightC*(conf_win_top_offset+conf_win_bottom_offset);
-		if(conformanceWindowOffsetHeight >= pic_height_in_luma_samples) errors.push_back((std::ostringstream() << "[H265 SPS] conformanceWindowOffsetHeight value (" << conformanceWindowOffsetHeight << ") greater or equal to pic_height_in_luma_samples").str());
+		if(conformanceWindowOffsetHeight >= pic_height_in_luma_samples) errors.push_back((std::ostringstream() << "[SPS] conformanceWindowOffsetHeight value (" << conformanceWindowOffsetHeight << ") greater or equal to pic_height_in_luma_samples").str());
 	}
-	if(bit_depth_luma_minus8 > 8) errors.push_back((std::ostringstream() << "[H265 SPS] bit_depth_luma_minus8 value (" << (int)bit_depth_luma_minus8 << ") not in valid range (0..8)").str());
-	if(bit_depth_chroma_minus8 > 8) errors.push_back((std::ostringstream() << "[H265 SPS] bit_depth_chroma_minus8 value (" << (int)bit_depth_chroma_minus8 << ") not in valid range (0..8)").str());
-	if(log2_max_pic_order_cnt_lsb_minus4 > 12) errors.push_back((std::ostringstream() << "[H265 SPS] log2_max_pic_order_cnt_lsb_minus4 value (" << (int)log2_max_pic_order_cnt_lsb_minus4 << ") not in valid range (0..12)").str());
+	if(bit_depth_luma_minus8 > 8) errors.push_back((std::ostringstream() << "[SPS] bit_depth_luma_minus8 value (" << (int)bit_depth_luma_minus8 << ") not in valid range (0..8)").str());
+	if(bit_depth_chroma_minus8 > 8) errors.push_back((std::ostringstream() << "[SPS] bit_depth_chroma_minus8 value (" << (int)bit_depth_chroma_minus8 << ") not in valid range (0..8)").str());
+	if(log2_max_pic_order_cnt_lsb_minus4 > 12) errors.push_back((std::ostringstream() << "[SPS] log2_max_pic_order_cnt_lsb_minus4 value (" << (int)log2_max_pic_order_cnt_lsb_minus4 << ") not in valid range (0..12)").str());
 	for (uint8_t i = (sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1); i <= sps_max_sub_layers_minus1; ++i) {
-		if(sps_max_dec_pic_buffering_minus1[i] > MaxDpbSize-1) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") not in valid range (0.." << MaxDpbSize-1 << ")").str());
-		if(sps_max_num_reorder_pics[i] > sps_max_dec_pic_buffering_minus1[i]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") not in valid range (0.." << (int)sps_max_dec_pic_buffering_minus1[i] << ")").str());
-		if(sps_max_latency_increase_plus1[i] == UINT32_MAX) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_latency_increase_plus1[" << i << "] value (" << sps_max_latency_increase_plus1[i] << ") not in valid range (0..4294967294)").str());
+		if(sps_max_dec_pic_buffering_minus1[i] > MaxDpbSize-1) errors.push_back((std::ostringstream() << "[SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") not in valid range (0.." << MaxDpbSize-1 << ")").str());
+		if(sps_max_num_reorder_pics[i] > sps_max_dec_pic_buffering_minus1[i]) errors.push_back((std::ostringstream() << "[SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") not in valid range (0.." << (int)sps_max_dec_pic_buffering_minus1[i] << ")").str());
+		if(sps_max_latency_increase_plus1[i] == UINT32_MAX) errors.push_back((std::ostringstream() << "[SPS] sps_max_latency_increase_plus1[" << i << "] value (" << sps_max_latency_increase_plus1[i] << ") not in valid range (0..4294967294)").str());
 		if(i > 0){
-			if(sps_max_dec_pic_buffering_minus1[i] < sps_max_dec_pic_buffering_minus1[i-1]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") lesser than previous sps_max_dec_pic_buffering_minus1 value").str());
-			if(sps_max_num_reorder_pics[i] < sps_max_num_reorder_pics[i-1]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") lesser than previous sps_max_num_reorder_pics value").str());
+			if(sps_max_dec_pic_buffering_minus1[i] < sps_max_dec_pic_buffering_minus1[i-1]) errors.push_back((std::ostringstream() << "[SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") lesser than previous sps_max_dec_pic_buffering_minus1 value").str());
+			if(sps_max_num_reorder_pics[i] < sps_max_num_reorder_pics[i-1]) errors.push_back((std::ostringstream() << "[SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") lesser than previous sps_max_num_reorder_pics value").str());
 		}
 		if(pVps){
-			if(sps_max_dec_pic_buffering_minus1[i] > pVps->vps_max_dec_pic_buffering_minus1[i]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") greater than vps_max_dec_pic_buffering_minus1[" << i << "] value (" << pVps->vps_max_dec_pic_buffering_minus1[i] << ")").str());
-			if(sps_max_num_reorder_pics[i] > pVps->vps_max_num_reorder_pics[i]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") greater than vps_max_num_reorder_pics[" << i << "] value (" << pVps->vps_max_num_reorder_pics[i] << ")").str());
+			if(sps_max_dec_pic_buffering_minus1[i] > pVps->vps_max_dec_pic_buffering_minus1[i]) errors.push_back((std::ostringstream() << "[SPS] sps_max_dec_pic_buffering_minus1[" << i << "] value (" << (int)sps_max_dec_pic_buffering_minus1[i] << ") greater than vps_max_dec_pic_buffering_minus1[" << i << "] value (" << pVps->vps_max_dec_pic_buffering_minus1[i] << ")").str());
+			if(sps_max_num_reorder_pics[i] > pVps->vps_max_num_reorder_pics[i]) errors.push_back((std::ostringstream() << "[SPS] sps_max_num_reorder_pics[" << i << "] value (" << (int)sps_max_num_reorder_pics[i] << ") greater than vps_max_num_reorder_pics[" << i << "] value (" << pVps->vps_max_num_reorder_pics[i] << ")").str());
 			if(pVps->vps_max_latency_increase_plus1[i] != 0){
-				if(sps_max_latency_increase_plus1[i] == 0) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_latency_increase_plus1[" << i << "] value should not be 0 (as enforced by vps_max_latency_increase_plus1[" << i << "])").str());
-				if(sps_max_latency_increase_plus1[i] > pVps->vps_max_latency_increase_plus1[i]) errors.push_back((std::ostringstream() << "[H265 SPS] sps_max_latency_increase_plus1[" << i << "] value (" << sps_max_latency_increase_plus1[i] << ") greater than vps_max_latency_increase_plus1[" << i << "] value (" << pVps->vps_max_latency_increase_plus1[i] << ")").str());
+				if(sps_max_latency_increase_plus1[i] == 0) errors.push_back((std::ostringstream() << "[SPS] sps_max_latency_increase_plus1[" << i << "] value should not be 0 (as enforced by vps_max_latency_increase_plus1[" << i << "])").str());
+				if(sps_max_latency_increase_plus1[i] > pVps->vps_max_latency_increase_plus1[i]) errors.push_back((std::ostringstream() << "[SPS] sps_max_latency_increase_plus1[" << i << "] value (" << sps_max_latency_increase_plus1[i] << ") greater than vps_max_latency_increase_plus1[" << i << "] value (" << pVps->vps_max_latency_increase_plus1[i] << ")").str());
 			}
 		}
 	}
-	if(max_transform_hierarchy_depth_inter > CtbLog2SizeY - MinTbLog2SizeY) errors.push_back((std::ostringstream() << "[H265 SPS] max_transform_hierarchy_depth_inter value (" << max_transform_hierarchy_depth_inter << ") not in valid range (0.." << CtbLog2SizeY - MinTbLog2SizeY << ")").str());
-	if(max_transform_hierarchy_depth_intra > CtbLog2SizeY - MinTbLog2SizeY) errors.push_back((std::ostringstream() << "[H265 SPS] max_transform_hierarchy_depth_intra value (" << max_transform_hierarchy_depth_intra << ") not in valid range (0.." << CtbLog2SizeY - MinTbLog2SizeY << ")").str());
-	if(PcmBitDepthY > BitDepthY) errors.push_back((std::ostringstream() << "[H265 SPS] PcmBitDepthY value (" << (int)PcmBitDepthY << ") not in valid range (0.." << BitDepthY << ")").str());
-	if(PcmBitDepthC > BitDepthC) errors.push_back((std::ostringstream() << "[H265 SPS] PcmBitDepthC value (" << (int)PcmBitDepthC << ") not in valid range (0.." << BitDepthC << ")").str());
+	if(max_transform_hierarchy_depth_inter > CtbLog2SizeY - MinTbLog2SizeY) errors.push_back((std::ostringstream() << "[SPS] max_transform_hierarchy_depth_inter value (" << max_transform_hierarchy_depth_inter << ") not in valid range (0.." << CtbLog2SizeY - MinTbLog2SizeY << ")").str());
+	if(max_transform_hierarchy_depth_intra > CtbLog2SizeY - MinTbLog2SizeY) errors.push_back((std::ostringstream() << "[SPS] max_transform_hierarchy_depth_intra value (" << max_transform_hierarchy_depth_intra << ") not in valid range (0.." << CtbLog2SizeY - MinTbLog2SizeY << ")").str());
+	if(PcmBitDepthY > BitDepthY) errors.push_back((std::ostringstream() << "[SPS] PcmBitDepthY value (" << (int)PcmBitDepthY << ") not in valid range (0.." << BitDepthY << ")").str());
+	if(PcmBitDepthC > BitDepthC) errors.push_back((std::ostringstream() << "[SPS] PcmBitDepthC value (" << (int)PcmBitDepthC << ") not in valid range (0.." << BitDepthC << ")").str());
 	if(pcm_enabled_flag){
-		if(Log2MinIpcmCbSizeY < std::min(MinCbLog2SizeY, 5u) || Log2MinIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[H265 SPS] Log2MinIpcmCbSizeY value (" << Log2MinIpcmCbSizeY << ") not in valid range (" << std::min(MinCbLog2SizeY, 5u) << ".." << std::min(CtbLog2SizeY, 5u) << ")").str());
-		if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[H265 SPS] Log2MaxIpcmCbSizeY value (" << Log2MaxIpcmCbSizeY << ") not in valid range (0.." << std::min(CtbLog2SizeY, 5u) << ")").str());
+		if(Log2MinIpcmCbSizeY < std::min(MinCbLog2SizeY, 5u) || Log2MinIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[SPS] Log2MinIpcmCbSizeY value (" << Log2MinIpcmCbSizeY << ") not in valid range (" << std::min(MinCbLog2SizeY, 5u) << ".." << std::min(CtbLog2SizeY, 5u) << ")").str());
+		if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) errors.push_back((std::ostringstream() << "[SPS] Log2MaxIpcmCbSizeY value (" << Log2MaxIpcmCbSizeY << ") not in valid range (0.." << std::min(CtbLog2SizeY, 5u) << ")").str());
 	}
-	if(num_short_term_ref_pic_sets > 64) errors.push_back((std::ostringstream() << "[H265 SPS] num_short_term_ref_pic_sets value (" << num_short_term_ref_pic_sets << ") not in valid range (0..64)").str());
-	if(num_long_term_ref_pics_sps > 32) errors.push_back((std::ostringstream() << "[H265 SPS] num_long_term_ref_pics_sps value (" << num_long_term_ref_pics_sps << ") not in valid range (0..32)").str());
+	if(num_short_term_ref_pic_sets > 64) errors.push_back((std::ostringstream() << "[SPS] num_short_term_ref_pic_sets value (" << num_short_term_ref_pic_sets << ") not in valid range (0..64)").str());
+	if(num_long_term_ref_pics_sps > 32) errors.push_back((std::ostringstream() << "[SPS] num_long_term_ref_pics_sps value (" << num_long_term_ref_pics_sps << ") not in valid range (0..32)").str());
 }
 
 uint16_t H265SPS::computeMaxFrameNumber() const{

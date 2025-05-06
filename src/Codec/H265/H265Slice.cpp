@@ -227,69 +227,69 @@ H265VPS* H265Slice::getVPS() const{
 
 void H265Slice::validate(){
 	H265NAL::validate();
-	if(slice_pic_parameter_set_id > 63) errors.push_back((std::ostringstream() << "[H265 Slice] slice_pic_parameter_set_id value (" << (int)slice_pic_parameter_set_id << ") not in valid range (0..63)").str());
+	if(slice_pic_parameter_set_id > 63) errors.push_back((std::ostringstream() << "[Slice] slice_pic_parameter_set_id value (" << (int)slice_pic_parameter_set_id << ") not in valid range (0..63)").str());
 	H265PPS* pPps = getPPS();
 	if(!pPps){
-		errors.push_back((std::ostringstream() << "[H265 Slice] reference to unknown PPS (" << (int)slice_pic_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[Slice] reference to unknown PPS (" << (int)slice_pic_parameter_set_id << ")").str());
 		return;
 	}
 	H265SPS* pSps = getSPS();
 	if(!pSps){
-		errors.push_back((std::ostringstream() << "[H265 Slice] reference to unknown SPS (" << (int)pPps->pps_seq_parameter_set_id << ")").str());
+		errors.push_back((std::ostringstream() << "[Slice] reference to unknown SPS (" << (int)pPps->pps_seq_parameter_set_id << ")").str());
 		return;
 	}
 	H265VPS* pVps = getVPS();
-	if(!pVps) errors.push_back((std::ostringstream() << "[H265 Slice] reference to unknown VPS (" << (int)pSps->sps_video_parameter_set_id << ")").str());
-	if(pPps->TemporalId > TemporalId) errors.push_back((std::ostringstream() << "[H265 Slice] referenced PPS has a greater TemporalId value").str());
-	if(pPps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced PPS has a greater nuh_layer_id value").str());
-	if(pSps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[H265 Slice] referenced SPS has a greater nuh_layer_id value").str());
-	if(slice_segment_address > pSps->PicSizeInCtbsY-1) errors.push_back((std::ostringstream() << "[H265 Slice] slice_segment_address value (" << slice_segment_address << ") not in valid range (0.." << pSps->PicSizeInCtbsY-1 << ")").str());
+	if(!pVps) errors.push_back((std::ostringstream() << "[Slice] reference to unknown VPS (" << (int)pSps->sps_video_parameter_set_id << ")").str());
+	if(pPps->TemporalId > TemporalId) errors.push_back((std::ostringstream() << "[Slice] referenced PPS has a greater TemporalId value").str());
+	if(pPps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[Slice] referenced PPS has a greater nuh_layer_id value").str());
+	if(pSps->nuh_layer_id > nuh_layer_id) errors.push_back((std::ostringstream() << "[Slice] referenced SPS has a greater nuh_layer_id value").str());
+	if(slice_segment_address > pSps->PicSizeInCtbsY-1) errors.push_back((std::ostringstream() << "[Slice] slice_segment_address value (" << slice_segment_address << ") not in valid range (0.." << pSps->PicSizeInCtbsY-1 << ")").str());
 	if(!pPps->dependent_slice_segments_enabled_flag){
-		if(slice_type > 2) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value (" << (int)slice_type << ") not in valid range (0..2)").str());
+		if(slice_type > 2) errors.push_back((std::ostringstream() << "[Slice] slice_type value (" << (int)slice_type << ") not in valid range (0..2)").str());
 		if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23 &&
 			nuh_layer_id == 0 && !pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag &&
-			slice_type != 2) errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value of an IRAP picture not equal to 2").str());
+			slice_type != 2) errors.push_back((std::ostringstream() << "[Slice] slice_type value of an IRAP picture not equal to 2").str());
 		if(pSps->sps_max_dec_pic_buffering_minus1[TemporalId] == 0 && nuh_layer_id == 0 &&
 			!pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag && slice_type != 2) {
-			errors.push_back((std::ostringstream() << "[H265 Slice] slice_type value not equal to 2").str());
+			errors.push_back((std::ostringstream() << "[Slice] slice_type value not equal to 2").str());
 		}
-		if(colour_plane_id > 2) errors.push_back((std::ostringstream() << "[H265 Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
+		if(colour_plane_id > 2) errors.push_back((std::ostringstream() << "[Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
 	}
-	if(slice_pic_order_cnt_lsb > pSps->MaxPicOrderCntLsb-1) errors.push_back((std::ostringstream() << "[H265 Slice] slice_pic_order_cnt_lsb value (" << slice_pic_order_cnt_lsb << ") not in valid range (0.." << pSps->MaxPicOrderCntLsb-1 << ")").str());
-	if(short_term_ref_pic_set_idx > pSps->num_short_term_ref_pic_sets-1) errors.push_back((std::ostringstream() << "[H265 Slice] short_term_ref_pic_set_idx value (" << (int)short_term_ref_pic_set_idx << ") not in valid range (0.." << pSps->num_short_term_ref_pic_sets-1 << ")").str());
-	if(num_long_term_sps > pSps->num_long_term_ref_pics_sps) errors.push_back((std::ostringstream() << "[H265 Slice] num_long_term_sps value (" << num_long_term_sps << ") not in valid range (0.." << pSps->num_long_term_ref_pics_sps << ")").str());
+	if(slice_pic_order_cnt_lsb > pSps->MaxPicOrderCntLsb-1) errors.push_back((std::ostringstream() << "[Slice] slice_pic_order_cnt_lsb value (" << slice_pic_order_cnt_lsb << ") not in valid range (0.." << pSps->MaxPicOrderCntLsb-1 << ")").str());
+	if(short_term_ref_pic_set_idx > pSps->num_short_term_ref_pic_sets-1) errors.push_back((std::ostringstream() << "[Slice] short_term_ref_pic_set_idx value (" << (int)short_term_ref_pic_set_idx << ") not in valid range (0.." << pSps->num_short_term_ref_pic_sets-1 << ")").str());
+	if(num_long_term_sps > pSps->num_long_term_ref_pics_sps) errors.push_back((std::ostringstream() << "[Slice] num_long_term_sps value (" << num_long_term_sps << ") not in valid range (0.." << pSps->num_long_term_ref_pics_sps << ")").str());
 	uint32_t num_long_term_pics_limit = pSps->sps_max_dec_pic_buffering_minus1[TemporalId] - 
 										pSps->short_term_ref_pic_set[CurrRpsIdx].NumNegativePics -
 										pSps->short_term_ref_pic_set[CurrRpsIdx].NumPositivePics -
 										num_long_term_sps - pPps->TwoVersionsOfCurrDecPicFlag;
 	if(nuh_layer_id == 0 && num_long_term_pics > num_long_term_pics_limit){
-		errors.push_back((std::ostringstream() << "[H265 Slice] num_long_term_pics value (" << num_long_term_pics << ") not in valid range (0.." << num_long_term_pics_limit << ")").str());
+		errors.push_back((std::ostringstream() << "[Slice] num_long_term_pics value (" << num_long_term_pics << ") not in valid range (0.." << num_long_term_pics_limit << ")").str());
 	}
 	for(int i = 0;i < lt_idx_sps.size();++i){
-		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1) errors.push_back((std::ostringstream() << "[H265 Slice] lt_idx_sps[" << i << "] value (" << lt_idx_sps[i] << ") not in valid range (0.." << pSps->num_long_term_ref_pics_sps-1 << ")").str());
+		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1) errors.push_back((std::ostringstream() << "[Slice] lt_idx_sps[" << i << "] value (" << lt_idx_sps[i] << ") not in valid range (0.." << pSps->num_long_term_ref_pics_sps-1 << ")").str());
 	}
 	// delta_poc_msb_present_flag[i]
 	uint32_t delta_poc_msb_cycle_lt_limit = 1 << (32 - pSps->log2_max_pic_order_cnt_lsb_minus4-4);
 	for(int i = 0;i < delta_poc_msb_cycle_lt.size();++i){
-		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) errors.push_back((std::ostringstream() << "[H265 Slice] delta_poc_msb_cycle_lt[" << i << "] value (" << delta_poc_msb_cycle_lt[i] << ") not in valid range (0.." << delta_poc_msb_cycle_lt_limit << ")").str());
+		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) errors.push_back((std::ostringstream() << "[Slice] delta_poc_msb_cycle_lt[" << i << "] value (" << delta_poc_msb_cycle_lt[i] << ") not in valid range (0.." << delta_poc_msb_cycle_lt_limit << ")").str());
 	}
 	if(slice_type == SliceType_P || slice_type == SliceType_B){
 		if(num_ref_idx_active_override_flag){
-			if(num_ref_idx_l0_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l0_active_minus1 value (" << num_ref_idx_l0_active_minus1 << ") not in valid range (0..14)").str());
-			if(num_ref_idx_l1_active_minus1 > 14) errors.push_back((std::ostringstream() << "[H265 Slice] num_ref_idx_l1_active_minus1 value (" << num_ref_idx_l1_active_minus1 << ") not in valid range (0..14)").str());
+			if(num_ref_idx_l0_active_minus1 > 14) errors.push_back((std::ostringstream() << "[Slice] num_ref_idx_l0_active_minus1 value (" << num_ref_idx_l0_active_minus1 << ") not in valid range (0..14)").str());
+			if(num_ref_idx_l1_active_minus1 > 14) errors.push_back((std::ostringstream() << "[Slice] num_ref_idx_l1_active_minus1 value (" << num_ref_idx_l1_active_minus1 << ") not in valid range (0..14)").str());
 		}
 		if(collocated_from_l0_flag && (slice_type == SliceType_P || slice_type == SliceType_B)  && collocated_ref_idx > num_ref_idx_l0_active_minus1){
-			errors.push_back((std::ostringstream() << "[H265 Slice] collocated_ref_idx value (" << collocated_ref_idx << ") not in valid range (0.." << num_ref_idx_l0_active_minus1 << ")").str());
+			errors.push_back((std::ostringstream() << "[Slice] collocated_ref_idx value (" << collocated_ref_idx << ") not in valid range (0.." << num_ref_idx_l0_active_minus1 << ")").str());
 		}
 		// if(slice_temporal_mvp_enabled_flag) ...
 		// pred_weight_table
-		if(five_minus_max_num_merge_cand > 4) errors.push_back((std::ostringstream() << "[H265 Slice] five_minus_max_num_merge_cand value (" << five_minus_max_num_merge_cand << ") not in valid range (0..4)").str());
+		if(five_minus_max_num_merge_cand > 4) errors.push_back((std::ostringstream() << "[Slice] five_minus_max_num_merge_cand value (" << five_minus_max_num_merge_cand << ") not in valid range (0..4)").str());
 	}
-	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) errors.push_back((std::ostringstream() << "[H265 Slice] SliceQpY value (" << SliceQpY << ") not in valid range (" << -pSps->QpBdOffsetY << "..51)").str());
-	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) errors.push_back((std::ostringstream() << "[H265 Slice] slice_cb_qp_offset value (" << slice_cb_qp_offset << ") not in valid range (-12..12)").str());
-	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) errors.push_back((std::ostringstream() << "[H265 Slice] slice_cr_qp_offset value (" << slice_cr_qp_offset << ") not in valid range (-12..12)").str());
-	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) errors.push_back((std::ostringstream() << "[H265 Slice] slice_beta_offset_div2 value (" << slice_beta_offset_div2 << ") not in valid range (-6..6)").str());
-	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) errors.push_back((std::ostringstream() << "[H265 Slice] slice_tc_offset_div2 value (" << slice_tc_offset_div2 << ") not in valid range (-6..6)").str());
+	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) errors.push_back((std::ostringstream() << "[Slice] SliceQpY value (" << SliceQpY << ") not in valid range (" << -pSps->QpBdOffsetY << "..51)").str());
+	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) errors.push_back((std::ostringstream() << "[Slice] slice_cb_qp_offset value (" << slice_cb_qp_offset << ") not in valid range (-12..12)").str());
+	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) errors.push_back((std::ostringstream() << "[Slice] slice_cr_qp_offset value (" << slice_cr_qp_offset << ") not in valid range (-12..12)").str());
+	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) errors.push_back((std::ostringstream() << "[Slice] slice_beta_offset_div2 value (" << slice_beta_offset_div2 << ") not in valid range (-6..6)").str());
+	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) errors.push_back((std::ostringstream() << "[Slice] slice_tc_offset_div2 value (" << slice_tc_offset_div2 << ") not in valid range (-6..6)").str());
 	uint32_t num_entry_point_offsets_limit = num_entry_point_offsets;
 	if(!pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = pSps->PicHeightInCtbsY-1;
@@ -298,6 +298,6 @@ void H265Slice::validate(){
 	} else if (pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = (pPps->num_tile_columns_minus1+1)*pSps->PicHeightInCtbsY-1;
 	}
-	if(num_entry_point_offsets > num_entry_point_offsets_limit) errors.push_back((std::ostringstream() << "[H265 Slice] num_entry_point_offsets value (" << num_entry_point_offsets << ") not in valid range (0.." << num_entry_point_offsets_limit << ")").str()); 
-	if(offset_len_minus1 > 31) errors.push_back((std::ostringstream() << "[H265 Slice] offset_len_minus1 value (" << offset_len_minus1 << ") not in valid range (0..31)").str()); 
+	if(num_entry_point_offsets > num_entry_point_offsets_limit) errors.push_back((std::ostringstream() << "[Slice] num_entry_point_offsets value (" << num_entry_point_offsets << ") not in valid range (0.." << num_entry_point_offsets_limit << ")").str()); 
+	if(offset_len_minus1 > 31) errors.push_back((std::ostringstream() << "[Slice] offset_len_minus1 value (" << offset_len_minus1 << ") not in valid range (0..31)").str()); 
 }

@@ -100,12 +100,12 @@ std::vector<std::string> H265NAL::dump_fields(){
 }
 
 void H265NAL::validate(){
-	if(forbidden_zero_bit != 0) errors.push_back("[H265 NAL header] forbidden_zero_bit not equal to 0");
+	if(forbidden_zero_bit != 0) errors.push_back("[NAL header] forbidden_zero_bit not equal to 0");
 	if(nuh_layer_id > 62) errors.push_back((std::ostringstream() << "nuh_layer_id value (" << (int)nuh_layer_id <<") not in valid range(0..62)").str());
-	if(nuh_temporal_id_plus1 == 0) errors.push_back("[H265 NAL header] nuh_temporal_id_plus1 equal to 0");
-	if(isIRAP() && TemporalId != 0) errors.push_back("[H265 NAL header] TemporalId of IRAP picture not equal to 0");
+	if(nuh_temporal_id_plus1 == 0) errors.push_back("[NAL header] nuh_temporal_id_plus1 equal to 0");
+	if(isIRAP() && TemporalId != 0) errors.push_back("[NAL header] TemporalId of IRAP picture not equal to 0");
 	else if(TemporalId == 0){
-		if(isTSA()) errors.push_back("[H265 NAL header] TemporalId of TSA picture equal to 0");
-		else if (isSTSA() && nuh_layer_id == 0) errors.push_back("[H265 NAL header] TemporalId of base layer STSA picture equal to 0");
-	} else if(nal_unit_type == UnitType::UnitType_VPS || nal_unit_type == UnitType_SPS) errors.push_back("[H265 NAL header] TemporalId of VPS/SPS not equal to 0");
+		if(isTSA()) errors.push_back("[NAL header] TemporalId of TSA picture equal to 0");
+		else if (isSTSA() && nuh_layer_id == 0) errors.push_back("[NAL header] TemporalId of base layer STSA picture equal to 0");
+	} else if(nal_unit_type == UnitType::UnitType_VPS || nal_unit_type == UnitType_SPS) errors.push_back("[NAL header] TemporalId of VPS/SPS not equal to 0");
 }

@@ -48,15 +48,15 @@ void H264GOP::validate(){
     bool encounteredIFrame = false;
     bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
-    for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){        
+    for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){   
+        accessUnit->validate();     
         if(accessUnit->empty() || !accessUnit->slice()) continue;
         const H264Slice* pSlice = accessUnit->slice();
         if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
-        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
-        if(!pSlice->getPPS() || !pSlice->getSPS()){
-            continue;
-        }
+        if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
         noSPSorPPS = false;
+        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
+        else if(!encounteredIFrame) accessUnit->errors.push_back("No reference I-frame");
         prevFrameNumber = pSlice->frame_num;
     }
     if(maxFrameNumber+1 != count() && !noSPSorPPS) errors.push_back("[GOP] Skipped frames detected");

@@ -69,6 +69,12 @@ private:
     void validateCurrentGOP();
     void validateH264GOPFrames();
     void validateH265GOPFrames();
+    void updateH264StatusBarSize();
+    void updateH264StatusBarValidity();
+    void updateH264StatusBar();
+    void updateH265StatusBarSize();
+    void updateH265StatusBarValidity();
+    void updateH265StatusBar();
     QImage* decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* getQImageFromH264Frame(const AVFrame* pFrame);

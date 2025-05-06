@@ -167,5 +167,7 @@ void H265AccessUnit::validate(){
 }
 
 bool H265AccessUnit::isValid() const{
-    return errors.empty();
+    return errors.empty() && std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H265NAL>& NALUnit){
+        return acc && NALUnit->errors.empty();
+    });
 }

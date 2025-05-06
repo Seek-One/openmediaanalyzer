@@ -131,8 +131,7 @@ void H264AccessUnit::validate(){
 }
 
 bool H264AccessUnit::isValid() const {
-    if(!errors.empty()) return false;
-    return std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H264NAL>& NALUnit){
+    return errors.empty() && std::accumulate(NALUnits.begin(), NALUnits.end(), true, [](bool acc, const std::unique_ptr<H264NAL>& NALUnit){
         return acc && NALUnit->errors.empty();
     });
 }

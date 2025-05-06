@@ -206,10 +206,6 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
         if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(GOP_LIMIT/2));
     }
     checkForNewGOP();
-    GOPs = m_pH264Stream->getGOPs();
-    for(H264GOP* pGOP : GOPs){
-        for(H264AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
-    }
     m_streamErrors.clear();
     std::transform(m_pH264Stream->errors.begin(), m_pH264Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
         return QString(err.c_str());
@@ -246,20 +242,7 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
             emitH264PPSErrors();
             break;
     }
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
-        return acc + GOP->size();
-    });
-    emit updateSize(size);
-    uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
-        std::vector<H264AccessUnit*> pAccessUnits = GOP->getAccessUnits();
-        return acc + std::accumulate(pAccessUnits.begin(), pAccessUnits.end(), 0, [](uint32_t accAU, const H264AccessUnit* pAccessUnit){
-            return accAU + (pAccessUnit->isValid() ? 1 : 0);
-        });
-    });
-    uint32_t total = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
-        return acc + GOP->count();
-    });
-    emit updateValidity(valid, total);
+    updateH264StatusBar();
 }
 
 void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
@@ -292,10 +275,6 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
         if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(GOP_LIMIT/2));
     }
     checkForNewGOP();
-    GOPs = m_pH265Stream->getGOPs();
-    for(H265GOP* pGOP : GOPs){
-        for(H265AccessUnit* pAccessUnit : pGOP->getAccessUnits()) pAccessUnit->validate();
-    }
     m_streamErrors.clear();
     std::transform(m_pH265Stream->errors.begin(), m_pH265Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
         return QString(err.c_str());
@@ -332,20 +311,7 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
             emitH265PPSErrors();
             break;
     }
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
-        return acc + GOP->size();
-    });
-    emit updateSize(size);
-    uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H265GOP* GOP){
-        std::vector<H265AccessUnit*> pAccessUnits = GOP->getAccessUnits();
-        return acc + std::accumulate(pAccessUnits.begin(), pAccessUnits.end(), 0, [](uint32_t accAU, const H265AccessUnit* pAccessUnit){
-            return accAU + (pAccessUnit->isValid() ? 1 : 0);
-        });
-    });
-    uint32_t total = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H265GOP* GOP){
-        return acc + GOP->count();
-    });
-    emit updateValidity(valid, total);
+    updateH265StatusBar();
 }
 
 QStringList errorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit){
@@ -522,12 +488,14 @@ void QDecoderModel::folderLoaded(){
             return QString(err.c_str());
         });
         h264GOPs.back()->errors.clear();
+        updateH264StatusBarValidity();
     } else if(!h265GOPs.empty()){
         h265GOPs.back()->validate();
         std::transform(m_pH265Stream->errors.begin(), m_pH265Stream->errors.end(), std::back_inserter(m_streamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
         h265GOPs.back()->errors.clear();
+        updateH265StatusBarValidity();
     }
     validateCurrentGOP();
     emit updateTimelineUnits();
@@ -691,6 +659,60 @@ void QDecoderModel::validateH265GOPFrames(){
         }
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
     }
+}
+
+void QDecoderModel::updateH264StatusBarSize(){
+    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
+    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
+        return acc + GOP->size();
+    });
+    emit updateSize(size);
+}
+
+void QDecoderModel::updateH264StatusBarValidity(){
+    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
+    uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
+        std::vector<H264AccessUnit*> pAccessUnits = GOP->getAccessUnits();
+        return acc + std::accumulate(pAccessUnits.begin(), pAccessUnits.end(), 0, [](uint32_t accAU, const H264AccessUnit* pAccessUnit){
+            return accAU + (pAccessUnit->isValid() ? 1 : 0);
+        });
+    });
+    uint32_t total = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
+        return acc + GOP->count();
+    });
+    emit updateValidity(valid, total);
+}
+
+void QDecoderModel::updateH264StatusBar(){
+    updateH264StatusBarSize();
+    updateH264StatusBarValidity();
+}
+
+void QDecoderModel::updateH265StatusBarSize(){
+    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
+    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
+        return acc + GOP->size();
+    });
+    emit updateSize(size);
+}
+
+void QDecoderModel::updateH265StatusBarValidity(){
+    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
+    uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H265GOP* GOP){
+        std::vector<H265AccessUnit*> pAccessUnits = GOP->getAccessUnits();
+        return acc + std::accumulate(pAccessUnits.begin(), pAccessUnits.end(), 0, [](uint32_t accAU, const H265AccessUnit* pAccessUnit){
+            return accAU + (pAccessUnit->isValid() ? 1 : 0);
+        });
+    });
+    uint32_t total = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H265GOP* GOP){
+        return acc + GOP->count();
+    });
+    emit updateValidity(valid, total);
+}
+
+void QDecoderModel::updateH265StatusBar(){
+    updateH265StatusBarSize();
+    updateH265StatusBarValidity();
 }
 
 // https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format

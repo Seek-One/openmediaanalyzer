@@ -53,11 +53,10 @@ void H264GOP::validate(){
         accessUnit->validate();     
         if(accessUnit->empty() || !accessUnit->slice()) continue;
         const H264Slice* pSlice = accessUnit->slice();
-        if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
+        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
         if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
         noSPSorPPS = false;
-        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
-        else if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
+        if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
         if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
             majorErrors.push_back("[GOP] Out of order frames detected");
         }

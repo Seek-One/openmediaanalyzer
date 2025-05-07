@@ -34,7 +34,6 @@ public:
 
     bool m_hovered;
     bool m_selected;
-    bool m_interactable;
 
     QSharedPointer<QAccessUnitModel> m_pAccessUnitModel;
 

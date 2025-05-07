@@ -490,7 +490,7 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
 void QDecoderModel::framesTabOpened(){
     m_tabIndex = 0;
     if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit), majorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
-    emitStreamErrors();
+    else emitStreamErrors();
 }
 
 void QDecoderModel::vpsTabOpened(){
@@ -516,6 +516,7 @@ void QDecoderModel::frameDeleted(QUuid id){
 
 void QDecoderModel::folderLoaded(){
     m_minorStreamErrors.clear();
+    m_majorStreamErrors.clear();
     std::deque<H264GOP*> h264GOPs = m_pH264Stream->getGOPs();
     std::deque<H265GOP*> h265GOPs = m_pH265Stream->getGOPs();
     if(!h264GOPs.empty()){
@@ -544,6 +545,8 @@ void QDecoderModel::folderLoaded(){
         updateH265StatusBarStatus();
     }
     validateCurrentGOP();
+    if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit), majorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
+    else emitStreamErrors();
     emit updateTimelineUnits();
 }
 
@@ -699,18 +702,25 @@ void QDecoderModel::validateH264GOPFrames(){
         if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
         // PPS & SPS check : no exploitable frame numbers if either is absent
         if(!pSlice->getPPS() || !pSlice->getSPS()){
-            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_PPS_OR_SPS_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }
         noSPSorPPS = false;
+        if(pAccessUnit->hasMajorErrors()){
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_INVALID_STRUCTURE;
+            continue;
+        }
         if(!encounteredIFrame && pSlice->slice_type != H264Slice::SliceType_I) {
-            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_IFRAME_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_IFRAME_MISSING;
             continue;
         }
         if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
-            pAccessUnitModel->m_status = QAccessUnitModel::OUT_OF_ORDER;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->frame_num;
+        if(pAccessUnit->hasMinorErrors() && pAccessUnitModel->m_status == QAccessUnitModel::Status_OK){
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_NON_CONFORMING;
+        }
     }
 }
 
@@ -727,18 +737,26 @@ void QDecoderModel::validateH265GOPFrames(){
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
         // PPS & SPS check : no exploitable frame numbers if either is absent
         if(!pSlice->getPPS() || !pSlice->getSPS() || !pSlice->getVPS()){
-            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_PPS_OR_SPS_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }
         noSPSorPPS = false;
         if(!encounteredIFrame && pSlice->slice_type != H265Slice::SliceType_I) {
-            pAccessUnitModel->m_status = QAccessUnitModel::REFERENCED_IFRAME_MISSING;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_IFRAME_MISSING;
             continue;
         }
+        if(pAccessUnit->hasMajorErrors()){
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_INVALID_STRUCTURE;
+            continue;
+        }
+        
         if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
-            pAccessUnitModel->m_status = QAccessUnitModel::OUT_OF_ORDER;
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+        if(pAccessUnit->hasMinorErrors() && pAccessUnitModel->m_status == QAccessUnitModel::Status_OK){
+            pAccessUnitModel->m_status = QAccessUnitModel::Status_NON_CONFORMING;
+        }
     }
 }
 

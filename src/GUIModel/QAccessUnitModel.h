@@ -14,12 +14,12 @@ class QAccessUnitModel : public QObject
 public: 
 
     enum Status {
-        OK,
-        SKIPPED_FRAME,
-        MISSING_IFRAME,
-        REFERENCED_IFRAME_MISSING,
-        REFERENCED_PPS_OR_SPS_MISSING,
-        OUT_OF_ORDER
+        Status_OK,
+        Status_INVALID_STRUCTURE,
+        Status_REFERENCED_IFRAME_MISSING,
+        Status_REFERENCED_PPS_OR_SPS_MISSING,
+        Status_OUT_OF_ORDER,
+        Status_NON_CONFORMING
     };
 
     enum SliceType {
@@ -29,18 +29,16 @@ public:
         SliceType_Unspecified
     };
 
-    QAccessUnitModel(const H264AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id);
     QAccessUnitModel(const H264AccessUnit* pAccessUnit, QUuid id);
-    QAccessUnitModel(const H264AccessUnit* pAccessUnit, Status status, QUuid id);
-    QAccessUnitModel(const H265AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id);
     QAccessUnitModel(const H265AccessUnit* pAccessUnit, QUuid id);
-    QAccessUnitModel(const H265AccessUnit* pAccessUnit, Status status, QUuid id);
+
 
     virtual ~QAccessUnitModel();
 
     uint8_t* serialize() const;
     void setDisplayedFrameNumber();
     void setSliceType();
+    void setStatus();
     bool isH264() const;
     bool isH265() const;
     uint64_t size() const;

@@ -11,6 +11,26 @@
         <source>Frame #?</source>
         <translation>Image #?</translation>
     </message>
+    <message>
+        <source>Invalid structure</source>
+        <translation>Structure invalide</translation>
+    </message>
+    <message>
+        <source>Missing reference I-frame</source>
+        <translation>Image clé de référence manquante</translation>
+    </message>
+    <message>
+        <source>Missing parameter set</source>
+        <translation>Ensemble de paramètres manquant</translation>
+    </message>
+    <message>
+        <source>Out of order</source>
+        <translation>Dans le mauvais ordre</translation>
+    </message>
+    <message>
+        <source>Non-conforming</source>
+        <translation>Non-conforme</translation>
+    </message>
 </context>
 <context>
     <name>QDecoderModel</name>

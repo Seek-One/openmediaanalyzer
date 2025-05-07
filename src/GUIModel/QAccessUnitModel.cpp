@@ -9,38 +9,18 @@
 
 #include "QAccessUnitModel.h"
 
-QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(displayedFrameNum), m_status(Status::OK), m_id(id), m_sliceType(SliceType_Unspecified){
-    setSliceType();
-}
-
 QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status::OK), m_id(id), m_sliceType(SliceType_Unspecified){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_id(id), m_sliceType(SliceType_Unspecified){
     setDisplayedFrameNumber();
     setSliceType();
-}
-
-QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, Status status, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(status), m_id(id), m_sliceType(SliceType_Unspecified){
-    setDisplayedFrameNumber();
-    setSliceType();
-}
-
-QAccessUnitModel::QAccessUnitModel(const H265AccessUnit* pAccessUnit, uint displayedFrameNum, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(displayedFrameNum), m_status(Status::OK), m_id(id), m_sliceType(SliceType_Unspecified){
-    setSliceType();
+    setStatus();
 }
 
 QAccessUnitModel::QAccessUnitModel(const H265AccessUnit* pAccessUnit, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status::OK), m_id(id), m_sliceType(SliceType_Unspecified){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_id(id), m_sliceType(SliceType_Unspecified){
     setDisplayedFrameNumber();
     setSliceType();
-}
-
-QAccessUnitModel::QAccessUnitModel(const H265AccessUnit* pAccessUnit, Status status, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(status), m_id(id), m_sliceType(SliceType_Unspecified){
-    setDisplayedFrameNumber();
-    setSliceType();
+    setStatus();
 }
 
 QAccessUnitModel::~QAccessUnitModel(){
@@ -104,6 +84,18 @@ void QAccessUnitModel::setSliceType(){
             }
         }
     }
+}
+
+void QAccessUnitModel::setStatus(){
+    if(isH264()){
+        if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMajorErrors()) m_status = Status_INVALID_STRUCTURE;
+        else if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMinorErrors()) m_status = Status_NON_CONFORMING;
+        else m_status = Status_OK;
+    } else if(isH265()){
+        if(std::get<const H265AccessUnit*>(m_pAccessUnit)->hasMajorErrors()) m_status = Status_INVALID_STRUCTURE;
+        else if(std::get<const H265AccessUnit*>(m_pAccessUnit)->hasMinorErrors()) m_status = Status_NON_CONFORMING;
+        else m_status = Status_OK;
+    } else m_status = Status_INVALID_STRUCTURE;
 }
 
 bool QAccessUnitModel::isH264() const {

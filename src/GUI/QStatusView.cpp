@@ -47,7 +47,7 @@ void QStatusView::streamStatusUpdated(QDecoderModel::StreamStatus status){
             break;
             case QDecoderModel::StreamStatus_NonConformant:
             m_pStreamStatus->setText(tr("Stream status : Non-conforming"));
-            m_pStreamStatus->setStyleSheet("QLabel { color : orange; }");
+            m_pStreamStatus->setStyleSheet("QLabel { color : rgb(128, 128, 0); }");
             break;
             case QDecoderModel::StreamStatus_Damaged:
             m_pStreamStatus->setText(tr("Stream status : Damaged"));

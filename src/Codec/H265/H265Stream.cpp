@@ -95,7 +95,8 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 	switch (m_currentNAL.nal_unit_type) {
 		case H265NAL::UnitType_VPS:{
 			m_pActiveVPS = new H265VPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			bitstreamReader.readVPS(*m_pActiveVPS);
+			try{ bitstreamReader.readVPS(*m_pActiveVPS);
+			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what())); }
 			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -106,7 +107,8 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		}
 		case H265NAL::UnitType_SPS:{
 			m_pActiveSPS = new H265SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			bitstreamReader.readSPS(*m_pActiveSPS);
+			try { bitstreamReader.readSPS(*m_pActiveSPS);
+			} catch(const std::runtime_error& e){ m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); }
 			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -117,7 +119,8 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		}
 		case H265NAL::UnitType_PPS:{
 			m_pActivePPS = new H265PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			bitstreamReader.readPPS(*m_pActivePPS);
+			try { bitstreamReader.readPPS(*m_pActivePPS);
+			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); }
 			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -129,7 +132,8 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H265NAL::UnitType_SEI_PREFIX:
 		case H265NAL::UnitType_SEI_SUFFIX: {
 			H265SEI* pSEI = new H265SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			bitstreamReader.readSEI(*pSEI);
+			try { bitstreamReader.readSEI(*pSEI);
+			} catch(const std::runtime_error& e){ pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what())); }
 			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -141,7 +145,8 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			if (!m_currentNAL.isSlice()) std::cerr << "[Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
-			bitstreamReader.readSlice(*pSlice);
+			try { bitstreamReader.readSlice(*pSlice);
+			} catch(const std::runtime_error& e){ pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what())); }
 			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
 				m_pCurrentAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));

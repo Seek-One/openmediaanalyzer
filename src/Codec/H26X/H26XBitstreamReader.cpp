@@ -1,4 +1,8 @@
+#include <stdexcept>
+
 #include "H26XBitstreamReader.h"
+
+#define END_OF_STREAM_ERR_MSG "Prematurely reached end of bitstream during parsing"
 
 H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 {
@@ -24,6 +28,7 @@ H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 
 uint32_t H26XBitstreamReader::readBits(uint8_t iNumberBits)
 {
+	if(iNumberBits > m_iRemainingBits) throw std::runtime_error(END_OF_STREAM_ERR_MSG);
 	uint32_t iValue = 0;
 	for (int i = 0; i < iNumberBits; i++) {
 		iValue = (iValue << 1) | (readBit() ? 1 : 0);

@@ -200,7 +200,7 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	
 	if(h265SPS.sps_range_extension_flag) h265SPS.sps_range_extension = readSPSRangeExtension();
 	if(h265SPS.sps_multilayer_extension_flag) h265SPS.sps_multilayer_extension = readSPSMultilayerExtension();
-	if(h265SPS.sps_3d_extension_flag) h265SPS.sps_3d_extension = readSPS3DExtension();
+	if(h265SPS.sps_3d_extension_flag) h265SPS.sps_3d_extension = readSPS3DExtension(h265SPS);
 	if(h265SPS.sps_scc_extension_flag) h265SPS.sps_scc_extension = readSPSSCCExtension(h265SPS);
 
 	uint32_t spsMaxLumaPs = H265SPS::MaxLumaPs[H265SPS::level_limit_index[h265SPS.profile_tier_level.general_level_idc]];
@@ -1058,7 +1058,7 @@ H265SPSMultilayerExtension H265BitstreamReader::readSPSMultilayerExtension(){
 	return h265SPSMultilayerExtension;
 }
 
-H265SPS3DExtension H265BitstreamReader::readSPS3DExtension(){
+H265SPS3DExtension H265BitstreamReader::readSPS3DExtension(const H265SPS& h265SPS){
 	H265SPS3DExtension h265SPS3DExtension;
 	for(int d = 0;d <= 1;++d){
 		h265SPS3DExtension.iv_di_mc_enabled_flag[d] = readBits(1);
@@ -1073,10 +1073,12 @@ H265SPS3DExtension H265BitstreamReader::readSPS3DExtension(){
 			h265SPS3DExtension.tex_mc_enabled_flag[d] = readBits(1);
 			h265SPS3DExtension.log2_texmc_sub_pb_size_minus3[d] = readBits(1);
 			h265SPS3DExtension.intra_contour_enabled_flag[d] = readBits(1);
-			h265SPS3DExtension.intra_dc_only_wedge_enabled[d] = readBits(1);
+			h265SPS3DExtension.intra_dc_only_wedge_enabled_flag[d] = readBits(1);
 			h265SPS3DExtension.cqt_cu_part_pred_enabled_flag[d] = readBits(1);
 			h265SPS3DExtension.inter_dc_only_enabled_flag[d] = readBits(1);
 			h265SPS3DExtension.skip_intra_enabled_flag[d] = readBits(1);
+
+			h265SPS3DExtension.log2_ivmc_sub_pb_size_minus3[d] = h265SPS.CtbLog2SizeY-3;
 		}
 	}
 	return h265SPS3DExtension;

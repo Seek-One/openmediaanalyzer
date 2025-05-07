@@ -5,7 +5,47 @@
 
 #include "H265SPS.h"
 
-H265VuiParameters::H265VuiParameters(){}
+H265VuiParameters::H265VuiParameters(){
+	aspect_ratio_info_present_flag = 0;
+	aspect_ratio_idc = 0;
+	sar_width = 0;
+	sar_height = 0;
+	overscan_info_present_flag = 0;
+	overscan_appropriate_flag = 0;
+	video_signal_type_present_flag = 0;
+	video_format = 5;
+	video_full_range_flag = 0;
+	colour_description_present_flag = 0;
+	colour_primaries = 2;
+	transfer_characteristics = 2;
+	matrix_coeffs = 2;
+	chroma_loc_info_present_flag = 0;
+	chroma_sample_loc_type_top_field = 0;
+	chroma_sample_loc_type_bottom_field = 0;
+	neutral_chroma_indication_flag = 0;
+	field_seq_flag = 0;
+	frame_field_info_present_flag = 0;
+	default_display_window_flag = 0;
+	def_disp_win_left_offset = 0;
+	def_disp_win_right_offset = 0;
+	def_disp_win_top_offset = 0;
+	def_disp_win_bottom_offset = 0;
+	vui_timing_info_present_flag = 0;
+	vui_num_units_in_tick = 0;
+	vui_time_scale = 0;
+	vui_poc_proportional_to_timing_flag = 0;
+	vui_num_ticks_poc_diff_one_minus1 = 0;
+	vui_hrd_parameters_present_flag = 0;
+	bitstream_restriction_flag = 0;
+	tiles_fixed_structure_flag = 0;
+	motion_vectors_over_pic_boundaries_flag = 1;
+	restricted_ref_pic_lists_flag = 0;
+	min_spatial_segmentation_idc = 0;
+	max_bytes_per_pic_denom = 2;
+	max_bits_per_min_cu_denom = 1;
+	log2_max_mv_length_horizontal = 15;
+	log2_max_mv_length_vertical = 15;
+}
 
 std::vector<std::string> H265VuiParameters::dump_fields(){
 	std::vector<std::string> fields;
@@ -62,7 +102,17 @@ std::vector<std::string> H265VuiParameters::dump_fields(){
 	return fields;
 }
 
-H265SPSRangeExtension::H265SPSRangeExtension(){}
+H265SPSRangeExtension::H265SPSRangeExtension(){
+	transform_skip_rotation_enabled_flag = 0;
+	transform_skip_context_enabled_flag = 0;
+	implicit_rdpcm_enabled_flag = 0;
+	explicit_rdpcm_enabled_flag = 0;
+	extended_precision_processing_flag = 0;
+	intra_smoothing_disabled_flag = 0;
+	high_precision_offsets_enabled_flag = 0;
+	persistent_rice_adaptation_enabled_flag = 0;
+	cabac_bypass_alignment_enabled_flag = 0;
+}
 
 std::vector<std::string> H265SPSRangeExtension::dump_fields(){
 	std::vector<std::string> fields;
@@ -78,7 +128,9 @@ std::vector<std::string> H265SPSRangeExtension::dump_fields(){
 	return fields;
 }
 
-H265SPSMultilayerExtension::H265SPSMultilayerExtension(){}
+H265SPSMultilayerExtension::H265SPSMultilayerExtension(){
+	inter_view_mv_vert_constraint_flag = 0;
+}
 
 std::vector<std::string> H265SPSMultilayerExtension::dump_fields(){
 	std::vector<std::string> fields;
@@ -86,7 +138,24 @@ std::vector<std::string> H265SPSMultilayerExtension::dump_fields(){
 	return fields;
 }
 
-H265SPS3DExtension::H265SPS3DExtension(){}
+H265SPS3DExtension::H265SPS3DExtension(){
+	for(int d = 0;d <= 1;++d){
+		iv_di_mc_enabled_flag[d] = 0;
+		iv_mv_scal_enabled_flag[d] = 0;
+		log2_ivmc_sub_pb_size_minus3[d] = 0;
+		iv_res_pred_enabled_flag[d] = 0;
+		vsp_mc_enabled_flag[d] = 0;
+		dbbp_enabled_flag[d] = 0;
+		depth_ref_enabled_flag[d] = 0;
+		tex_mc_enabled_flag[d] = 0;
+		log2_texmc_sub_pb_size_minus3[d] = 0;
+		intra_contour_enabled_flag[d] = 0;
+		intra_dc_only_wedge_enabled_flag[d] = 0;
+		cqt_cu_part_pred_enabled_flag[d] = 0;
+		inter_dc_only_enabled_flag[d] = 0;
+		skip_intra_enabled_flag[d] = 0;
+	}
+}
 
 std::vector<std::string> H265SPS3DExtension::dump_fields(){
 	std::vector<std::string> fields;
@@ -103,7 +172,7 @@ std::vector<std::string> H265SPS3DExtension::dump_fields(){
 			fields.push_back((std::ostringstream() << "  tex_mc_enabled_flag[" << d << "]:" << (int)tex_mc_enabled_flag[d]).str());
 			fields.push_back((std::ostringstream() << "  log2_texmc_sub_pb_size_minus3[" << d << "]:" << log2_texmc_sub_pb_size_minus3[d]).str());
 			fields.push_back((std::ostringstream() << "  intra_contour_enabled_flag[" << d << "]:" << (int)intra_contour_enabled_flag[d]).str());
-			fields.push_back((std::ostringstream() << "  intra_dc_only_wedge_enabled[" << d << "]:" << (int)intra_dc_only_wedge_enabled[d]).str());
+			fields.push_back((std::ostringstream() << "  intra_dc_only_wedge_enabled_flag[" << d << "]:" << (int)intra_dc_only_wedge_enabled_flag[d]).str());
 			fields.push_back((std::ostringstream() << "  cqt_cu_part_pred_enabled_flag[" << d << "]:" << (int)cqt_cu_part_pred_enabled_flag[d]).str());
 			fields.push_back((std::ostringstream() << "  inter_dc_only_enabled_flag[" << d << "]:" << (int)inter_dc_only_enabled_flag[d]).str());
 			fields.push_back((std::ostringstream() << "  skip_intra_enabled_flag[" << d << "]:" << (int)skip_intra_enabled_flag[d]).str());
@@ -112,7 +181,16 @@ std::vector<std::string> H265SPS3DExtension::dump_fields(){
 	return fields;
 }
 
-H265SPSSCCExtension::H265SPSSCCExtension(){}
+H265SPSSCCExtension::H265SPSSCCExtension(){
+	sps_curr_pic_ref_enabled_flag = 0;
+	palette_mode_enabled_flag = 0;
+	palette_max_size = 0;
+	delta_palette_max_predictor_size = 0;
+	sps_palette_predictor_initializers_present_flag = 0;
+	sps_num_palette_predictor_initializers_minus1 = 0;
+	motion_vector_resolution_control_idc = 0;
+	intra_boundary_filtering_disabled_flag = 0;
+}
 
 std::vector<std::string> H265SPSSCCExtension::dump_fields(uint32_t chroma_format_idc){
 	std::vector<std::string> fields;

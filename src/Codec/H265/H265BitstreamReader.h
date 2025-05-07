@@ -32,7 +32,7 @@ private:
 	H265VuiParameters readVuiParameters(uint8_t sps_max_sub_layers_minus1);
 	H265SPSRangeExtension readSPSRangeExtension();
 	H265SPSMultilayerExtension readSPSMultilayerExtension();
-	H265SPS3DExtension readSPS3DExtension();
+	H265SPS3DExtension readSPS3DExtension(const H265SPS& h265SPS);
 	H265SPSSCCExtension readSPSSCCExtension(const H265SPS& h265SPS);
 	H265PredWeightTable readSlicePredWeightTable(const H265Slice& h265Slice);
 	void computeNumPicTotalCurr(H265Slice& h265Slice, const H265SPS& h265SPS);

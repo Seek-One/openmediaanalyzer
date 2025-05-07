@@ -103,7 +103,7 @@ struct H265SPS3DExtension {
 	std::array<uint8_t, 2> tex_mc_enabled_flag;
 	std::array<uint32_t, 2> log2_texmc_sub_pb_size_minus3;
 	std::array<uint8_t, 2> intra_contour_enabled_flag;
-	std::array<uint8_t, 2> intra_dc_only_wedge_enabled;
+	std::array<uint8_t, 2> intra_dc_only_wedge_enabled_flag;
 	std::array<uint8_t, 2> cqt_cu_part_pred_enabled_flag;
 	std::array<uint8_t, 2> inter_dc_only_enabled_flag;
 	std::array<uint8_t, 2> skip_intra_enabled_flag;

@@ -50,10 +50,10 @@ void H265GOP::validate(){
         noSPSorPPS = false;
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
-        prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
             majorErrors.push_back("[GOP] Out of order frames detected");
         }
+        prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
     }
     if(maxFrameNumber+1 != count() && !noSPSorPPS) majorErrors.push_back("[GOP] Skipped frames detected");
     if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");

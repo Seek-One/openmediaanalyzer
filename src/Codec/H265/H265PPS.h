@@ -22,6 +22,47 @@ struct H265PPSRangeExtension {
 	std::vector<std::string> dump_fields();
 };
 
+struct H265PPSColourMappingOctants {
+	H265PPSColourMappingOctants();
+
+	uint8_t split_octant_flag;
+	std::vector<std::vector<std::vector<H265PPSColourMappingOctants>>> sub_color_mapping_octants;
+	std::array<uint8_t, 4> coded_res_flag;
+	std::array<std::array<uint32_t, 3>, 4> res_coeff_q;
+	std::array<std::array<uint32_t, 3>, 4> res_coeff_r;
+	std::array<std::array<uint8_t, 3>, 4> res_coeff_s;
+};
+
+struct H265PPSColourMappingTable {
+	H265PPSColourMappingTable();
+
+	uint8_t num_cm_ref_layers_minus1;
+	std::array<uint8_t, 62> cm_ref_layer_id;
+	uint8_t cm_octant_depth;
+	uint8_t cm_y_part_num_log2;
+	uint8_t luma_bit_depth_cm_input_minus8;
+	uint8_t chroma_bit_depth_cm_input_minus8;
+	uint8_t luma_bit_depth_cm_output_minus8;
+	uint8_t chroma_bit_depth_cm_output_minus8;
+	uint8_t cm_res_quant_bits;
+	uint8_t cm_delta_flc_bits_minus1;
+	int16_t cm_adapt_threshhold_u_delta;
+	int16_t cm_adapt_threshhold_v_delta;
+	H265PPSColourMappingOctants colour_mapping_octants;
+
+	// derived variables
+	uint8_t OctantNumC;
+	uint8_t OctantNumY;
+	uint8_t PartNumY;
+	uint8_t BitDepthCmInputY;
+	uint8_t BitDepthCmInputC;
+	uint8_t BitDepthCmOutputY;
+	uint8_t BitDepthCmOutputC;
+	uint16_t CMResLSBits;
+	uint32_t CMThreshU;
+	uint32_t CMThreshV;
+};
+
 struct H265PPSMultilayerExtension {
 	H265PPSMultilayerExtension();
 
@@ -29,7 +70,7 @@ struct H265PPSMultilayerExtension {
 	uint8_t pps_infer_scaling_list_flag;
 	uint8_t pps_scaling_list_ref_layer_id;
 	uint8_t num_ref_loc_offsets;
-	std::vector<uint8_t> ref_loc_offset_layed_id;
+	std::vector<uint8_t> ref_loc_offset_layer_id;
 	std::vector<uint8_t> scaled_ref_layer_offset_present_flag;
 	std::array<int16_t, 64> scaled_ref_layer_left_offset;
 	std::array<int16_t, 64> scaled_ref_layer_top_offset;
@@ -46,10 +87,19 @@ struct H265PPSMultilayerExtension {
 	std::array<uint8_t, 64> phase_hor_chroma_plus8;
 	std::array<uint8_t, 64> phase_ver_chroma_plus8;
 	uint8_t colour_mapping_enabled_flag;
-	// TODO colour_mapping_table
-	// H265PPSColourMappingTable colour_mapping_table;
+	H265PPSColourMappingTable colour_mapping_table;
 
 	std::vector<std::string> dump_fields();
+};
+
+struct H265PPSDeltaLookupTable {
+	H265PPSDeltaLookupTable();
+
+	uint16_t num_val_delta_dlt;
+	uint16_t max_diff;
+	uint16_t min_diff_minus1;
+	uint16_t delta_dlt_val0;
+	std::vector<uint16_t> delta_val_diff_minus_min;
 };
 
 struct H265PPS3DExtension {
@@ -59,9 +109,10 @@ struct H265PPS3DExtension {
 	uint8_t pps_depth_layers_minus1;
 	uint8_t pps_bit_depth_for_depth_layers_minus8;
 	std::array<uint8_t, 64> dlt_flag;
-	std::array<uint8_t, 64> dlt_pref_flag;
+	std::array<uint8_t, 64> dlt_pred_flag;
 	std::array<uint8_t, 64> dlt_val_flags_present_flag;
 	std::array<std::vector<uint8_t>, 64> dlt_value_flag;
+	std::array<H265PPSDeltaLookupTable, 64> delta_dlt;
 
 	std::vector<std::string> dump_fields();
 };

@@ -34,6 +34,13 @@ private:
 	H265SPSMultilayerExtension readSPSMultilayerExtension();
 	H265SPS3DExtension readSPS3DExtension(const H265SPS& h265SPS);
 	H265SPSSCCExtension readSPSSCCExtension(const H265SPS& h265SPS);
+	H265PPSRangeExtension readH265PPSRangeExtension(const H265PPS& h265PPS);
+	H265PPSColourMappingOctants readH265PPSColorMappingOctants(uint8_t inpDepth, uint8_t idxY, uint8_t idxCb, uint8_t idxCr, uint8_t inpLength, const H265PPSColourMappingTable& h265PPSColorMappingTable);
+	H265PPSColourMappingTable readH265PPSColorMappingTable();
+	H265PPSMultilayerExtension readH265PPSMultilayerExtension();
+	H265PPSDeltaLookupTable readH265PPSDeltaLookupTable(const H265PPS3DExtension& h265PPS3DExtension);
+	H265PPS3DExtension readH265PPS3DExtension();
+	H265PPSSCCExtension readH265PPSSCCExtension();
 	H265PredWeightTable readSlicePredWeightTable(const H265Slice& h265Slice);
 	void computeNumPicTotalCurr(H265Slice& h265Slice, const H265SPS& h265SPS);
 

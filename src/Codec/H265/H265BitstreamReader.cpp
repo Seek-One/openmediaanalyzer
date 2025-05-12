@@ -248,7 +248,7 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 			}
 			h265PPS.row_height_minus1.resize(h265PPS.num_tile_rows_minus1);
 			for (uint32_t i = 0; i < h265PPS.num_tile_rows_minus1; ++i) {
-				h265PPS.row_height_minus1[i] = readGolombUE();;
+				h265PPS.row_height_minus1[i] = readGolombUE();
 			}
 		}
 		h265PPS.loop_filter_across_tiles_enabled_flag = readBits(1);
@@ -280,20 +280,10 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 		h265PPS.pps_scc_extension_flag = readBits(1);
 		skipBits(4);
 	}
-	if(h265PPS.pps_range_extension_flag){
-		std::cerr << "[PPS] range extension not supported\n";
-	}
-	if(h265PPS.pps_multilayer_extension_flag){
-		std::cerr << "[PPS] multilayer extension not supported\n";
-	}
-	if(h265PPS.pps_3d_extension_flag){
-		std::cerr << "[PPS] 3d extension not supported\n";
-	}
-	if(h265PPS.pps_scc_extension_flag){
-		std::cerr << "[PPS] scc extension not supported\n";
-	}
-	// TODO: handle pps extensions data
-
+	if(h265PPS.pps_range_extension_flag) h265PPS.pps_range_extension = readH265PPSRangeExtension(h265PPS);
+	if(h265PPS.pps_multilayer_extension_flag) h265PPS.pps_multilayer_extension = readH265PPSMultilayerExtension();
+	if(h265PPS.pps_3d_extension_flag) h265PPS.pps_3d_extension = readH265PPS3DExtension();
+	if(h265PPS.pps_scc_extension_flag) h265PPS.pps_scc_extension = readH265PPSSCCExtension();
 	auto referencedSPS = H265SPS::SPSMap.find(h265PPS.pps_seq_parameter_set_id);
 	H265SPS* pSps = referencedSPS == H265SPS::SPSMap.end() ? nullptr : referencedSPS->second;
 	if(!pSps) return;
@@ -319,7 +309,10 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 	}
 	h265Slice.slice_pic_parameter_set_id = readGolombUE();
 	H265PPS* h265PPS = h265Slice.getPPS();
-	if(!h265PPS) return;
+	if(!h265PPS) {
+		h265Slice.majorErrors.push_back((std::ostringstream() << "[Slice] reference to unknown PPS (" << h265Slice.slice_pic_parameter_set_id << ")").str());
+		return;
+	}
 	if (!h265Slice.first_slice_segment_in_pic_flag) {
 		if (h265PPS->dependent_slice_segments_enabled_flag) {
 			h265Slice.dependent_slice_segment_flag = readBits(1);
@@ -331,7 +324,10 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 		// uint32_t PicWidthInSamplesC = h265SPS.pic_width_in_luma_samples / 2;
 		// uint32_t PicHeightInSamplesC = h265SPS.pic_height_in_luma_samples / 2;
 		H265SPS* h265SPS = h265Slice.getSPS();
-		if(!h265SPS) return;
+		if(!h265SPS) {
+			h265Slice.majorErrors.push_back((std::ostringstream() << "[Slice] reference to unknown SPS (" << (int)h265PPS->pps_seq_parameter_set_id << ")").str());
+			return;
+		}
 		h265Slice.slice_segment_address = readBits((uint8_t)ceil(log2(h265SPS->PicSizeInCtbsY)));
 	}
 
@@ -445,28 +441,19 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 				h265Slice.use_integer_mv_flag = readBits(1);
 		}
 		h265Slice.slice_qp_delta = readGolombSE();
-		H265PPS* h265PPS = h265Slice.getPPS();
-		if(!h265PPS){
-			std::cerr << "[Slice] Reference to unknown PPS, parsing aborted\n";
-			return;
-		}
 		if (h265PPS->pps_slice_chroma_qp_offsets_present_flag) {
 			h265Slice.slice_cb_qp_offset = readGolombSE();
 			h265Slice.slice_cr_qp_offset = readGolombSE();
 		}
 		h265Slice.SliceQpY = 26 + h265PPS->init_qp_minus26 + h265Slice.slice_qp_delta;
 		if (h265PPS->pps_scc_extension.pps_slice_act_qp_offsets_present_flag) {
-			std::cerr << "[Slice] PPS SCC extension not supported, parsing aborted\n";
-			return;
-			// h265Slice.slice_act_y_qp_offset = readGolombSE();
-			// h265Slice.slice_act_cb_qp_offset = readGolombSE();
-			// h265Slice.slice_act_cr_qp_offset = readGolombSE();
+			h265Slice.slice_act_y_qp_offset = readGolombSE();
+			h265Slice.slice_act_cb_qp_offset = readGolombSE();
+			h265Slice.slice_act_cr_qp_offset = readGolombSE();
 		}
 
 		if (h265PPS->pps_range_extension.chroma_qp_offset_list_enabled_flag) {
-			std::cerr << "[Slice] PPS range extension not supported, parsing aborted\n";
-			return;
-			// h265Slice.cu_chroma_qp_offset_enabled_flag = readBits(1);
+			h265Slice.cu_chroma_qp_offset_enabled_flag = readBits(1);
 		}
 
 		if (h265PPS->deblocking_filter_override_enabled_flag) {
@@ -1104,6 +1091,202 @@ H265SPSSCCExtension H265BitstreamReader::readSPSSCCExtension(const H265SPS& h265
 	h265SPSSCCExtension.motion_vector_resolution_control_idc = readBits(2);
 	h265SPSSCCExtension.intra_boundary_filtering_disabled_flag = readBits(1);
 	return h265SPSSCCExtension;
+}
+
+H265PPSRangeExtension H265BitstreamReader::readH265PPSRangeExtension(const H265PPS& h265PPS){
+	H265PPSRangeExtension h265PPSRangeExtension;
+	if(h265PPS.transform_skip_enabled_flag) h265PPSRangeExtension.log2_max_transform_skip_block_size_minus2 = readGolombUE();
+	h265PPSRangeExtension.cross_component_prediction_enabled_flag = readBits(1);
+	h265PPSRangeExtension.chroma_qp_offset_list_enabled_flag = readBits(1);
+	if(h265PPSRangeExtension.chroma_qp_offset_list_enabled_flag){
+		h265PPSRangeExtension.diff_cu_chroma_qp_offset_depth = readGolombUE();
+		h265PPSRangeExtension.chroma_qp_offset_list_len_minus1 = readGolombUE();
+		for(int i = 0;i <= h265PPSRangeExtension.chroma_qp_offset_list_len_minus1;++i){
+			h265PPSRangeExtension.cb_qp_offset_list.push_back(readGolombSE());
+			h265PPSRangeExtension.cr_qp_offset_list.push_back(readGolombSE());
+		}
+	}
+	h265PPSRangeExtension.log2_sao_offset_scale_luma = readGolombUE();
+	h265PPSRangeExtension.log2_sao_offset_scale_chroma = readGolombUE();
+	return h265PPSRangeExtension;
+}
+
+H265PPSColourMappingOctants H265BitstreamReader::readH265PPSColorMappingOctants(uint8_t inpDepth, uint8_t idxY, uint8_t idxCb, uint8_t idxCr, uint8_t inpLength, const H265PPSColourMappingTable& h265PPSColorMappingTable){
+	H265PPSColourMappingOctants h265PPSColourMappingOctants;
+	if(inpDepth < h265PPSColorMappingTable.cm_octant_depth) h265PPSColourMappingOctants.split_octant_flag = readBits(1);
+	if(h265PPSColourMappingOctants.split_octant_flag){
+		uint8_t half_inpLength = inpLength/2;
+		h265PPSColourMappingOctants.sub_color_mapping_octants.resize(2);
+		for(int k = 0;k < 2;++k){
+			h265PPSColourMappingOctants.sub_color_mapping_octants[k].resize(2);
+			for(int m = 0;m < 2;++m){
+				h265PPSColourMappingOctants.sub_color_mapping_octants[k][m].resize(2);
+				for(int n = 0;n < 2;++n){
+					h265PPSColourMappingOctants.sub_color_mapping_octants[k][m][n] = readH265PPSColorMappingOctants(inpDepth+1, idxY+h265PPSColorMappingTable.PartNumY*k*half_inpLength, 
+																					idxCb + m*half_inpLength, idxCr + n*half_inpLength, half_inpLength, h265PPSColorMappingTable);
+				}
+			}
+		}
+	} else {
+		for(int i = 0;i < h265PPSColorMappingTable.PartNumY;++i){
+			for(int j = 0;j < 4;++j){
+				h265PPSColourMappingOctants.coded_res_flag[j] = readBits(1);
+				if(h265PPSColourMappingOctants.coded_res_flag[i]){
+					for(int c = 0;c < 3;++c){
+						h265PPSColourMappingOctants.res_coeff_q[j][c] = readGolombUE();
+						h265PPSColourMappingOctants.res_coeff_r[j][c] = readBits(h265PPSColorMappingTable.CMResLSBits);
+						if(h265PPSColourMappingOctants.res_coeff_q[j][c] || h265PPSColourMappingOctants.res_coeff_r[j][c]){
+							h265PPSColourMappingOctants.res_coeff_s[j][c] = readBits(1);
+						}
+					}
+				}
+			}
+		}
+	}
+	return h265PPSColourMappingOctants;
+}
+
+H265PPSColourMappingTable H265BitstreamReader::readH265PPSColorMappingTable(){
+	H265PPSColourMappingTable h265PPSColourMappingTable;
+	h265PPSColourMappingTable.num_cm_ref_layers_minus1 = readGolombUE();
+	for(int i = 0;i <= h265PPSColourMappingTable.num_cm_ref_layers_minus1;++i) h265PPSColourMappingTable.cm_ref_layer_id[i] = readBits(6);
+	h265PPSColourMappingTable.cm_octant_depth = readBits(2);
+	h265PPSColourMappingTable.cm_y_part_num_log2 = readBits(2);
+	h265PPSColourMappingTable.luma_bit_depth_cm_input_minus8 = readGolombUE();
+	h265PPSColourMappingTable.chroma_bit_depth_cm_input_minus8 = readGolombUE();
+	h265PPSColourMappingTable.luma_bit_depth_cm_output_minus8 = readGolombUE();
+	h265PPSColourMappingTable.chroma_bit_depth_cm_output_minus8 = readGolombUE();
+	h265PPSColourMappingTable.cm_res_quant_bits = readBits(2);
+	h265PPSColourMappingTable.cm_delta_flc_bits_minus1 = readBits(2);
+	if(h265PPSColourMappingTable.cm_octant_depth == 1){
+		h265PPSColourMappingTable.cm_adapt_threshhold_u_delta = readGolombSE();
+		h265PPSColourMappingTable.cm_adapt_threshhold_v_delta = readGolombSE();
+	}
+
+	h265PPSColourMappingTable.OctantNumC = 1 << h265PPSColourMappingTable.cm_octant_depth;
+	h265PPSColourMappingTable.OctantNumY = 1 << (h265PPSColourMappingTable.cm_octant_depth + h265PPSColourMappingTable.cm_y_part_num_log2);
+	h265PPSColourMappingTable.PartNumY = 1 << h265PPSColourMappingTable.cm_y_part_num_log2;
+	h265PPSColourMappingTable.BitDepthCmInputY = 8 + h265PPSColourMappingTable.luma_bit_depth_cm_input_minus8;
+	h265PPSColourMappingTable.BitDepthCmInputC = 8 + h265PPSColourMappingTable.chroma_bit_depth_cm_input_minus8;
+	h265PPSColourMappingTable.BitDepthCmOutputY = 8 + h265PPSColourMappingTable.luma_bit_depth_cm_output_minus8;
+	h265PPSColourMappingTable.BitDepthCmOutputC = 8 + h265PPSColourMappingTable.chroma_bit_depth_cm_output_minus8;
+	h265PPSColourMappingTable.CMResLSBits = std::max(0, (10+h265PPSColourMappingTable.BitDepthCmInputY-h265PPSColourMappingTable.BitDepthCmOutputY-
+											h265PPSColourMappingTable.cm_res_quant_bits-(h265PPSColourMappingTable.cm_delta_flc_bits_minus1+1)));
+	h265PPSColourMappingTable.CMThreshU = h265PPSColourMappingTable.cm_adapt_threshhold_u_delta + (1 << (h265PPSColourMappingTable.BitDepthCmInputC-1));
+	h265PPSColourMappingTable.CMThreshV = h265PPSColourMappingTable.cm_adapt_threshhold_v_delta + (1 << (h265PPSColourMappingTable.BitDepthCmInputC-1));
+
+	h265PPSColourMappingTable.colour_mapping_octants = readH265PPSColorMappingOctants(0, 0, 0, 0, 1 << h265PPSColourMappingTable.cm_octant_depth, h265PPSColourMappingTable);
+	return h265PPSColourMappingTable;
+}
+
+H265PPSMultilayerExtension H265BitstreamReader::readH265PPSMultilayerExtension(){
+	H265PPSMultilayerExtension h265PPSMultilayerExtension;
+	h265PPSMultilayerExtension.poc_reset_info_present_flag = readBits(1);
+	h265PPSMultilayerExtension.pps_infer_scaling_list_flag = readBits(1);
+	if(h265PPSMultilayerExtension.pps_infer_scaling_list_flag) h265PPSMultilayerExtension.pps_scaling_list_ref_layer_id = readBits(6);
+	h265PPSMultilayerExtension.num_ref_loc_offsets = readGolombUE();
+	for(int i = 0;i < h265PPSMultilayerExtension.num_ref_loc_offsets;++i){
+		h265PPSMultilayerExtension.ref_loc_offset_layer_id.push_back(readBits(6));
+		h265PPSMultilayerExtension.scaled_ref_layer_offset_present_flag.push_back(readBits(1));
+		if(h265PPSMultilayerExtension.scaled_ref_layer_offset_present_flag[i]){
+			h265PPSMultilayerExtension.scaled_ref_layer_left_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.scaled_ref_layer_top_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.scaled_ref_layer_right_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.scaled_ref_layer_bottom_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+		}
+		h265PPSMultilayerExtension.ref_region_offset_present_flag.push_back(readBits(1));
+		if(h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]){
+			h265PPSMultilayerExtension.ref_region_left_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.ref_region_top_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.ref_region_right_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+			h265PPSMultilayerExtension.ref_region_bottom_offset[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombSE();
+		}
+		h265PPSMultilayerExtension.resample_phase_set_present_flag.push_back(readBits(1));
+		if(h265PPSMultilayerExtension.resample_phase_set_present_flag[i]){
+			h265PPSMultilayerExtension.phase_hor_luma[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombUE();
+			h265PPSMultilayerExtension.phase_ver_luma[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombUE();
+			h265PPSMultilayerExtension.phase_hor_chroma_plus8[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombUE();
+			h265PPSMultilayerExtension.phase_ver_chroma_plus8[h265PPSMultilayerExtension.ref_loc_offset_layer_id[i]] = readGolombUE();
+		}
+	}
+	h265PPSMultilayerExtension.colour_mapping_enabled_flag = readBits(1);
+	if(h265PPSMultilayerExtension.colour_mapping_enabled_flag) h265PPSMultilayerExtension.colour_mapping_table = readH265PPSColorMappingTable();
+	return h265PPSMultilayerExtension;
+}
+
+H265PPSDeltaLookupTable H265BitstreamReader::readH265PPSDeltaLookupTable(const H265PPS3DExtension& h265PPS3DExtension){
+	H265PPSDeltaLookupTable h265PPSDeltaLookupTable;
+	h265PPSDeltaLookupTable.num_val_delta_dlt = readBits(h265PPS3DExtension.pps_bit_depth_for_depth_layers_minus8+8);
+	if(h265PPSDeltaLookupTable.num_val_delta_dlt > 0){
+		if(h265PPSDeltaLookupTable.num_val_delta_dlt > 1){
+			h265PPSDeltaLookupTable.max_diff = readBits(h265PPS3DExtension.pps_bit_depth_for_depth_layers_minus8+8);
+		}
+		if(h265PPSDeltaLookupTable.num_val_delta_dlt > 2 && h265PPSDeltaLookupTable.max_diff > 0){
+			h265PPSDeltaLookupTable.min_diff_minus1 = readBits(ceil(log2(h265PPSDeltaLookupTable.max_diff+1)));
+		} else h265PPSDeltaLookupTable.min_diff_minus1 = h265PPSDeltaLookupTable.max_diff-1;
+		h265PPSDeltaLookupTable.delta_dlt_val0 = readBits(h265PPS3DExtension.pps_bit_depth_for_depth_layers_minus8+8);
+		if(h265PPSDeltaLookupTable.max_diff > (h265PPSDeltaLookupTable.min_diff_minus1+1)){
+			uint8_t delta_val_diff_size = ceil(log2(h265PPSDeltaLookupTable.max_diff-h265PPSDeltaLookupTable.min_diff_minus1+2));
+			for(int k = 1;k < h265PPSDeltaLookupTable.num_val_delta_dlt;++k){
+				h265PPSDeltaLookupTable.delta_val_diff_minus_min.push_back(readBits(delta_val_diff_size));
+			}
+		} else {
+			for(int k = 1;k < h265PPSDeltaLookupTable.num_val_delta_dlt;++k){
+				h265PPSDeltaLookupTable.delta_val_diff_minus_min.push_back(0);
+			}
+		}
+	}
+	return h265PPSDeltaLookupTable;
+}
+
+H265PPS3DExtension H265BitstreamReader::readH265PPS3DExtension(){
+	H265PPS3DExtension h265PPS3DExtension;
+	h265PPS3DExtension.dlts_present_flag = readBits(1);
+	if(h265PPS3DExtension.dlts_present_flag){
+		h265PPS3DExtension.pps_depth_layers_minus1 = readBits(6);
+		h265PPS3DExtension.pps_bit_depth_for_depth_layers_minus8 = readBits(4);
+		uint32_t depthMaxValue =  (1 << (h265PPS3DExtension.pps_bit_depth_for_depth_layers_minus8+8))-1;
+		for(int i = 0;i <= h265PPS3DExtension.pps_depth_layers_minus1;++i){
+			h265PPS3DExtension.dlt_flag[i] = readBits(1);
+			if(h265PPS3DExtension.dlt_flag[i]){
+				h265PPS3DExtension.dlt_pred_flag[i] = readBits(1);
+				if(!h265PPS3DExtension.dlt_pred_flag[i]) h265PPS3DExtension.dlt_val_flags_present_flag[i] = readBits(1);
+				if(h265PPS3DExtension.dlt_val_flags_present_flag[i]){
+					for(int j = 0;j <= depthMaxValue;++j) h265PPS3DExtension.dlt_value_flag[i].push_back(readBits(1));
+				} else h265PPS3DExtension.delta_dlt[i] = readH265PPSDeltaLookupTable(h265PPS3DExtension);
+			}
+		}
+	}
+	return h265PPS3DExtension;
+}
+
+H265PPSSCCExtension H265BitstreamReader::readH265PPSSCCExtension(){
+	H265PPSSCCExtension h265PPSSCCExtension;
+	h265PPSSCCExtension.pps_curr_pic_ref_enabled_flag = readBits(1);
+	h265PPSSCCExtension.residual_adaptive_colour_transform_enabled_flag = readBits(1);
+	if(h265PPSSCCExtension.residual_adaptive_colour_transform_enabled_flag){
+		h265PPSSCCExtension.pps_slice_act_qp_offsets_present_flag = readBits(1);
+		h265PPSSCCExtension.pps_act_y_qp_offset_plus5 = readGolombSE();
+		h265PPSSCCExtension.pps_act_cb_qp_offset_plus5 = readGolombSE();
+		h265PPSSCCExtension.pps_act_cr_qp_offset_plus3 = readGolombSE();
+	}
+	h265PPSSCCExtension.pps_palette_predictor_initializers_present_flag = readBits(1);
+	if(h265PPSSCCExtension.pps_palette_predictor_initializers_present_flag){
+		h265PPSSCCExtension.pps_num_palette_predictor_initializer = readGolombUE();
+		if(h265PPSSCCExtension.pps_num_palette_predictor_initializer > 0){
+			h265PPSSCCExtension.monochrome_palette_flag = readBits(1);
+			h265PPSSCCExtension.luma_bit_depth_entry_minus8 = readGolombUE();
+			if(!h265PPSSCCExtension.monochrome_palette_flag) h265PPSSCCExtension.chroma_bit_depth_entry_minus8 = readGolombUE();
+			uint8_t numComps = h265PPSSCCExtension.monochrome_palette_flag ? 1 : 3;
+			for(uint8_t comp = 0;comp < numComps;++comp){
+				uint8_t readBitsLength = (comp == 0) ? h265PPSSCCExtension.luma_bit_depth_entry_minus8+8 : h265PPSSCCExtension.chroma_bit_depth_entry_minus8+8;
+				for(int i = 0;i < h265PPSSCCExtension.pps_num_palette_predictor_initializer;++i){
+					h265PPSSCCExtension.pps_palette_predictor_initializer[comp].push_back(readBits(readBitsLength));
+				}
+			}
+		}
+	}
+	return h265PPSSCCExtension;
 }
 
 H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slice& h265Slice){

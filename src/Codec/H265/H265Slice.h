@@ -95,6 +95,7 @@ struct H265Slice : public H265NAL {
 	int32_t slice_act_y_qp_offset;
 	int32_t slice_act_cb_qp_offset;
 	int32_t slice_act_cr_qp_offset;
+	uint8_t cu_chroma_qp_offset_enabled_flag;
 	uint8_t deblocking_filter_override_flag;
 	uint8_t slice_deblocking_filter_disabled_flag;
 	int32_t slice_beta_offset_div2;

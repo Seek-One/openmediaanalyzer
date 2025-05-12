@@ -157,8 +157,7 @@ bool newCodedPicture(H264Slice* prev, H264Slice* curr){
 		}
 	} else {
 		if(prev->first_mb_in_slice == curr->first_mb_in_slice &&
-		   prev->slice_type == curr->slice_type &&
-		   prev->pic_parameter_set_id == curr->pic_parameter_set_id) return true;
+		   prev->slice_type == curr->slice_type) return true;
 	}
 	if(prev->nal_ref_idc != curr->nal_ref_idc && (prev->nal_ref_idc == 0 || curr->nal_ref_idc == 0)) return true;
 	if(prev->IdrPicFlag != curr->IdrPicFlag) return true;

@@ -311,13 +311,11 @@ void H264BitstreamReader::readPPS(H264PPS& h264PPS)
 	h264PPS.pic_parameter_set_id = readGolombUE();
 	h264PPS.seq_parameter_set_id = readGolombUE();
 	
-	H264SPS* h264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(h264PPS.seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
 		std::cerr << "PPS unit is referencing an unknown SPS unit\n";
 		return;
 	}
-	h264SPS = referencedSPS->second;
 	h264PPS.entropy_coding_mode_flag = readBits(1);
 	h264PPS.bottom_field_pic_order_in_frame_present_flag = readBits(1);
 	h264PPS.num_slice_groups_minus1 = readGolombUE();
@@ -853,7 +851,6 @@ void H264BitstreamReader::readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS& 
 	h264SEI.messages.push_back(h264SEImsg);
 	h264SEImsg->payloadType = SEI_RECOVERY_POINT;
 	h264SEImsg->recovery_frame_cnt = readGolombUE();
-	int MaxNumFrames = pow(2, 4+activeSPS.log2_max_frame_num_minus4);
 	h264SEImsg->exact_match_flag = readBits(1);
 	h264SEImsg->broken_link_flag = readBits(1);
 	h264SEImsg->changing_slice_group_idc = readBits(2);

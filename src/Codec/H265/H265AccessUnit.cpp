@@ -118,18 +118,12 @@ void H265AccessUnit::validate(){
     if(pSlices.empty()) return;
     // header-related checks
     if(pSlices.size() > 1){
-        for(H265Slice* pSlice : pSlices){
-            if(pSlice->nal_unit_type != pSlices.front()->nal_unit_type) {
-                majorErrors.push_back("Differing nal_unit_type values detected");
-                break;
-            }
-        }
-        for(H265Slice* pSlice : pSlices){
-            if(pSlice->nuh_layer_id != pSlices.front()->nuh_layer_id) {
-                majorErrors.push_back("Differing nuh_layer_id values detected");
-                break;
-            }
-        }
+        if(std::any_of(pSlices.begin(), pSlices.end(), [pSlices](H265Slice* pSlice){
+            return pSlice->nal_unit_type != pSlices.front()->nal_unit_type;
+        })) majorErrors.push_back("Differing nal_unit_type values detected");
+        if(std::any_of(pSlices.begin(), pSlices.end(), [pSlices](H265Slice* pSlice){
+            return pSlice->nuh_layer_id != pSlices.front()->nuh_layer_id;
+        })) majorErrors.push_back("Differing nuh_layer_id values detected");
     }
     for(auto& NALUnit : NALUnits){
         if(NALUnit->isSlice()) continue;

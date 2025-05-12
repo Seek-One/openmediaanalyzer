@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include "../H26X/H26XMath.h"
+#include "H265AccessUnit.h"
+
 #include "H265BitstreamReader.h"
 
 H265BitstreamReader::H265BitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
@@ -292,7 +294,7 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 											h265PPS.deblocking_filter_override_enabled_flag);
 }
 
-void H265BitstreamReader::readSlice(H265Slice& h265Slice)
+void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit)
 {
 	h265Slice.IdrPicFlag = (h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL) || (h265Slice.nal_unit_type == H265NAL::UnitType_IDR_N_LP);
 	h265Slice.IRAPPicture = (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP) && (h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23);
@@ -391,6 +393,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 				h265Slice.slice_temporal_mvp_enabled_flag = readBits(1);
 			}
 		}
+		computePOC(h265Slice, pAccessUnits);
 		if (h265SPS->sample_adaptive_offset_enabled_flag) {
 			h265Slice.slice_sao_luma_flag = readBits(1);
 			if (h265SPS->ChromaArrayType != 0) {
@@ -433,7 +436,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice)
 			if ((h265PPS->weighted_pred_flag && h265Slice.slice_type == H265Slice::SliceType_P) ||
 				(h265PPS->weighted_bipred_flag && h265Slice.slice_type == H265Slice::SliceType_B))
 			{
-				std::cerr << "[Slice] pred_weight_table() not handled\n";
+				h265Slice.pred_weight_table = readSlicePredWeightTable(h265Slice);
 				return;
 			}
 			h265Slice.five_minus_max_num_merge_cand = readGolombUE();
@@ -1289,12 +1292,287 @@ H265PPSSCCExtension H265BitstreamReader::readH265PPSSCCExtension(){
 	return h265PPSSCCExtension;
 }
 
+void H265BitstreamReader::computePOC(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits){
+	if(!h265Slice.first_slice_segment_in_pic_flag) {
+		h265Slice.PicOrderCntVal = lastDecodedPOC;
+		return;
+	}
+	H265SPS* pCurrentSPS = h265Slice.getSPS();
+	if(h265Slice.isIRAP() && h265Slice.NoRaslOutputFlag){
+		h265Slice.PicOrderCntMsb = 0;
+	} else {
+		H265AccessUnit* prevTid0Pic = nullptr;
+		for(auto accessUnitIt = pAccessUnits.rbegin() + (pAccessUnits.back()->slice() ? 0 : 1);accessUnitIt != pAccessUnits.rend() && !prevTid0Pic;++accessUnitIt){
+			H265AccessUnit* pAccessUnit = *accessUnitIt;
+			H265Slice* pSlice = pAccessUnit->slice();
+			if(pSlice && pSlice->TemporalId == 0 && !pAccessUnit->isRASL() && !pAccessUnit->isRADL() && !pAccessUnit->isSLNR()) prevTid0Pic = pAccessUnit;
+		}
+		if(!prevTid0Pic){
+			std::cerr << "[Stream] Couldn't compute POC for non-initial IRAP picture : missing prevTid0Pic\n";
+			return;
+		}
+		uint32_t prevPicOrderCntLsb = prevTid0Pic->slice()->slice_pic_order_cnt_lsb;
+		int32_t prevPicOrderCntMsb = prevTid0Pic->PicOrderCntMsb;
+		if((h265Slice.slice_pic_order_cnt_lsb < prevPicOrderCntLsb) &&
+		   ((prevPicOrderCntLsb-h265Slice.slice_pic_order_cnt_lsb) >= (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			h265Slice.PicOrderCntMsb = prevPicOrderCntMsb + pCurrentSPS->MaxPicOrderCntLsb;
+		} else if((h265Slice.slice_pic_order_cnt_lsb > prevPicOrderCntLsb) &&
+		          ((h265Slice.slice_pic_order_cnt_lsb - prevPicOrderCntLsb) > (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			h265Slice.PicOrderCntMsb = prevPicOrderCntMsb - pCurrentSPS->MaxPicOrderCntLsb;
+		} else h265Slice.PicOrderCntMsb = prevPicOrderCntMsb;
+	}
+	h265Slice.PicOrderCntVal = h265Slice.PicOrderCntMsb + h265Slice.slice_pic_order_cnt_lsb;
+	lastDecodedPOC = h265Slice.PicOrderCntVal;
+}
+
+void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit){
+	if(!h265Slice.first_slice_segment_in_pic_flag){
+		if(h265Slice.slice_type == H265Slice::SliceType_P || h265Slice.slice_type == H265Slice::SliceType_B){
+			h265Slice.RefPicList0 = lastDecodedRefPicList0;
+		}
+		if(h265Slice.slice_type == H265Slice::SliceType_B) h265Slice.RefPicList1 = lastDecodedRefPicList1;
+	}
+	H265AccessUnit* pSliceAccessUnit = pAccessUnits.back()->slice() ? pNextAccessUnit : pAccessUnits.back();
+	H265SPS* pCurrentSPS = h265Slice.getSPS();
+	if(h265Slice.isIRAP() && h265Slice.NoRaslOutputFlag){
+		for(H265AccessUnit* pAccessUnit : pAccessUnits) {
+			if(pAccessUnit->slice()->nuh_layer_id == h265Slice.nuh_layer_id) pAccessUnit->status = H265AccessUnit::ReferenceStatus_Unused;
+		}
+	}
+
+	std::vector<int32_t> PocStCurrBefore;
+	std::vector<int32_t> PocStCurrAfter; 
+	std::vector<int32_t> PocStFoll; 
+	std::vector<int32_t> PocLtCurr; 
+	std::vector<int32_t> PocLtFoll; 
+	std::vector<uint8_t> CurrDeltaPocMsbPresentFlag;
+	std::vector<uint8_t> FollDeltaPocMsbPresentFlag;
+
+	if(h265Slice.nal_unit_type != H265NAL::UnitType_IDR_N_LP && h265Slice.nal_unit_type != H265NAL::UnitType_IDR_W_RADL){
+		if(!pCurrentSPS) {
+			return;
+		}
+		H265ShortTermRefPicSet currRPS = pCurrentSPS->short_term_ref_pic_set[h265Slice.CurrRpsIdx];
+		for(int i = 0;i < currRPS.NumNegativePics;++i){
+			if(currRPS.UsedByCurrPicS0[i]) PocStCurrBefore.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
+			else PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
+		}
+		for(int i = 0;i < currRPS.NumPositivePics;++i){
+			if(currRPS.UsedByCurrPicS1[i]) PocStCurrAfter.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
+			else PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
+		}
+		for(int i = 0;i < h265Slice.num_long_term_sps + h265Slice.num_long_term_pics;++i){
+			uint32_t pocLt = h265Slice.PocLsbLt[i];
+			if(h265Slice.delta_poc_msb_present_flag[i]){
+				pocLt += h265Slice.PicOrderCntVal - h265Slice.DeltaPocMsbCycleLt[i]*pCurrentSPS->MaxPicOrderCntLsb - 
+						(h265Slice.PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1));
+			}
+			if(h265Slice.UsedByCurrPicLt[i]){
+				PocLtCurr.push_back(pocLt);
+				CurrDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
+			} else {
+				PocLtFoll.push_back(pocLt);
+				FollDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
+			}
+		}
+	}
+
+	std::vector<H265AccessUnit*> RefPicSetStCurrBefore;
+    std::vector<H265AccessUnit*> RefPicSetStCurrAfter;
+    std::vector<H265AccessUnit*> RefPicSetStFoll;
+    std::vector<H265AccessUnit*> RefPicSetLtCurr;
+    std::vector<H265AccessUnit*> RefPicSetLtFoll;
+
+	for(H265AccessUnit* pAccessUnit : pAccessUnits) {
+		if(pAccessUnit->slice()->nuh_layer_id == h265Slice.nuh_layer_id) pAccessUnit->status = H265AccessUnit::ReferenceStatus_Unused;
+	}
+	// TODO: double check if all pictures in the DPB are eligible to be used as reference pictures
+	RefPicSetLtCurr.resize(PocLtCurr.size());
+	for(int i = 0;i < PocLtCurr.size();++i){
+		RefPicSetLtCurr[i] = nullptr;
+		if(!CurrDeltaPocMsbPresentFlag[i]){
+			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == PocLtCurr[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+					RefPicSetLtCurr[i] = *accessUnitIt;
+					RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		} else {
+			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
+				if((*accessUnitIt)->PicOrderCntVal == PocLtCurr[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+					RefPicSetLtCurr[i] = *accessUnitIt;
+					RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		}
+	}
+	RefPicSetLtFoll.resize(PocLtFoll.size());
+	for(int i = 0;i < PocLtFoll.size();++i){
+		RefPicSetLtFoll[i] = nullptr;
+		if(!FollDeltaPocMsbPresentFlag[i]){
+			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == PocLtFoll[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+					RefPicSetLtFoll[i] = *accessUnitIt;
+					RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		} else {
+			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
+				if((*accessUnitIt)->PicOrderCntVal == PocLtFoll[i] &&
+					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+					RefPicSetLtFoll[i] = *accessUnitIt;
+					RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
+				}
+			}
+		}
+	}
+
+	RefPicSetStCurrBefore.resize(PocStCurrBefore.size());
+	for(int i = 0;i < PocStCurrBefore.size();++i){
+		RefPicSetStCurrBefore[i] = nullptr;
+		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStCurrBefore[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == PocStCurrBefore[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+				RefPicSetStCurrBefore[i] = *accessUnitIt;
+				RefPicSetStCurrBefore[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+	RefPicSetStCurrAfter.resize(PocStCurrAfter.size());
+	for(int i = 0;i < PocStCurrAfter.size();++i){
+		RefPicSetStCurrAfter[i] = nullptr;
+		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStCurrAfter[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == PocStCurrAfter[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+				RefPicSetStCurrAfter[i] = *accessUnitIt;
+				RefPicSetStCurrAfter[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+	RefPicSetStFoll.resize(PocStFoll.size());
+	for(int i = 0;i < PocStFoll.size();++i){
+		RefPicSetStFoll[i] = nullptr;
+		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStFoll[i];++accessUnitIt){
+			if((*accessUnitIt)->PicOrderCntVal == PocStFoll[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+				RefPicSetStFoll[i] = *accessUnitIt;
+				RefPicSetStFoll[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
+			}
+		}
+	}
+
+	H265PPS* h265PPS = h265Slice.getPPS();
+	// 8.3.4 Decoding process for reference picture lists construction
+	uint32_t NumRpsCurrTempList0 = std::max(h265Slice.num_ref_idx_l0_active_minus1+1, h265Slice.NumPicTotalCurr);
+	uint32_t rIdx = 0;
+	std::vector<H265AccessUnit*> RefPicListTemp0;
+	if(h265Slice.slice_type == H265Slice::SliceType_P || h265Slice.slice_type == H265Slice::SliceType_B) {
+		while (rIdx < NumRpsCurrTempList0) {
+			for (int i = 0; i < PocStCurrBefore.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(RefPicSetStCurrBefore[i]);
+			}
+			for (int i = 0; i < PocStCurrAfter.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(RefPicSetStCurrAfter[i]);
+			}
+			for (int i = 0; i < PocLtCurr.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+				RefPicListTemp0.push_back(RefPicSetLtCurr[i]);
+			}
+			if (h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) {
+				RefPicListTemp0.push_back(pSliceAccessUnit);
+				++rIdx;
+			}
+		}
+		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l0_active_minus1; rIdx++) {
+			H265AccessUnit* val = h265Slice.ref_pic_lists_modification.ref_pic_list_modification_flag_l0
+					  ? RefPicListTemp0[h265Slice.ref_pic_lists_modification.list_entry_l0[rIdx]] : RefPicListTemp0[rIdx];
+			h265Slice.RefPicList0.push_back(val);
+		}
+		if( h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag && !h265Slice.ref_pic_lists_modification.ref_pic_list_modification_flag_l0 &&
+			NumRpsCurrTempList0 > (h265Slice.num_ref_idx_l0_active_minus1 + 1 ) ) {
+			h265Slice.RefPicList0[h265Slice.num_ref_idx_l0_active_minus1] = pSliceAccessUnit;
+		}
+	}
+	lastDecodedRefPicList0 = h265Slice.RefPicList0;
+
+	std::vector<H265AccessUnit*> RefPicListTemp1;
+	uint32_t NumRpsCurrTempList1 = std::max(h265Slice.num_ref_idx_l1_active_minus1+1, h265Slice.NumPicTotalCurr);
+	if(h265Slice.slice_type == H265Slice::SliceType_B) {
+		rIdx = 0;
+		while (rIdx < NumRpsCurrTempList1) {
+			for (int i = 0; i < PocStCurrAfter.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(RefPicSetStCurrAfter[i]);
+			}
+			for (int i = 0; i < PocStCurrBefore.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(RefPicSetStCurrBefore[i]);
+			}
+			for (int i = 0; i < PocLtCurr.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+				RefPicListTemp1.push_back(RefPicSetLtCurr[i]);
+			}
+			if (h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) {
+				RefPicListTemp1.push_back(pSliceAccessUnit);
+				++rIdx;
+			}
+		}
+		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l1_active_minus1; rIdx++)
+		{
+			H265AccessUnit* val = h265Slice.ref_pic_lists_modification.ref_pic_list_modification_flag_l1 ? RefPicListTemp1[h265Slice.ref_pic_lists_modification.list_entry_l1[rIdx]] : RefPicListTemp1[rIdx];
+			h265Slice.RefPicList1.push_back(val);
+		}
+	}
+	lastDecodedRefPicList1 = h265Slice.RefPicList1;
+}
+
 H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slice& h265Slice){
 	H265PredWeightTable h265PredWeightTable;
 	h265PredWeightTable.luma_log2_weight_denom = readGolombUE();
 	H265SPS* h265SPS = h265Slice.getSPS();
 	if(h265SPS->ChromaArrayType != 0) h265PredWeightTable.delta_chroma_log2_weight_denom = readGolombSE();
 	for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+		if((h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
+		   (h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.luma_weight_l0_flag[i] = readBits(1);
+	}
+	if(h265SPS->ChromaArrayType != 0){
+		for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+			if((h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
+		   (h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.chroma_weight_l0_flag[i] = readBits(1);
+		}
+	}
+	for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+		if(h265PredWeightTable.luma_weight_l0_flag[i]){
+			h265PredWeightTable.delta_luma_weight_l0[i] = readGolombSE();
+			h265PredWeightTable.luma_offset_l0[i] = readGolombSE();
+		}
+		if(h265PredWeightTable.chroma_weight_l0_flag[i]){
+			for(int j = 0;j < 2;++j){
+				h265PredWeightTable.delta_chroma_weight_l0[i][j];
+				h265PredWeightTable.delta_chroma_offset_l0[i][j];
+			}
+		}
+	}
+	if(h265Slice.slice_type == H265Slice::SliceType_B){
+		for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+			if((h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
+		   (h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.luma_weight_l1_flag[i] = readBits(1);
+		}
+
+		if(h265SPS->ChromaArrayType != 0){
+			for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+				if((h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
+			   (h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.chroma_weight_l1_flag[i] = readBits(1);
+			}
+		}
+		for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+			if(h265PredWeightTable.luma_weight_l1_flag[i]){
+				h265PredWeightTable.delta_luma_weight_l1[i] = readGolombSE();
+				h265PredWeightTable.luma_offset_l1[i] = readGolombSE();
+			}
+			if(h265PredWeightTable.chroma_weight_l1_flag[i]){
+				for(int j = 0;j < 2;++j){
+					h265PredWeightTable.delta_chroma_weight_l1[i][j];
+					h265PredWeightTable.delta_chroma_offset_l1[i][j];
+				}
+			}
+		}
 	}
 	return h265PredWeightTable;
 }

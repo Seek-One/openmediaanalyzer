@@ -30,7 +30,74 @@ std::vector<std::string> RefPicListsModification::dump_fields(const H265Slice& s
 }
 
 H265PredWeightTable::H265PredWeightTable(){
+	luma_log2_weight_denom = 0;
 	delta_chroma_log2_weight_denom = 0;
+	for(int i = 0;i < 15;++i){
+		luma_weight_l0_flag[i] = 0;
+		chroma_weight_l0_flag[i] = 0;
+		delta_luma_weight_l0[i] = 0;
+		luma_offset_l0[i] = 0;
+		luma_weight_l1_flag[i] = 0;
+		chroma_weight_l1_flag[i] = 0;
+		delta_luma_weight_l1[i] = 0;
+		luma_offset_l1[i] = 0;
+		for(int j = 0;j < 2;++j){
+			delta_chroma_weight_l0[i][j] = 0;
+			delta_chroma_offset_l0[i][j] = 0;
+			delta_chroma_weight_l1[i][j] = 0;
+			delta_chroma_offset_l1[i][j] = 0;
+		}
+	}
+}
+
+std::vector<std::string> H265PredWeightTable::dump_fields(const H265Slice& h265Slice){
+	std::vector<std::string> fields;
+	fields.push_back((std::ostringstream() << "luma_log2_weight_denom:" << (int)luma_log2_weight_denom).str());
+	H265SPS* h265SPS = h265Slice.getSPS();
+	if(h265SPS->ChromaArrayType != 0) fields.push_back((std::ostringstream() << "delta_chroma_log2_weight_denom:" << (int)delta_chroma_log2_weight_denom).str());
+	for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+		fields.push_back((std::ostringstream() << "  luma_weight_l0_flag[" << i << "]:" << (int)luma_weight_l0_flag[i]).str());
+	}
+	if(h265SPS->ChromaArrayType != 0){
+		for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+			fields.push_back((std::ostringstream() << "  chroma_weight_l0_flag[" << i << "]:" << (int)chroma_weight_l0_flag[i]).str());
+		}
+	}
+	for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+		if(luma_weight_l0_flag[i]){
+			fields.push_back((std::ostringstream() << "    delta_luma_weight_l0[" << i << "]:" << (int)delta_luma_weight_l0[i]).str());
+			fields.push_back((std::ostringstream() << "    luma_offset_l0[" << i << "]:" << (int)luma_offset_l0[i]).str());
+		}
+		if(chroma_weight_l0_flag[i]){
+			for(int j = 0;j < 2;++j){
+				fields.push_back((std::ostringstream() << "    delta_luma_weight_l0[" << i << "][" << j << "]:" << (int)delta_chroma_weight_l0[i][j]).str());
+				fields.push_back((std::ostringstream() << "    delta_chroma_offset_l0[" << i << "][" << j << "]:" << (int)delta_chroma_offset_l0[i][j]).str());
+			}
+		}
+	}
+	if(h265Slice.slice_type == H265Slice::SliceType_B){
+		for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+			fields.push_back((std::ostringstream() << "  luma_weight_l0_flag[" << i << "]:" << (int)luma_weight_l1_flag[i]).str());
+		}
+		if(h265SPS->ChromaArrayType != 0){
+			for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+				fields.push_back((std::ostringstream() << "  chroma_weight_l0_flag[" << i << "]:" << (int)chroma_weight_l1_flag[i]).str());
+			}
+		}
+		for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+			if(luma_weight_l1_flag[i]){
+				fields.push_back((std::ostringstream() << "    delta_luma_weight_l0[" << i << "]:" << (int)delta_luma_weight_l1[i]).str());
+				fields.push_back((std::ostringstream() << "    luma_offset_l0[" << i << "]:" << (int)luma_offset_l1[i]).str());
+			}
+			if(chroma_weight_l1_flag[i]){
+				for(int j = 0;j < 2;++j){
+					fields.push_back((std::ostringstream() << "    delta_luma_weight_l0[" << i << "][" << j << "]:" << (int)delta_chroma_weight_l1[i][j]).str());
+					fields.push_back((std::ostringstream() << "    delta_chroma_offset_l0[" << i << "][" << j << "]:" << (int)delta_chroma_offset_l1[i][j]).str());
+				}
+			}
+		}
+	}
+	return fields;
 }
 
 H265Slice::H265Slice():
@@ -158,7 +225,10 @@ std::vector<std::string> H265Slice::dump_fields(){
 			}
 			if((h265PPS->weighted_pred_flag && slice_type == SliceType_P) ||
 				(h265PPS->weighted_bipred_flag && slice_type == SliceType_B)){
-					// pred weight table
+					std::vector<std::string> pred_weight_table_fields = pred_weight_table.dump_fields(*this);
+					std::transform(pred_weight_table_fields.begin(), pred_weight_table_fields.end(), std::back_inserter(fields), [](const std::string& subField){
+						return "  " + subField;
+					});
 			}
 			fields.push_back((std::ostringstream() << "  five_minus_max_num_merge_cand:" << five_minus_max_num_merge_cand).str());
 			if(h265SPS->sps_scc_extension.motion_vector_resolution_control_idc == 2){

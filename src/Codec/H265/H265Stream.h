@@ -27,6 +27,7 @@ public:
 	uint32_t popFrontGOPs(uint32_t count);
 	uint32_t accessUnitCount() const;
 	std::list<H265AccessUnit*> getLastAccessUnits(uint32_t count) const;
+	std::vector<H265AccessUnit*> getAccessUnits() const;
 
 	// Size without cropping
 	Size getUncroppedPictureSize() const;
@@ -35,13 +36,8 @@ public:
 
 	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength);
 
-	// Extract all necessary informations for the decoding process
+	// Extract all necessary information for the decoding process
 	void startDecodingProcess();
-
-	void computeRef();
-	void computePOC();
-	void computeRPS();
-	void computeRPL();
 
 public:
 	bool firstPicture;
@@ -61,6 +57,7 @@ private:
 
 	std::deque<std::unique_ptr<H265GOP>> m_GOPs;
 	H265AccessUnit* m_pCurrentAccessUnit;
+	H265AccessUnit* m_pNextAccessUnit;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_STREAM_H_

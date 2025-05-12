@@ -49,20 +49,8 @@ struct H265AccessUnit {
 	uint8_t TargetDecLayerIdList; // 8.1.2
 	uint8_t HighestTid; // 8.1.2
 	bool SubPicHrdFlag; // 8.1.2
-	std::vector<int32_t> PocStCurrBefore; // 8.3.2
-	std::vector<int32_t> PocStCurrAfter; // 8.3.2
-	std::vector<int32_t> PocStFoll; // 8.3.2
-	std::vector<int32_t> PocLtCurr; // 8.3.2
-	std::vector<int32_t> PocLtFoll; // 8.3.2
-	std::vector<uint8_t> CurrDeltaPocMsbPresentFlag; // 8.3.2
-	std::vector<uint8_t> FollDeltaPocMsbPresentFlag; // 8.3.2
-    bool RPSDecoded;
 
-    std::vector<H265AccessUnit*> RefPicSetStCurrBefore;
-    std::vector<H265AccessUnit*> RefPicSetStCurrAfter;
-    std::vector<H265AccessUnit*> RefPicSetStFoll;
-    std::vector<H265AccessUnit*> RefPicSetLtCurr;
-    std::vector<H265AccessUnit*> RefPicSetLtFoll;
+    bool RPSDecoded;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265ACCESS_UNIT_H_

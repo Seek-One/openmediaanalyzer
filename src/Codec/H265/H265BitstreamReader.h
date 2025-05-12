@@ -21,10 +21,14 @@ public:
 	void readVPS(H265VPS& h265VPS);
 	void readSPS(H265SPS& h265SPS);
 	void readPPS(H265PPS& h265PPS);
-	void readSlice(H265Slice& h265Slice);
+	void readSlice(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
 	void readSEI(H265SEI& h265SEI);
 
 private:
+	int32_t lastDecodedPOC;
+	std::vector<H265AccessUnit*> lastDecodedRefPicList0; // 8.3.4 (For P-slice)
+	std::vector<H265AccessUnit*> lastDecodedRefPicList1; // 8.3.4 (For B-slice)
+
 	H265ProfileTierLevel readProfileTierLevel(uint8_t iProfilePresentFlag, uint8_t iMaxNumSubLayersMinus1);
 	H265ScalingList readScalingList();
 	H265ShortTermRefPicSet readShortTermRefPicSet(uint32_t iShortTermSetIndex, const H265SPS& h265SPS);
@@ -41,6 +45,8 @@ private:
 	H265PPSDeltaLookupTable readH265PPSDeltaLookupTable(const H265PPS3DExtension& h265PPS3DExtension);
 	H265PPS3DExtension readH265PPS3DExtension();
 	H265PPSSCCExtension readH265PPSSCCExtension();
+	void computePOC(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits);
+	void computeRPL(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
 	H265PredWeightTable readSlicePredWeightTable(const H265Slice& h265Slice);
 	void computeNumPicTotalCurr(H265Slice& h265Slice, const H265SPS& h265SPS);
 

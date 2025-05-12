@@ -31,16 +31,18 @@ struct H265PredWeightTable {
 	uint8_t delta_chroma_log2_weight_denom;
 	std::array<uint8_t, 15> luma_weight_l0_flag;
 	std::array<uint8_t, 15> chroma_weight_l0_flag;
-	std::array<int16_t, 15> delta_luma_weight_l0_flag;
+	std::array<int16_t, 15> delta_luma_weight_l0;
 	std::array<int16_t, 15> luma_offset_l0;
-	std::array<int16_t, 15> delta_chroma_weight_l0_flag;
-	std::array<int16_t, 15> delta_chroma_offset_l0;
+	std::array<std::array<int16_t, 2>, 15> delta_chroma_weight_l0;
+	std::array<std::array<int16_t, 2>, 15> delta_chroma_offset_l0;
 	std::array<uint8_t, 15> luma_weight_l1_flag;
 	std::array<uint8_t, 15> chroma_weight_l1_flag;
-	std::array<int16_t, 15> delta_luma_weight_l1_flag;
+	std::array<int16_t, 15> delta_luma_weight_l1;
 	std::array<int16_t, 15> luma_offset_l1;
-	std::array<int16_t, 15> delta_chroma_weight_l1_flag;
-	std::array<int16_t, 15> delta_chroma_offset_l1;
+	std::array<std::array<int16_t, 2>, 15> delta_chroma_weight_l1;
+	std::array<std::array<int16_t, 2>, 15> delta_chroma_offset_l1;
+
+	std::vector<std::string> dump_fields(const H265Slice& h265Slice);
 };
 
 struct H265Slice : public H265NAL {
@@ -108,6 +110,8 @@ struct H265Slice : public H265NAL {
 	std::vector<uint8_t> slice_segment_header_extension_data_byte;
 
 	// Derived variables
+	int32_t PicOrderCntVal;
+	uint32_t PicOrderCntMsb;
 	uint32_t SliceQpY;
 	uint8_t IdrPicFlag;
 	uint8_t IRAPPicture;

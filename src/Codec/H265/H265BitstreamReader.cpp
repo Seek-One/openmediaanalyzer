@@ -211,6 +211,15 @@ void H265BitstreamReader::readSPS(H265SPS& h265SPS)
 	else if (h265SPS.PicSizeInSamplesY <= (spsMaxLumaPs >> 1)) h265SPS.MaxDpbSize = std::min(2*maxDpbPicBuf, 16);
 	else if (h265SPS.PicSizeInSamplesY <= ((3*spsMaxLumaPs) >> 2)) h265SPS.MaxDpbSize = std::min(4*maxDpbPicBuf/3, 16);
 	else h265SPS.MaxDpbSize = maxDpbPicBuf;
+	h265SPS.sps_range_extension.CoeffMinY = -(1 << (h265SPS.sps_range_extension.extended_precision_processing_flag ? std::max(15, h265SPS.BitDepthY+6) : 15));
+	h265SPS.sps_range_extension.CoeffMinC = -(1 << (h265SPS.sps_range_extension.extended_precision_processing_flag ? std::max(15, h265SPS.BitDepthC+6) : 15));
+	h265SPS.sps_range_extension.CoeffMaxY = (1 << (h265SPS.sps_range_extension.extended_precision_processing_flag ? std::max(15, h265SPS.BitDepthY+6) : 15))-1;
+	h265SPS.sps_range_extension.CoeffMaxC = (1 << (h265SPS.sps_range_extension.extended_precision_processing_flag ? std::max(15, h265SPS.BitDepthC+6) : 15))-1;
+
+	h265SPS.sps_range_extension.WpOffsetBdShiftY = h265SPS.sps_range_extension.high_precision_offsets_enabled_flag ? 0 : (h265SPS.BitDepthY-8);
+	h265SPS.sps_range_extension.WpOffsetBdShiftC = h265SPS.sps_range_extension.high_precision_offsets_enabled_flag ? 0 : (h265SPS.BitDepthC-8);
+	h265SPS.sps_range_extension.WpOffsetHalfRangeY = 1 << (h265SPS.sps_range_extension.high_precision_offsets_enabled_flag ? (h265SPS.BitDepthY-1) : 7);
+	h265SPS.sps_range_extension.WpOffsetHalfRangeC = 1 << (h265SPS.sps_range_extension.high_precision_offsets_enabled_flag ? (h265SPS.BitDepthC-1) : 7);
 }
 
 void H265BitstreamReader::readPPS(H265PPS& h265PPS)

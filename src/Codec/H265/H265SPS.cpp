@@ -284,6 +284,16 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 	QpBdOffsetY = 0;
 	BitDepthC = 0;
 	QpBdOffsetC = 0;
+
+	sps_range_extension.CoeffMinY = -(1 << (sps_range_extension.extended_precision_processing_flag ? std::max(15, BitDepthY+6) : 15));
+	sps_range_extension.CoeffMinC = -(1 << (sps_range_extension.extended_precision_processing_flag ? std::max(15, BitDepthC+6) : 15));
+	sps_range_extension.CoeffMaxY = (1 << (sps_range_extension.extended_precision_processing_flag ? std::max(15, BitDepthY+6) : 15))-1;
+	sps_range_extension.CoeffMaxC = (1 << (sps_range_extension.extended_precision_processing_flag ? std::max(15, BitDepthC+6) : 15))-1;
+
+	sps_range_extension.WpOffsetBdShiftY = sps_range_extension.high_precision_offsets_enabled_flag ? 0 : (BitDepthY-8);
+	sps_range_extension.WpOffsetBdShiftC = sps_range_extension.high_precision_offsets_enabled_flag ? 0 : (BitDepthC-8);
+	sps_range_extension.WpOffsetHalfRangeY = 1 << (sps_range_extension.high_precision_offsets_enabled_flag ? (BitDepthY-1) : 7);
+	sps_range_extension.WpOffsetHalfRangeC = 1 << (sps_range_extension.high_precision_offsets_enabled_flag ? (BitDepthC-1) : 7);
 }
 
 H265SPS::~H265SPS(){}

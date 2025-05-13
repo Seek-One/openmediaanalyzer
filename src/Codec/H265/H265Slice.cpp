@@ -29,6 +29,16 @@ std::vector<std::string> RefPicListsModification::dump_fields(const H265Slice& s
 	return fields;
 }
 
+void RefPicListsModification::validate(const H265Slice& h265Slice){
+	uint32_t list_entry_limit = h265Slice.NumPicTotalCurr-1;
+	for(int i = 0;i < list_entry_l0.size();++i){
+		if(list_entry_l0[i] > list_entry_limit) minorErrors.push_back(fmt::format("[Slice RPLM] list_entry_l0[{}] value ({}) not in valid range (0..{})", i, list_entry_l0[i], list_entry_limit));
+	}
+	for(int i = 0;i < list_entry_l1.size();++i){
+		if(list_entry_l1[i] > list_entry_limit) minorErrors.push_back(fmt::format("[Slice RPLM] list_entry_l1[{}] value ({}) not in valid range (0..{})", i, list_entry_l1[i], list_entry_limit));
+	}
+}
+
 H265PredWeightTable::H265PredWeightTable(){
 	luma_log2_weight_denom = 0;
 	delta_chroma_log2_weight_denom = 0;
@@ -98,6 +108,42 @@ std::vector<std::string> H265PredWeightTable::dump_fields(const H265Slice& h265S
 		}
 	}
 	return fields;
+}
+
+void H265PredWeightTable::validate(const H265Slice& h265Slice){
+	H265SPS* h265SPS = h265Slice.getSPS();
+	int16_t delta_chroma_offset_lower_bound = INT16_MIN;
+	int16_t delta_chroma_offset_upper_bound = INT16_MAX;
+	if(h265SPS){
+		delta_chroma_offset_lower_bound = -4*h265SPS->sps_range_extension.WpOffsetHalfRangeC;
+		delta_chroma_offset_upper_bound = 4*h265SPS->sps_range_extension.WpOffsetHalfRangeC-1;
+	}
+	if(luma_log2_weight_denom > 7) minorErrors.push_back(fmt::format("[Slice PWT] luma_log2_weight_denom value ({}) not in valid range (0..7)", luma_log2_weight_denom));
+	if(delta_chroma_log2_weight_denom > 7-luma_log2_weight_denom) minorErrors.push_back(fmt::format("[Slice PWT] delta_chroma_log2_weight_denom value ({}) not in valid range (0..{})", delta_chroma_log2_weight_denom, 7-luma_log2_weight_denom));
+	for(int i = 0;i < 15;++i){
+		if(luma_weight_l0_flag[i]){
+			if(delta_luma_weight_l0[i] < -128 || delta_luma_weight_l0[i] > 127) minorErrors.push_back(fmt::format("[Slice PWT] delta_luma_weight_l0[{}] value ({}) not in valid range (-128..127)", i, delta_luma_weight_l0[i]));
+		}
+		if(chroma_weight_l0_flag[i]){
+			for(int j = 0;j < 2;++j){
+				if(delta_chroma_weight_l0[i][j] < -128 || delta_chroma_weight_l0[i][j] > 127) minorErrors.push_back(fmt::format("delta_chroma_weight[{}][{}] value ({}) not in valid range (-128..127)", i, j, delta_chroma_weight_l0[i][j]));
+				if(delta_chroma_offset_l0[i][j] < delta_chroma_offset_lower_bound || delta_chroma_offset_l0[i][j] > delta_chroma_offset_upper_bound){
+					minorErrors.push_back(fmt::format("[Slice PWT] delta_chroma_offset_l0[{}][{}] value ({}) not in valid range ({}..{})", i, j, delta_chroma_offset_l0[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
+				}
+			}
+		}
+		if(luma_weight_l1_flag[i]){
+			if(delta_luma_weight_l1[i] < -128 || delta_luma_weight_l1[i] > 127) minorErrors.push_back(fmt::format("[Slice PWT] delta_luma_weight_l1[{}] value ({}) not in valid range (-128..127)", i, delta_luma_weight_l1[i]));
+		}
+		if(chroma_weight_l1_flag[i]){
+			for(int j = 0;j < 2;++j){
+				if(delta_chroma_weight_l1[i][j] < -128 || delta_chroma_weight_l1[i][j] > 127) minorErrors.push_back(fmt::format("delta_chroma_weight[{}][{}] value ({}) not in valid range (-128..127)", i, j, delta_chroma_weight_l1[i][j]));
+				if(delta_chroma_offset_l1[i][j] < delta_chroma_offset_lower_bound || delta_chroma_offset_l1[i][j] > delta_chroma_offset_upper_bound){
+					minorErrors.push_back(fmt::format("[Slice PWT] delta_chroma_offset_l1[{}][{}] value ({}) not in valid range ({}..{})", i, j, delta_chroma_offset_l1[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
+				}
+			}
+		}
+	}
 }
 
 H265Slice::H265Slice():
@@ -241,10 +287,12 @@ std::vector<std::string> H265Slice::dump_fields(){
 			fields.push_back(fmt::format("    slice_cr_qp_offset:{}", slice_cr_qp_offset));
 		}
 		if(h265PPS->pps_scc_extension.pps_slice_act_qp_offsets_present_flag){
-			// slice_act...
+			fields.push_back(fmt::format("    slice_act_cb_qp_offset:{}", slice_act_cb_qp_offset));
+			fields.push_back(fmt::format("    slice_act_cr_qp_offset:{}", slice_act_cr_qp_offset));
+			fields.push_back(fmt::format("    slice_act_y_qp_offset:{}", slice_act_y_qp_offset));
 		}
 		if(h265PPS->pps_range_extension.chroma_qp_offset_list_enabled_flag){
-			// cu_chroma...
+			fields.push_back(fmt::format("    cu_chroma_qp_offset_enabled_flag:{}", cu_chroma_qp_offset_enabled_flag));
 		}
 		if(h265PPS->deblocking_filter_override_enabled_flag){
 			fields.push_back(fmt::format("    deblocking_filter_override_flag:{}", deblocking_filter_override_flag));
@@ -338,7 +386,6 @@ void H265Slice::validate(){
 	for(int i = 0;i < lt_idx_sps.size();++i){
 		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1) minorErrors.push_back(fmt::format("[Slice] lt_idx_sps[{}] value ({}) not in valid range (0..{})", i, lt_idx_sps[i], pSps->num_long_term_ref_pics_sps-1));
 	}
-	// delta_poc_msb_present_flag[i]
 	uint32_t delta_poc_msb_cycle_lt_limit = 1 << (32 - pSps->log2_max_pic_order_cnt_lsb_minus4-4);
 	for(int i = 0;i < delta_poc_msb_cycle_lt.size();++i){
 		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) minorErrors.push_back(fmt::format("[Slice] delta_poc_msb_cycle_lt[{}] value ({}) not in valid range (0..{})", i, delta_poc_msb_cycle_lt[i], delta_poc_msb_cycle_lt_limit));
@@ -348,11 +395,21 @@ void H265Slice::validate(){
 			if(num_ref_idx_l0_active_minus1 > 14) minorErrors.push_back(fmt::format("[Slice] num_ref_idx_l0_active_minus1 value ({}) not in valid range (0..14)", num_ref_idx_l0_active_minus1));
 			if(num_ref_idx_l1_active_minus1 > 14) minorErrors.push_back(fmt::format("[Slice] num_ref_idx_l1_active_minus1 value ({}) not in valid range (0..14)", num_ref_idx_l1_active_minus1));
 		}
-		if(collocated_from_l0_flag && (slice_type == SliceType_P || slice_type == SliceType_B)  && collocated_ref_idx > num_ref_idx_l0_active_minus1){
-			minorErrors.push_back(fmt::format("[Slice] collocated_ref_idx value ({}) not in valid range (0..{})", collocated_ref_idx, num_ref_idx_l0_active_minus1));
+		if(pPps->lists_modification_present_flag && NumPicTotalCurr > 1){
+			ref_pic_lists_modification.validate(*this);
+			minorErrors.insert(minorErrors.end(), ref_pic_lists_modification.minorErrors.begin(), ref_pic_lists_modification.minorErrors.end());
+			majorErrors.insert(majorErrors.end(), ref_pic_lists_modification.majorErrors.begin(), ref_pic_lists_modification.majorErrors.end());
+			ref_pic_lists_modification.minorErrors.clear();
+			ref_pic_lists_modification.majorErrors.clear();
 		}
-		// if(slice_temporal_mvp_enabled_flag) ...
-		// pred_weight_table
+		if(collocated_ref_idx > num_ref_idx_l1_active_minus1){
+			minorErrors.push_back(fmt::format("[Slice] collocated_ref_idx value ({}) not in valid range (0..{})", collocated_ref_idx, num_ref_idx_l1_active_minus1));
+		}
+		pred_weight_table.validate(*this);
+		minorErrors.insert(minorErrors.end(), pred_weight_table.minorErrors.begin(), pred_weight_table.minorErrors.end());
+		majorErrors.insert(majorErrors.end(), pred_weight_table.majorErrors.begin(), pred_weight_table.majorErrors.end());
+		pred_weight_table.minorErrors.clear();
+		pred_weight_table.majorErrors.clear();
 		if(five_minus_max_num_merge_cand > 4) minorErrors.push_back(fmt::format("[Slice] five_minus_max_num_merge_cand value ({}) not in valid range (0..4)", five_minus_max_num_merge_cand));
 	}
 	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) minorErrors.push_back(fmt::format("[Slice] SliceQpY value ({}) not in valid range ({}..51)", SliceQpY, -pSps->QpBdOffsetY));

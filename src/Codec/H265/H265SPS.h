@@ -78,6 +78,16 @@ struct H265SPSRangeExtension {
 	uint8_t persistent_rice_adaptation_enabled_flag;
 	uint8_t cabac_bypass_alignment_enabled_flag;
 
+	// derived variables
+	int32_t CoeffMinY;
+	int32_t CoeffMinC;
+	int32_t CoeffMaxY;
+	int32_t CoeffMaxC;
+	uint8_t WpOffsetBdShiftY; 
+	uint8_t WpOffsetBdShiftC; 
+	uint8_t WpOffsetHalfRangeY; 
+	uint8_t WpOffsetHalfRangeC; 
+
 	std::vector<std::string> dump_fields();
 };
 

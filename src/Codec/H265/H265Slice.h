@@ -22,6 +22,9 @@ struct RefPicListsModification {
 	std::vector<uint32_t> list_entry_l1;
 
 	std::vector<std::string> dump_fields(const H265Slice& slice) const;
+	std::vector<std::string> minorErrors;
+	std::vector<std::string> majorErrors;
+	void validate(const H265Slice& h265Slice);
 };
 
 struct H265PredWeightTable {
@@ -42,7 +45,10 @@ struct H265PredWeightTable {
 	std::array<std::array<int16_t, 2>, 15> delta_chroma_weight_l1;
 	std::array<std::array<int16_t, 2>, 15> delta_chroma_offset_l1;
 
+	std::vector<std::string> minorErrors;
+	std::vector<std::string> majorErrors;
 	std::vector<std::string> dump_fields(const H265Slice& h265Slice);
+	void validate(const H265Slice& h265Slice);
 };
 
 struct H265Slice : public H265NAL {

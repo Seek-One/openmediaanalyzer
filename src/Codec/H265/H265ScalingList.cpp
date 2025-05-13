@@ -1,5 +1,5 @@
 #include <string>
-#include <sstream>
+#include <fmt/core.h>
 
 #include "H265ScalingList.h"
 
@@ -58,16 +58,16 @@ std::vector<std::string> H265ScalingList::dump_fields(){
 	std::vector<std::string> fields;
 	for(int sizeId = 0;sizeId < 4;++sizeId){
 		for(int matrixId = 0;matrixId < 6;matrixId += (sizeId == 3 ? 3 : 1)){
-			fields.push_back((std::ostringstream() << "scaling_list_pred_mode_flag[" << sizeId << "][" << matrixId << "]:" << (int)scaling_list_pred_mode_flag[sizeId][matrixId]).str());
+			fields.push_back(fmt::format("scaling_list_pred_mode_flag[{}][{}]:{}", sizeId, matrixId, scaling_list_pred_mode_flag[sizeId][matrixId]));
 			if(!scaling_list_pred_mode_flag[sizeId][matrixId]){
-				fields.push_back((std::ostringstream() << "  scaling_list_pred_matrix_id_delta[" << sizeId << "][" << matrixId << "]:" << scaling_list_pred_matrix_id_delta[sizeId][matrixId]).str());
+				fields.push_back(fmt::format("  scaling_list_pred_matrix_id_delta[{}][{}]:{}", sizeId, matrixId, scaling_list_pred_matrix_id_delta[sizeId][matrixId]));
 			} else {
 				int coefNum = std::min(64, (1 << (4 + (sizeId << 1))));
 				if(sizeId > 1){
-					fields.push_back((std::ostringstream() << "  scaling_list_dc_coef_minus8[" << sizeId << "][" << matrixId << "]:" << scaling_list_dc_coef_minus8[sizeId][matrixId]).str());
+					fields.push_back(fmt::format("  scaling_list_dc_coef_minus8[{}][{}]:{}", sizeId, matrixId, scaling_list_dc_coef_minus8[sizeId][matrixId]));
 				}
 				for(int i = 0;i < coefNum;++i){
-					fields.push_back((std::ostringstream() << "    scaling_list_dc_coef_minus8[" << i << "][" << sizeId << "][" << matrixId << "]:" << scaling_list_delta_coef[i][sizeId][matrixId]).str());
+					fields.push_back(fmt::format("    scaling_list_dc_coef_minus8[{}][{}][{}]:", i, sizeId, matrixId, scaling_list_delta_coef[i][sizeId][matrixId]));
 				}
 			}
 		}

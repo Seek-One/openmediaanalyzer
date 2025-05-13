@@ -519,10 +519,6 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 			return;
 		}
 	}	
-	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame && pSlice->frame_num != 0){
-		pSlice->minorErrors.push_back("[Slice Frame number] frame_num of an IDR picture should be 0");
-		return;
-	} 
 	if(pSlice->frame_num == pSlice->PrevRefFrameNum){
 		std::vector<H264AccessUnit*> pCurrentGOPAccessUnits = m_GOPs.back()->getAccessUnits();
 		pCurrentGOPAccessUnits.pop_back();

@@ -7,6 +7,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt5 REQUIRED COMPONENTS Gui)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt5 REQUIRED COMPONENTS LinguistTools) 
+find_package(fmt REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
@@ -186,6 +187,7 @@ target_link_libraries(${APPLICATION_EXE_NAME}
     Qt5::Gui
     Qt5::Widgets
     PkgConfig::LIBAV
+    fmt::fmt
 )
 
 set_target_properties(${APPLICATION_EXE_NAME} PROPERTIES

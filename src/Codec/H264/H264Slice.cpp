@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-#include <sstream>
+#include <fmt/core.h>
 
 #include "H264PPS.h"
 #include "H264SPS.h"
@@ -101,9 +101,9 @@ bool H264Slice::isSlice(H264NAL* NALUnit){
 
 std::vector<std::string> H264Slice::dump_fields(){
 	std::vector<std::string> fields;
-	fields.push_back((std::ostringstream() << "first_mb_in_slice:" << first_mb_in_slice).str());
-    fields.push_back((std::ostringstream() << "slice_type:" << slice_type-1).str());
-    fields.push_back((std::ostringstream() << "pic_parameter_set_id:" << pic_parameter_set_id).str());
+	fields.push_back(fmt::format("first_mb_in_slice:{}", first_mb_in_slice));
+    fields.push_back(fmt::format("slice_type:{}", slice_type-1));
+    fields.push_back(fmt::format("pic_parameter_set_id:{}", pic_parameter_set_id));
 	
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()) return fields;
@@ -111,82 +111,82 @@ std::vector<std::string> H264Slice::dump_fields(){
 	auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
 	H264SPS* pSps = referencedSPS->second;
-	if(pSps->separate_colour_plane_flag == 1) fields.push_back((std::ostringstream() << "  colour_plane_id:" << (int)colour_plane_id).str());
-    fields.push_back((std::ostringstream() << "frame_num:" << frame_num).str());
+	if(pSps->separate_colour_plane_flag == 1) fields.push_back(fmt::format("  colour_plane_id:{}", colour_plane_id));
+    fields.push_back(fmt::format("frame_num:{}", frame_num));
 	if(!pSps->frame_mbs_only_flag){
-		fields.push_back((std::ostringstream() << "  field_pic_flag:" << (int)field_pic_flag).str());
-		if(field_pic_flag) fields.push_back((std::ostringstream() << "    bottom_field_flag:" << (int)bottom_field_flag).str());
+		fields.push_back(fmt::format("  field_pic_flag:{}", field_pic_flag));
+		if(field_pic_flag) fields.push_back(fmt::format("    bottom_field_flag:{}", bottom_field_flag));
 	}
-	if(IdrPicFlag) fields.push_back((std::ostringstream() << "  idr_pic_id:" << (int)idr_pic_id).str());
+	if(IdrPicFlag) fields.push_back(fmt::format("  idr_pic_id:{}", idr_pic_id));
 	if(pSps->pic_order_cnt_type == 0){
-		fields.push_back((std::ostringstream() << "  pic_order_cnt_lsb:" << (int)pic_order_cnt_lsb).str());
-		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt_bottom:" << delta_pic_order_cnt_bottom).str());
+		fields.push_back(fmt::format("  pic_order_cnt_lsb:{}", pic_order_cnt_lsb));
+		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back(fmt::format("    delta_pic_order_cnt_bottom:{}", delta_pic_order_cnt_bottom));
 	}
 	if(pSps->pic_order_cnt_type == 1 && pSps->delta_pic_order_always_zero_flag){
-		fields.push_back((std::ostringstream() << "  delta_pic_order_cnt0:" << delta_pic_order_cnt[0]).str());
-		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back((std::ostringstream() << "    delta_pic_order_cnt1:" << delta_pic_order_cnt[1]).str());
+		fields.push_back(fmt::format("  delta_pic_order_cnt0:{}", delta_pic_order_cnt[0]));
+		if(pPps->bottom_field_pic_order_in_frame_present_flag && !field_pic_flag) fields.push_back(fmt::format("    delta_pic_order_cnt1:{}", delta_pic_order_cnt[1]));
 	}
-	if(pPps->redundant_pic_cnt_present_flag) fields.push_back((std::ostringstream() << "  redundant_pic_cnt:" << (int)redundant_pic_cnt).str());
-	if(slice_type == SliceType_B) fields.push_back((std::ostringstream() << "  direct_spatial_mv_pred_flag:" << (int)direct_spatial_mv_pred_flag).str());
+	if(pPps->redundant_pic_cnt_present_flag) fields.push_back(fmt::format("  redundant_pic_cnt:{}", redundant_pic_cnt));
+	if(slice_type == SliceType_B) fields.push_back(fmt::format("  direct_spatial_mv_pred_flag:{}", direct_spatial_mv_pred_flag));
 	if(slice_type == SliceType_P || slice_type == SliceType_SP || slice_type == SliceType_B){
-		fields.push_back((std::ostringstream() << "  num_ref_idx_active_override_flag:" << (int)num_ref_idx_active_override_flag).str());
+		fields.push_back(fmt::format("  num_ref_idx_active_override_flag:{}", num_ref_idx_active_override_flag));
 		if(num_ref_idx_active_override_flag){
-			fields.push_back((std::ostringstream() << "    num_ref_idx_l0_active_minus1:" << (int)num_ref_idx_l0_active_minus1).str());
-			if(slice_type == SliceType_B) fields.push_back((std::ostringstream() << "      num_ref_idx_l1_active_minus1:" << (int)num_ref_idx_l1_active_minus1).str());
+			fields.push_back(fmt::format("    num_ref_idx_l0_active_minus1:{}", num_ref_idx_l0_active_minus1));
+			if(slice_type == SliceType_B) fields.push_back(fmt::format("      num_ref_idx_l1_active_minus1:{}", num_ref_idx_l1_active_minus1));
 		}
 		
 	}
 	
-	fields.push_back((std::ostringstream() << "pwt.luma_log2_weight_denom:" << (int)pwt.luma_log2_weight_denom).str());
-	fields.push_back((std::ostringstream() << "pwt.chroma_log2_weight_denom:" << (int)pwt.chroma_log2_weight_denom).str());
+	fields.push_back(fmt::format("pwt.luma_log2_weight_denom:{}", pwt.luma_log2_weight_denom));
+	fields.push_back(fmt::format("pwt.chroma_log2_weight_denom:{}", pwt.chroma_log2_weight_denom));
 	for(int i = 0;i < 64;++i){;
 		if(pwt.luma_weight_l0_flag[i] != 0){
-			fields.push_back((std::ostringstream() << "  pwt.luma_weight_l0_flag[" << i << "]:" << (int)pwt.luma_weight_l0_flag[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.luma_weight_l0[" << i << "]:" << pwt.luma_weight_l0[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.luma_offset_l0[" << i << "]:" << (int)pwt.luma_offset_l0[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.chroma_weight_l0_flag[" << i << "]:" << (int)pwt.chroma_weight_l0_flag[i]).str());
+			fields.push_back(fmt::format("  pwt.luma_weight_l0_flag[{}]:{}", i, pwt.luma_weight_l0_flag[i]));
+			fields.push_back(fmt::format("  pwt.luma_weight_l0[{}]:{}", i, pwt.luma_weight_l0[i]));
+			fields.push_back(fmt::format("  pwt.luma_offset_l0[{}]:{}", i, pwt.luma_offset_l0[i]));
+			fields.push_back(fmt::format("  pwt.chroma_weight_l0_flag[{}]:{}", i, pwt.chroma_weight_l0_flag[i]));
 			if(pwt.chroma_weight_l0_flag[i] != 0){
 				for(int j = 0;j < 2;++j) {
-					fields.push_back((std::ostringstream() << "    pwt.chroma_weight_l0[" << i << "][" << j << "]:" << pwt.chroma_weight_l0[i][j]).str());
-					fields.push_back((std::ostringstream() << "    pwt.chroma_offset_l0[" << i << "][" << j << "]:" << (int)pwt.chroma_offset_l0[i][j]).str());
+					fields.push_back(fmt::format("    pwt.chroma_weight_l0[{}][{}]:{}", i, j, pwt.chroma_weight_l0[i][j]));
+					fields.push_back(fmt::format("    pwt.chroma_offset_l0[{}][{}]:{}", i, j, pwt.chroma_offset_l0[i][j]));
 				}
 			}
 		}
 	}
 	for(int i = 0;i < 64;++i){;
 		if(pwt.luma_weight_l1_flag[i] == 1){
-			fields.push_back((std::ostringstream() << "  pwt.luma_weight_l1_flag[" << i << "]:" << (int)pwt.luma_weight_l1_flag[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.luma_weight_l1[" << i << "]:" << pwt.luma_weight_l1[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.luma_offset_l1[" << i << "]:" << (int)pwt.luma_offset_l1[i]).str());
-			fields.push_back((std::ostringstream() << "  pwt.chroma_weight_l1_flag[" << i << "]:" << (int)pwt.chroma_weight_l1_flag[i]).str());
+			fields.push_back(fmt::format("  pwt.luma_weight_l1_flag[{}]:{}", i, pwt.luma_weight_l1_flag[i]));
+			fields.push_back(fmt::format("  pwt.luma_weight_l1[{}]:{}", i, pwt.luma_weight_l1[i]));
+			fields.push_back(fmt::format("  pwt.luma_offset_l1[{}]:{}", i, pwt.luma_offset_l1[i]));
+			fields.push_back(fmt::format("  pwt.chroma_weight_l1_flag[{}]:{}", i, pwt.chroma_weight_l1_flag[i]));
 			if(pwt.chroma_weight_l1_flag[i] == 1){
 				for(int j = 0;j < 2;++j) {
-					fields.push_back((std::ostringstream() << "    pwt.chroma_weight_l1[" << i << "][" << j << "]:" << pwt.chroma_weight_l1[i][j]).str());
-					fields.push_back((std::ostringstream() << "    pwt.chroma_offset_l1[" << i << "][" << j << "]:" << (int)pwt.chroma_offset_l1[i][j]).str());
+					fields.push_back(fmt::format("    pwt.chroma_weight_l1[{}][{}]:{}", i, j, pwt.chroma_weight_l1[i][j]));
+					fields.push_back(fmt::format("    pwt.chroma_offset_l1[{}][{}]:{}", i, j, pwt.chroma_offset_l1[i][j]));
 				}
 			}
 		}
 	}
 
-	if(pPps->entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI) fields.push_back((std::ostringstream() << "  cabac_init_idc:" << (int)cabac_init_idc).str());
-	fields.push_back((std::ostringstream() << "slice_qp_delta:" << (int)slice_qp_delta).str());
+	if(pPps->entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI) fields.push_back(fmt::format("  cabac_init_idc:{}", cabac_init_idc));
+	fields.push_back(fmt::format("slice_qp_delta:{}", slice_qp_delta));
 	if(slice_type == SliceType_SP || slice_type == SliceType_SI){
-		if(slice_type == SliceType_SP) fields.push_back((std::ostringstream() << "    sp_for_switch_flag:" << (int)sp_for_switch_flag).str());
-		fields.push_back((std::ostringstream() << "  slice_qs_delta:" << (int)slice_qs_delta).str());
+		if(slice_type == SliceType_SP) fields.push_back(fmt::format("    sp_for_switch_flag:{}", sp_for_switch_flag));
+		fields.push_back(fmt::format("  slice_qs_delta:{}", slice_qs_delta));
 	}
 	if(pPps->deblocking_filter_control_present_flag){
-		fields.push_back((std::ostringstream() << "  disable_deblocking_filter_idc:" << (int)disable_deblocking_filter_idc).str());
+		fields.push_back(fmt::format("  disable_deblocking_filter_idc:{}", disable_deblocking_filter_idc));
 		if(disable_deblocking_filter_idc != 1){
-			fields.push_back((std::ostringstream() << "    slice_alpha_c0_offset_div2:" << (int)slice_alpha_c0_offset_div2).str());
-			fields.push_back((std::ostringstream() << "    slice_beta_offset_div2:" << (int)slice_beta_offset_div2).str());
+			fields.push_back(fmt::format("    slice_alpha_c0_offset_div2:{}", slice_alpha_c0_offset_div2));
+			fields.push_back(fmt::format("    slice_beta_offset_div2:{}", slice_beta_offset_div2));
 		}
 	}
 	if(pPps->num_slice_groups_minus1 > 0 && pPps->slice_group_map_type >= 3 && pPps->slice_group_map_type <= 5){
-		fields.push_back((std::ostringstream() << "  slice_group_change_cycle:" << slice_group_change_cycle).str());
+		fields.push_back(fmt::format("  slice_group_change_cycle:{}", slice_group_change_cycle));
 	}
 
-	fields.push_back((std::ostringstream() << "IdrPicFlag:" << (int)IdrPicFlag).str());
-    fields.push_back((std::ostringstream() << "PrevRefFrameNum:" << (int)PrevRefFrameNum).str());
+	fields.push_back(fmt::format("IdrPicFlag:{}", IdrPicFlag));
+    fields.push_back(fmt::format("PrevRefFrameNum:{}", PrevRefFrameNum));
 
 	return fields;
 }
@@ -196,19 +196,19 @@ void H264Slice::validate(){
 		majorErrors.push_back("[Slice] Invalid slice type");
 	}
 	if(pic_parameter_set_id > 255){
-		minorErrors.push_back((std::ostringstream() << "[Slice] pic_parameter_set_id value (" << (int)pic_parameter_set_id << ") not in valid range (0.255)").str());
+		minorErrors.push_back(fmt::format("[Slice] pic_parameter_set_id value ({}) not in valid range (0.255)", pic_parameter_set_id));
 	}
 	H264PPS* pH264PPS;
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()){
-		majorErrors.push_back((std::ostringstream() << "[Slice] reference to unknown PPS (" << (int)pic_parameter_set_id << ")").str());
+		majorErrors.push_back(fmt::format("[Slice] reference to unknown PPS ({})", pic_parameter_set_id));
 		return;
 	}
 	pH264PPS = referencedPPS->second;
 	H264SPS* pH264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(pH264PPS->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		majorErrors.push_back((std::ostringstream() << "[Slice] This unit's PPS is referencing an unknown SPS (" << (int)pH264PPS->seq_parameter_set_id << ")").str());
+		majorErrors.push_back(fmt::format("[Slice] This unit's PPS is referencing an unknown SPS ({})", pH264PPS->seq_parameter_set_id));
 		return;
 	}
 	pH264SPS = referencedSPS->second;
@@ -216,29 +216,29 @@ void H264Slice::validate(){
 		switch(slice_type){
 			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
 			default:
-				majorErrors.push_back((std::ostringstream() << "[Slice] slice_type value (" << (int)slice_type-1 << ") of IDR should be in {2, 4, 7, 9}").str());
+				majorErrors.push_back(fmt::format("[Slice] slice_type value ({}) of IDR should be in {2, 4, 7, 9}", slice_type-1));
 				break;
 		}
 	}
 	if (pH264SPS->separate_colour_plane_flag){
 		if(colour_plane_id > 2){
-			minorErrors.push_back((std::ostringstream() << "[Slice] colour_plane_id value (" << (int)colour_plane_id << ") not in valid range (0..2)").str());
+			minorErrors.push_back(fmt::format("[Slice] colour_plane_id value ({}) not in valid range (0..2)", colour_plane_id));
 		}
 	}
 
 	if(slice_type == H264Slice::SliceType_I && frame_num != 0){
 		
-		minorErrors.push_back((std::ostringstream() << "[Slice] frame_num of an IDR picture (" << (int)frame_num << ") should be 0").str());
+		minorErrors.push_back(fmt::format("[Slice] frame_num of an IDR picture ({}) should be 0", frame_num));
 	}
 
 	if (pH264SPS->pic_order_cnt_type == 0){
 		if(pic_order_cnt_lsb > pH264SPS->MaxPicOrderCntLsb-1){
-			minorErrors.push_back((std::ostringstream() << "[Slice] pic_order_cnt_lsb value (" << (int)pic_order_cnt_lsb << ") not in valid range (0.." << pH264SPS->MaxPicOrderCntLsb-1 << ")").str());
+			minorErrors.push_back(fmt::format("[Slice] pic_order_cnt_lsb value ({}) not in valid range (0..{})", pic_order_cnt_lsb, pH264SPS->MaxPicOrderCntLsb-1));
 		}
 	}
 	if (pH264PPS->redundant_pic_cnt_present_flag){
 		if(redundant_pic_cnt > 127){
-			minorErrors.push_back((std::ostringstream() << "[Slice] redundant_pic_cnt (" << (int)redundant_pic_cnt << ") not in valid range (0..127)").str());
+			minorErrors.push_back(fmt::format("[Slice] redundant_pic_cnt ({}) not in valid range (0..127)", redundant_pic_cnt));
 		}
 	}
 }

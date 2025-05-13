@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include <sstream>
+#include <fmt/core.h>
 
 #include "../H26X/H26XMath.h"
 #include "H265AccessUnit.h"
@@ -312,7 +312,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 	h265Slice.slice_pic_parameter_set_id = readGolombUE();
 	H265PPS* h265PPS = h265Slice.getPPS();
 	if(!h265PPS) {
-		h265Slice.majorErrors.push_back((std::ostringstream() << "[Slice] reference to unknown PPS (" << h265Slice.slice_pic_parameter_set_id << ")").str());
+		h265Slice.majorErrors.push_back(fmt::format("[Slice] reference to unknown PPS ({})", h265Slice.slice_pic_parameter_set_id));
 		return;
 	}
 	if (!h265Slice.first_slice_segment_in_pic_flag) {
@@ -327,7 +327,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 		// uint32_t PicHeightInSamplesC = h265SPS.pic_height_in_luma_samples / 2;
 		H265SPS* h265SPS = h265Slice.getSPS();
 		if(!h265SPS) {
-			h265Slice.majorErrors.push_back((std::ostringstream() << "[Slice] reference to unknown SPS (" << (int)h265PPS->pps_seq_parameter_set_id << ")").str());
+			h265Slice.majorErrors.push_back(fmt::format("[Slice] reference to unknown SPS ({})", h265PPS->pps_seq_parameter_set_id));
 			return;
 		}
 		h265Slice.slice_segment_address = readBits((uint8_t)ceil(log2(h265SPS->PicSizeInCtbsY)));

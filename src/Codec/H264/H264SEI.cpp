@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <fmt/core.h>
 #include <sstream>
 #include <cmath>
 
@@ -53,20 +54,20 @@ void H264SEI::validate(){
 std::vector<std::string> H264SEIBufferingPeriod::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Buffering period");
-	fields.push_back((std::ostringstream() << "  seq_parameter_set_id:" << (int)seq_parameter_set_id).str());
+	fields.push_back(fmt::format("  seq_parameter_set_id:{}", seq_parameter_set_id));
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
 	H264SPS* pSps = referencedSPS->second;
  	if(pSps->nal_hrd_parameters_present_flag){
 		for(int i = 0;i <= pSps->nal_cpb_cnt_minus1;++i){
-			fields.push_back((std::ostringstream() << "    nal_initial_cpb_removal_delay[" << i << "]:" << nal_initial_cpb_removal_delay[i]).str());
-			fields.push_back((std::ostringstream() << "    nal_initial_cpb_removal_delay_offset[" << i << "]:" << nal_initial_cpb_removal_delay_offset[i]).str());
+			fields.push_back(fmt::format("    nal_initial_cpb_removal_delay[{}]:{}", i, nal_initial_cpb_removal_delay[i]));
+			fields.push_back(fmt::format("    nal_initial_cpb_removal_delay_offset[{}]:{}", i, nal_initial_cpb_removal_delay_offset[i]));
 		}
 	}
 	if(pSps->vcl_hrd_parameters_present_flag){
 		for(int i = 0;i <= pSps->vcl_cpb_cnt_minus1;++i){
-			fields.push_back((std::ostringstream() << "    vcl_initial_cpb_removal_delay[" << i << "]:" << vcl_initial_cpb_removal_delay[i]).str());
-			fields.push_back((std::ostringstream() << "    vcl_initial_cpb_removal_delay_offset[" << i << "]:" << vcl_initial_cpb_removal_delay_offset[i]).str());
+			fields.push_back(fmt::format("    vcl_initial_cpb_removal_delay[{}]:{}", i, vcl_initial_cpb_removal_delay[i]));
+			fields.push_back(fmt::format("    vcl_initial_cpb_removal_delay_offset[{}]:{}", i, vcl_initial_cpb_removal_delay_offset[i]));
 		}
 	}
 	return fields;
@@ -75,12 +76,12 @@ std::vector<std::string> H264SEIBufferingPeriod::dump_fields(){
 void H264SEIBufferingPeriod::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		errors.push_back((std::ostringstream() << "[SEI Buffering period] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back(fmt::format("[SEI Buffering period] unknown reference to a SPS unit ({})", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pH264SPS = referencedSPS->second;
 	if(seq_parameter_set_id > 31){
-		errors.push_back((std::ostringstream() << "[SEI Buffering period] seq_parameter_set_id value (" << (int)seq_parameter_set_id << ") not in valid range (0..31)").str());
+		errors.push_back(fmt::format("[SEI Buffering period] seq_parameter_set_id value ({}) not in valid range (0..31)", seq_parameter_set_id));
 	}
 
 	if(pH264SPS->nal_hrd_parameters_present_flag){
@@ -89,7 +90,7 @@ void H264SEIBufferingPeriod::validate(){
 			int BitRate = (pH264SPS->nal_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->nal_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
 			if(nal_initial_cpb_removal_delay[SchedSelIdx] == 0 || nal_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.push_back((std::ostringstream() << "[SEI Buffering period] nal_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << nal_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
+				errors.push_back(fmt::format("[SEI Buffering period] nal_initial_cpb_removal_delay[{}] value ({}) not in valid range (1..{})", SchedSelIdx, nal_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
 		}
 	}
@@ -100,7 +101,7 @@ void H264SEIBufferingPeriod::validate(){
 			int BitRate = (pH264SPS->vcl_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->vcl_bit_rate_scale));
 			int delay_limit = 90000 * (CpbSize/BitRate);
 			if(vcl_initial_cpb_removal_delay[SchedSelIdx] == 0 || vcl_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.push_back((std::ostringstream() << "[SEI Buffering period] vcl_initial_cpb_removal_delay[" << SchedSelIdx << "] value (" << vcl_initial_cpb_removal_delay[SchedSelIdx] << ") not in valid range (1.." << delay_limit << ")").str());
+				errors.push_back(fmt::format("[SEI Buffering period] vcl_initial_cpb_removal_delay[{}] value ({}) not in valid range (1..{})", SchedSelIdx, vcl_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
 		}
 	}
@@ -113,11 +114,11 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
 	H264SPS* pSps = referencedSPS->second;
 	if(pSps->nal_hrd_parameters_present_flag || pSps->vcl_hrd_parameters_present_flag){
-		fields.push_back((std::ostringstream() << "  cpb_removal_delay:" << cpb_removal_delay).str());
-		fields.push_back((std::ostringstream() << "  dpb_output_delay:" << dpb_output_delay).str());
+		fields.push_back(fmt::format("  cpb_removal_delay:{}", cpb_removal_delay));
+		fields.push_back(fmt::format("  dpb_output_delay:{}", dpb_output_delay));
 	}
 	if(pSps->pic_struct_present_flag){
-		fields.push_back((std::ostringstream() << "  pic_struct:" << (int)pic_struct).str());
+		fields.push_back(fmt::format("  pic_struct:{}", pic_struct));
 		int NumClockTS = 0;
 		switch(pic_struct){
 			case 0: case 1: case 2: 
@@ -131,20 +132,20 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 			break;
 		}
 		for(int i = 0;i < NumClockTS;++i){
-			fields.push_back((std::ostringstream() << "    clock_timestamp_flag[" << i << "]:" << (int)clock_timestamp_flag[i]).str());
+			fields.push_back(fmt::format("    clock_timestamp_flag[{}]:{}", i, clock_timestamp_flag[i]));
 			if(clock_timestamp_flag[i]){
-				fields.push_back((std::ostringstream() << "      ct_type[" << i << "]:" << (int)ct_type[i]).str());
-				fields.push_back((std::ostringstream() << "      nuit_field_based_flag[" << i << "]:" << (int)nuit_field_based_flag[i]).str());
-				fields.push_back((std::ostringstream() << "      counting_type[" << i << "]:" << (int)counting_type[i]).str());
-				fields.push_back((std::ostringstream() << "      discontinuity_flag[" << i << "]:" << (int)discontinuity_flag[i]).str());
-				fields.push_back((std::ostringstream() << "      cnt_dropped_flag[" << i << "]:" << (int)cnt_dropped_flag[i]).str());
-				fields.push_back((std::ostringstream() << "      n_frames[" << i << "]:" << (int)n_frames[i]).str());
-				fields.push_back((std::ostringstream() << "      full_timestamp_flag[" << i << "]:" << (int)full_timestamp_flag[i]).str());
-				if(full_timestamp_flag[i] || seconds_flag[i]) fields.push_back((std::ostringstream() << "        seconds_value[" << i << "]:" << (int)seconds_value[i]).str());
-				if(full_timestamp_flag[i] || minutes_flag[i]) fields.push_back((std::ostringstream() << "        minutes_value[" << i << "]:" << (int)minutes_value[i]).str());
-				if(full_timestamp_flag[i] || hours_flag[i]) fields.push_back((std::ostringstream() << "        hours_value[" << i << "]:" << (int)hours_value[i]).str());
+				fields.push_back(fmt::format("      ct_type[{}]:{}", i, ct_type[i]));
+				fields.push_back(fmt::format("      nuit_field_based_flag[{}]:{}", i, nuit_field_based_flag[i]));
+				fields.push_back(fmt::format("      counting_type[{}]:{}", i, counting_type[i]));
+				fields.push_back(fmt::format("      discontinuity_flag[{}]:{}", i, discontinuity_flag[i]));
+				fields.push_back(fmt::format("      cnt_dropped_flag[{}]:{}", i, cnt_dropped_flag[i]));
+				fields.push_back(fmt::format("      n_frames[{}]:{}", i, n_frames[i]));
+				fields.push_back(fmt::format("      full_timestamp_flag[{}]:{}", i, full_timestamp_flag[i]));
+				if(full_timestamp_flag[i] || seconds_flag[i]) fields.push_back(fmt::format("        seconds_value[{}]:{}", i, seconds_value[i]));
+				if(full_timestamp_flag[i] || minutes_flag[i]) fields.push_back(fmt::format("        minutes_value[{}]:{}", i, minutes_value[i]));
+				if(full_timestamp_flag[i] || hours_flag[i]) fields.push_back(fmt::format("        hours_value[{}]:{}", i, hours_value[i]));
 				if(pSps->nal_time_offset_length > 0 || pSps->vcl_time_offset_length > 0){
-					fields.push_back((std::ostringstream() << "      full_timestamp_flag[" << i << "]:" << (int)full_timestamp_flag[i]).str());
+					fields.push_back(fmt::format("      full_timestamp_flag[{}]:{}", i, full_timestamp_flag[i]));
 				}
 			}
 		}
@@ -155,12 +156,12 @@ std::vector<std::string> H264SEIPicTiming::dump_fields(){
 void H264SEIPicTiming::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.push_back((std::ostringstream() << "[SEI Pic timing] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back(fmt::format("[SEI Pic timing] unknown reference to a SPS unit ({})", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	if(pSps->pic_struct_present_flag){
-		if(pic_struct > 8) errors.push_back((std::ostringstream() << "[SEI Pic timing] pic_struct value (" << pic_struct << ") not in valid range (0..8)").str());
+		if(pic_struct > 8) errors.push_back(fmt::format("[SEI Pic timing] pic_struct value ({}) not in valid range (0..8)", pic_struct));
 		int NumClockTS = 0;
 		switch(pic_struct){
 			case 0: case 1: case 2: 
@@ -176,19 +177,19 @@ void H264SEIPicTiming::validate(){
 		for(int i = 0;i < NumClockTS;++i){
 			if(clock_timestamp_flag[i]){
 				if(ct_type[i] > 2){
-					errors.push_back((std::ostringstream() << "[SEI Pic timing] ct_type[" << i << "] value (" << ct_type[i] << ") not in valid range (0..2)").str());
+					errors.push_back(fmt::format("[SEI Pic timing] ct_type[{}] value ({}) not in valid range (0..2)", i, ct_type[i]));
 				}
 				if(counting_type[i] > 6){
-					errors.push_back((std::ostringstream() << "[SEI Pic timing] counting_type[" << i << "] value (" << counting_type[i] << ") not in valid range (0..6)").str());
+					errors.push_back(fmt::format("[SEI Pic timing] counting_type[{}] value ({}) not in valid range (0..6)", i, counting_type[i]));
 				}
 				if(seconds_value[i] > 59){
-					errors.push_back((std::ostringstream() << "[SEI Pic timing] seconds_value[" << i << "] value (" << seconds_value[i] << ") not in valid range (0..59)").str());
+					errors.push_back(fmt::format("[SEI Pic timing] seconds_value[{}] value ({}) not in valid range (0..59)", i, seconds_value[i]));
 				}
 				if(minutes_value[i] > 59){
-					errors.push_back((std::ostringstream() << "[SEI Pic timing] minutes_value[" << i << "] value (" << minutes_value[i] << ") not in valid range (0..59)").str());
+					errors.push_back(fmt::format("[SEI Pic timing] minutes_value[{}] value ({}) not in valid range (0..59)", i, minutes_value[i]));
 				}
 				if(hours_value[i] > 23){
-					errors.push_back((std::ostringstream() << "[SEI Pic timing] hours_value[" << i << "] value (" << hours_value[i] << ") not in valid range (0..23)").str());
+					errors.push_back(fmt::format("[SEI Pic timing] hours_value[{}] value ({}) not in valid range (0..23)", i, hours_value[i]));
 				}
 			}
 		}
@@ -218,9 +219,9 @@ std::vector<std::string> H264SEIUserDataUnregistered::dump_fields(){
 		}
 		if(len != 12) uuidStringStream << "-";
 	}
-	fields.push_back((std::ostringstream() << "  uuid_iso_iec_11578:" << uuidStringStream.str()).str());
+	fields.push_back(fmt::format("  uuid_iso_iec_11578:{}", uuidStringStream.str()));
 	for(int i = 0;i < user_data_payload_byte.size();++i){
-		fields.push_back((std::ostringstream() << "    user_data_payload_byte[" << i << "]:" << user_data_payload_byte[i]).str());
+		fields.push_back(fmt::format("    user_data_payload_byte[{}]:{}", i, user_data_payload_byte[i]));
 	}
 	return fields;
 }
@@ -228,44 +229,44 @@ std::vector<std::string> H264SEIUserDataUnregistered::dump_fields(){
 std::vector<std::string> H264SEIRecoveryPoint::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Recovery point");
-	fields.push_back((std::ostringstream() << "  recovery_frame_cnt:" << recovery_frame_cnt).str());
-	fields.push_back((std::ostringstream() << "  exact_match_flag:" << (int)exact_match_flag).str());
-	fields.push_back((std::ostringstream() << "  broken_link_flag:" << (int)broken_link_flag).str());
-	fields.push_back((std::ostringstream() << "  changing_slice_group_idc:" << (int)changing_slice_group_idc).str());
+	fields.push_back(fmt::format("  recovery_frame_cnt:{}", recovery_frame_cnt));
+	fields.push_back(fmt::format("  exact_match_flag:{}", exact_match_flag));
+	fields.push_back(fmt::format("  broken_link_flag:{}", broken_link_flag));
+	fields.push_back(fmt::format("  changing_slice_group_idc:{}", changing_slice_group_idc));
 	return fields;
 }
 
 void H264SEIRecoveryPoint::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.push_back((std::ostringstream() << "[SEI Recovery point] unknown reference to a SPS unit (" << (int)seq_parameter_set_id << ")").str());
+		errors.push_back(fmt::format("[SEI Recovery point] unknown reference to a SPS unit ({})", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	int MaxNumFrames = pow(2, 4+pSps->log2_max_frame_num_minus4);
 	if(recovery_frame_cnt > MaxNumFrames-1){
-		errors.push_back((std::ostringstream() << "[SEI Recovery point] recovery_frame_cnt value (" << recovery_frame_cnt << ") not in valid range (0.." << MaxNumFrames-1 << ")").str());
+		errors.push_back(fmt::format("[SEI Recovery point] recovery_frame_cnt value ({}) not in valid range (0..{})", recovery_frame_cnt, MaxNumFrames-1));
 	}
 }
 
 std::vector<std::string> H264SEIFullFrameFreeze::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Full frame freeze");
-	fields.push_back((std::ostringstream() << "  full_frame_freeze_repetition_period:" << (int)full_frame_freeze_repetition_period).str());
+	fields.push_back(fmt::format("  full_frame_freeze_repetition_period:{}", full_frame_freeze_repetition_period));
 	return fields;
 }
 
 void H264SEIFullFrameFreeze::validate(){
 	if(full_frame_freeze_repetition_period > 16384){
-		errors.push_back((std::ostringstream() << "[SEI Full frame freeze] full_frame_freeze_repetition_period value (" << full_frame_freeze_repetition_period << ") not in valid range (0..16384)").str());
+		errors.push_back(fmt::format("[SEI Full frame freeze] full_frame_freeze_repetition_period value ({}) not in valid range (0..16384)", full_frame_freeze_repetition_period));
 	}
 }
 
 void MvcdViewScalabilityInfo_dump_movi_fields(std::vector<std::string> fields, const std::string& prefix, H264SEIMvcdViewScalabilityInfo::movi movi, int i, int j){
-	fields.push_back((std::ostringstream() << prefix << "view_info_depth_view_present_flag[" << i << "][ " << j << "]:" << (int)movi.view_info_depth_view_present_flag).str());
-	if(movi.view_info_depth_view_present_flag)fields.push_back((std::ostringstream() << prefix <<"mcvd_depth_view_flag[" << i << "][ " << j << "]:" << (int)movi.mvcd_depth_view_flag).str());
-	fields.push_back((std::ostringstream() << prefix << "view_info_texture_view_present_flag[" << i << "][ " << j << "]:" << (int)movi.view_info_texture_view_present_flag).str());
-	if(movi.view_info_texture_view_present_flag)fields.push_back((std::ostringstream() << prefix <<"mvcd_texture_view_flag[" << i << "][ " << j << "]:" << (int)movi.mvcd_texture_view_flag).str());
+	fields.push_back(fmt::format("{}view_info_depth_view_present_flag[{}][{}]:{}", prefix, i, j, movi.view_info_depth_view_present_flag));
+	if(movi.view_info_depth_view_present_flag)fields.push_back(fmt::format("{}mcvd_depth_view_flag[{}][{}]:{}", prefix, i, j, movi.mvcd_depth_view_flag));
+	fields.push_back(fmt::format("{}view_info_texture_view_present_flag[{}][{}]:{}", prefix, i, j, movi.view_info_texture_view_present_flag));
+	if(movi.view_info_texture_view_present_flag)fields.push_back(fmt::format("{}mvcd_texture_view_flag[{}][{}]:{}", prefix, i, j, movi.mvcd_texture_view_flag));
 }
 
 H264SEIMvcdViewScalabilityInfo::movi::movi(){
@@ -326,62 +327,62 @@ H264SEIMvcdViewScalabilityInfo::H264SEIMvcdViewScalabilityInfo(){
 std::vector<std::string> H264SEIMvcdViewScalabilityInfo::dump_fields(){
 	std::vector<std::string> fields;
 	fields.push_back("SEI Mvcd view scalability info");
-	fields.push_back((std::ostringstream() << "  num_operation_points_minus1:" << (int)num_operation_points_minus1).str());
+	fields.push_back(fmt::format("  num_operation_points_minus1:{}", num_operation_points_minus1));
 	for(int i = 0;i <= num_operation_points_minus1;++i){
-		fields.push_back((std::ostringstream() << "    operation_point_id[" << i << "]:" << (int)operation_point_id[i]).str());
-		fields.push_back((std::ostringstream() << "    priority_id[" << i << "]:" << (int)priority_id[i]).str());
-		fields.push_back((std::ostringstream() << "    temporal_id[" << i << "]:" << (int)temporal_id[i]).str());
-		fields.push_back((std::ostringstream() << "    num_target_output_views_minus1[" << i << "]:" << (int)num_target_output_views_minus1[i]).str());
+		fields.push_back(fmt::format("    operation_point_id[{}]:{}", i, operation_point_id[i]));
+		fields.push_back(fmt::format("    priority_id[{}]:{}", i, priority_id[i]));
+		fields.push_back(fmt::format("    temporal_id[{}]:{}", i, temporal_id[i]));
+		fields.push_back(fmt::format("    num_target_output_views_minus1[{}]:{}", i, num_target_output_views_minus1[i]));
 		for(int j = 0;j < num_target_output_views_minus1[i];++j){
-			fields.push_back((std::ostringstream() << "      view_id[" << i << "][" << j << "]:" << (int)view_id[i][j]).str());
+			fields.push_back(fmt::format("      view_id[{}][{}]:{}", i, j, view_id[i][j]));
 			MvcdViewScalabilityInfo_dump_movi_fields(fields, "      view_movi.", view_movi[i][j], i, j);
 		}
-		fields.push_back((std::ostringstream() << "    profile_level_info_present_flag[" << i << "]:" << (int)profile_level_info_present_flag[i]).str());
-		if(profile_level_info_present_flag[i]) fields.push_back((std::ostringstream() << "      op_profile_level_idc[" << i << "]:" << op_profile_level_idc[i]).str());
-		fields.push_back((std::ostringstream() << "    bitrate_info_present_flag[" << i << "]:" << (int)bitrate_info_present_flag[i]).str());
+		fields.push_back(fmt::format("    profile_level_info_present_flag[{}]:{}", i, profile_level_info_present_flag[i]));
+		if(profile_level_info_present_flag[i]) fields.push_back(fmt::format("      op_profile_level_idc[{}]:{}", i, op_profile_level_idc[i]));
+		fields.push_back(fmt::format("    bitrate_info_present_flag[{}]:{}", i, bitrate_info_present_flag[i]));
 		if(bitrate_info_present_flag[i]) {
-			fields.push_back((std::ostringstream() << "      avg_bitrate[" << i << "]:" << (int)avg_bitrate[i]).str());
-			fields.push_back((std::ostringstream() << "      max_bitrate[" << i << "]:" << (int)max_bitrate[i]).str());
-			fields.push_back((std::ostringstream() << "      max_bitrate_calc_window[" << i << "]:" << (int)max_bitrate_calc_window[i]).str());
-			fields.push_back((std::ostringstream() << "      max_bitrate_calc_window[" << i << "]:" << (int)max_bitrate_calc_window[i]).str());
+			fields.push_back(fmt::format("      avg_bitrate[{}]:{}", i, avg_bitrate[i]));
+			fields.push_back(fmt::format("      max_bitrate[{}]:{}", i, max_bitrate[i]));
+			fields.push_back(fmt::format("      max_bitrate_calc_window[{}]:{}", i, max_bitrate_calc_window[i]));
+			fields.push_back(fmt::format("      max_bitrate_calc_window[{}]:{}", i, max_bitrate_calc_window[i]));
 		}
-		fields.push_back((std::ostringstream() << "    frm_rate_info_present_flag[" << i << "]:" << (int)frm_rate_info_present_flag[i]).str());
+		fields.push_back(fmt::format("    frm_rate_info_present_flag[{}]:{}", i, frm_rate_info_present_flag[i]));
 		if(frm_rate_info_present_flag[i]){
-			fields.push_back((std::ostringstream() << "      constant_frm_rate_idc[" << i << "]:" << (int)constant_frm_rate_idc[i]).str());
-			fields.push_back((std::ostringstream() << "      avg_frm_rate[" << i << "]:" << (int)avg_frm_rate[i]).str());
+			fields.push_back(fmt::format("      constant_frm_rate_idc[{}]:{}", i, constant_frm_rate_idc[i]));
+			fields.push_back(fmt::format("      avg_frm_rate[{}]:{}", i, avg_frm_rate[i]));
 		}
-		if(!num_target_output_views_minus1[i]) fields.push_back((std::ostringstream() << "    view_dependency_info_present_flag[" << i << "]:" << (int)view_dependency_info_present_flag[i]).str());
+		if(!num_target_output_views_minus1[i]) fields.push_back(fmt::format("    view_dependency_info_present_flag[{}]:{}", i, view_dependency_info_present_flag[i]));
 		if(view_dependency_info_present_flag[i]){
-			fields.push_back((std::ostringstream() << "      num_directly_dependent_views[" << i << "]:" << (int)num_directly_dependant_views[i]).str());
+			fields.push_back(fmt::format("      num_directly_dependent_views[{}]:{}", i, num_directly_dependant_views[i]));
 			for(int j = 0;j < num_directly_dependant_views[i];++j){
-				fields.push_back((std::ostringstream() << "        directly_dependant_view_id[" << i << "][" << j << "]:" << (int)directly_dependant_view_id[i][j]).str());
+				fields.push_back(fmt::format("        directly_dependant_view_id[{}][{}]:{}", i, j, directly_dependant_view_id[i][j]));
 				MvcdViewScalabilityInfo_dump_movi_fields(fields, "        directly_dependant_view_movi.", directely_dependant_view_movi[i][j], i, j);
 			}
-		} else fields.push_back((std::ostringstream() << "      view_dependency_info_src_op_id[" << i << "]:" << (int)view_dependency_info_src_op_id[i]).str());
-		fields.push_back((std::ostringstream() << "    parameter_sets_info_present_flag[" << i << "]:" << (int)parameters_sets_info_present_flag[i]).str());
+		} else fields.push_back(fmt::format("      view_dependency_info_src_op_id[{}]:{}", i, view_dependency_info_src_op_id[i]));
+		fields.push_back(fmt::format("    parameter_sets_info_present_flag[{}]:{}", i, parameters_sets_info_present_flag[i]));
 		if(parameters_sets_info_present_flag[i]){
-			fields.push_back((std::ostringstream() << "      num_seq_parameter_set_minus1[" << i << "]:" << (int)num_seq_parameter_sets[i]).str());
+			fields.push_back(fmt::format("      num_seq_parameter_set_minus1[{}]:{}", i, num_seq_parameter_sets[i]));
 			for(int j = 0;j <= num_seq_parameter_sets[i];++j){
-				fields.push_back((std::ostringstream() << "        seq_parameter_set_id_delta[" << i << "][" << j << "]:" << (int)seq_parameter_set_id_delta[i][j]).str());
+				fields.push_back(fmt::format("        seq_parameter_set_id_delta[{}][{}]:{}", i, j, seq_parameter_set_id_delta[i][j]));
 			}
-			fields.push_back((std::ostringstream() << "      num_subset_seq_parameter_set_minus1[" << i << "]:" << (int)num_subset_seq_parameter_set_minus1[i]).str());
+			fields.push_back(fmt::format("      num_subset_seq_parameter_set_minus1[{}]:{}", i, num_subset_seq_parameter_set_minus1[i]));
 			for(int j = 0;j <= num_subset_seq_parameter_set_minus1[i];++j){
-				fields.push_back((std::ostringstream() << "        subset_seq_parameter_set_id_delta[" << i << "][" << j << "]:" << (int)subset_seq_parameter_set_id_delta[i][j]).str());
+				fields.push_back(fmt::format("        subset_seq_parameter_set_id_delta[{}][{}]:{}", i, j, subset_seq_parameter_set_id_delta[i][j]));
 			}
-			fields.push_back((std::ostringstream() << "      num_pic_parameter_set_minus1[" << i << "]:" << (int)num_pic_parameter_set_minus1[i]).str());
+			fields.push_back(fmt::format("      num_pic_parameter_set_minus1[{}]:{}", i, num_pic_parameter_set_minus1[i]));
 			for(int j = 0;j <= num_pic_parameter_set_minus1[i];++j){
-				fields.push_back((std::ostringstream() << "        pic_parameter_set_id_delta[" << i << "][" << j << "]:" << (int)pic_parameter_set_id_delta[i][j]).str());
+				fields.push_back(fmt::format("        pic_parameter_set_id_delta[{}][{}]:{}", i, j, pic_parameter_set_id_delta[i][j]));
 			}
-		} else fields.push_back((std::ostringstream() << "      parameters_sets_info_src_op_id[" << i << "]:" << (int)parameter_sets_info_src_op_id[i]).str());
-		fields.push_back((std::ostringstream() << "    bitrate_info_present_flag[" << i << "]:" << (int)bitrate_info_present_flag[i]).str());
+		} else fields.push_back(fmt::format("      parameters_sets_info_src_op_id[{}]:{}", i, parameter_sets_info_src_op_id[i]));
+		fields.push_back(fmt::format("    bitrate_info_present_flag[{}]:{}", i, bitrate_info_present_flag[i]));
 		if(bitrate_info_present_flag[i]){
-			fields.push_back((std::ostringstream() << "      num_seq_parameter_set_minus1[" << i << "]:" << (int)motion_vector_over_pic_boundaries_flag[i]).str());
-			fields.push_back((std::ostringstream() << "      max_bytes_per_pic_denom[" << i << "]:" << (int)max_bytes_per_pic_denom[i]).str());
-			fields.push_back((std::ostringstream() << "      max_bits_per_mb_denom[" << i << "]:" << (int)max_bits_per_mb_denom[i]).str());
-			fields.push_back((std::ostringstream() << "      log2_max_mv_length_horizontal[" << i << "]:" << (int)log2_max_mv_length_horizontal[i]).str());
-			fields.push_back((std::ostringstream() << "      log2_max_mv_length_vertical[" << i << "]:" << (int)log2_max_mv_length_vertical[i]).str());
-			fields.push_back((std::ostringstream() << "      num_reorder_frames[" << i << "]:" << (int)num_reorder_frames[i]).str());
-			fields.push_back((std::ostringstream() << "      max_dec_frame_buffering[" << i << "]:" << (int)max_dec_frame_buffering[i]).str());
+			fields.push_back(fmt::format("      num_seq_parameter_set_minus1[{}]:{}", i, motion_vector_over_pic_boundaries_flag[i]));
+			fields.push_back(fmt::format("      max_bytes_per_pic_denom[{}]:{}", i, max_bytes_per_pic_denom[i]));
+			fields.push_back(fmt::format("      max_bits_per_mb_denom[{}]:{}", i, max_bits_per_mb_denom[i]));
+			fields.push_back(fmt::format("      log2_max_mv_length_horizontal[{}]:{}", i, log2_max_mv_length_horizontal[i]));
+			fields.push_back(fmt::format("      log2_max_mv_length_vertical[{}]:{}", i, log2_max_mv_length_vertical[i]));
+			fields.push_back(fmt::format("      num_reorder_frames[{}]:{}", i, num_reorder_frames[i]));
+			fields.push_back(fmt::format("      max_dec_frame_buffering[{}]:{}", i, max_dec_frame_buffering[i]));
 		}
 	}
 	return fields;
@@ -389,71 +390,71 @@ std::vector<std::string> H264SEIMvcdViewScalabilityInfo::dump_fields(){
 
 void H264SEIMvcdViewScalabilityInfo::validate(){
 	if(num_operation_points_minus1 > 1023){
-		errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_operation_points_minus1 value (" << (int)num_operation_points_minus1 << ") not in valid range (0..1023)").str());
+		errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_operation_points_minus1 value ({}) not in valid range (0..1023)", num_operation_points_minus1));
 	}
 	for(int i = 0;i <= num_operation_points_minus1;++i){
 		if(num_target_output_views_minus1[i] > 1023){
-			errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_target_output_views_minus1[" << i <<"] value (" << num_target_output_views_minus1[i] << ") not in valid range (0..1023)").str());
+			errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_target_output_views_minus1[{}] value ({}) not in valid range (0..1023)", i, num_target_output_views_minus1[i]));
 		}
 		for(int j = 0;j <= num_target_output_views_minus1[i];++j){
 			if(view_id[i][j] > 1023){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] view_id[" << i <<"][" << j << "] value (" << view_id[i][j] << ") not in valid range (0..1023)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] view_id[{}][{}] value ({}) not in valid range (0..1023)", i, j, view_id[i][j]));
 			}
 		}
 		if(frm_rate_info_present_flag[i]){
 			if(constant_frm_rate_idc[i] > 2){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] constant_frm_rate_idc[" << i <<"] value (" << (int)constant_frm_rate_idc[i] << ") not in valid range (0..2)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] constant_frm_rate_idc[{}] value ({}) not in valid range (0..2)", i, constant_frm_rate_idc[i]));
 			}
 		}
 		if(view_dependency_info_present_flag[i]){
 			if(num_directly_dependant_views[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_directly_dependant_views[" << i <<"] value (" << (int)num_directly_dependant_views[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_directly_dependant_views[{}] value ({}) not in valid range (0..16)", i, num_directly_dependant_views[i]));
 			}
 			for(int j = 0;j < num_directly_dependant_views[i];++j){
 				if(directly_dependant_view_id[i][j] > 1023){
-					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] directly_dependant_view_id[" << i <<"][" << j << "] value (" << (int)directly_dependant_view_id[i][j] << ") not in valid range (0..1023)").str());
+					errors.push_back(fmt::format("[SEI Mcvd view scalability info] directly_dependant_view_id[{}][{}] value ({}) not in valid range (0..1023)", i, j, directly_dependant_view_id[i][j]));
 				}
 			}
 		}
 		if(parameters_sets_info_present_flag[i]) {
 			if(num_seq_parameter_sets[i] > 32){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_seq_parameter_sets[" << i <<"] value (" << (int)num_seq_parameter_sets[i] << ") not in valid range (0..32)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_seq_parameter_sets[{}] value ({}) not in valid range (0..32)", i, num_seq_parameter_sets[i]));
 			}
 			for(int j = 0;j <= num_seq_parameter_sets[i];++j){
 				if(seq_parameter_set_id_delta[i][j] > 31){
-					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
+					errors.push_back(fmt::format("[SEI Mcvd view scalability info] seq_parameter_set_id_delta[{}][{}] value ({}) not in valid range (0..31)", i, j, seq_parameter_set_id_delta[i][j]));
 				}
 			}
 			if(num_subset_seq_parameter_set_minus1[i] > 32){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_subset_seq_parameter_set_minus1[" << i <<"] value (" << (int)num_subset_seq_parameter_set_minus1[i] << ") not in valid range (0..32)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_subset_seq_parameter_set_minus1[{}] value ({}) not in valid range (0..32)", i, num_subset_seq_parameter_set_minus1[i]));
 			}
 			for(int j = 0;j <= num_subset_seq_parameter_set_minus1[i];++j){
 				if(seq_parameter_set_id_delta[i][j] > 31){
-					errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] seq_parameter_set_id_delta[" << i <<"][" << j << "] value (" << (int)seq_parameter_set_id_delta[i][j] << ") not in valid range (0..31)").str());
+					errors.push_back(fmt::format("[SEI Mcvd view scalability info] seq_parameter_set_id_delta[{}][{}] value ({}) not in valid range (0..31)", i, j, seq_parameter_set_id_delta[i][j]));
 				}
 			}
 		}
 		if(bitstream_restriction_info_present_flag[i]){
 			if(max_bytes_per_pic_denom[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bytes_per_pic_denom[" << i <<"] value (" << (int)max_bytes_per_pic_denom[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] max_bytes_per_pic_denom[{}] value ({}) not in valid range (0..16)", i, max_bytes_per_pic_denom[i]));
 			}
 			if(max_bits_per_mb_denom[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)max_bits_per_mb_denom[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] max_bits_per_mb_denom[{}] value ({}) not in valid range (0..16)", i, max_bits_per_mb_denom[i]));
 			}
 			if(log2_max_mv_length_horizontal[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] log2_max_mv_length_horizontal[" << i <<"] value (" << (int)log2_max_mv_length_horizontal[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] log2_max_mv_length_horizontal[{}] value ({}) not in valid range (0..16)", i, log2_max_mv_length_horizontal[i]));
 			}
 			if(log2_max_mv_length_vertical[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] max_bits_per_mb_denom[" << i <<"] value (" << (int)log2_max_mv_length_vertical[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] max_bits_per_mb_denom[{}] value ({}) not in valid range (0..16)", i, log2_max_mv_length_vertical[i]));
 			}
 			if(num_reorder_frames[i] > 16){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << (int)num_reorder_frames[i] << ") not in valid range (0..16)").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_reorder_frames[{}] value ({}) not in valid range (0..16)", i, num_reorder_frames[i]));
 			}
 			auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_seq_id);
 			if(referencedSPS == H264SPS::SPSMap.end()) return;
 			H264SPS* pSps = referencedSPS->second;
 			if(num_reorder_frames[i] > pSps->MaxDpbFrames){
-				errors.push_back((std::ostringstream() << "[SEI Mcvd view scalability info] num_reorder_frames[" << i <<"] value (" << num_reorder_frames[i] << ") not in valid range (0.." << (int)pSps->MaxDpbFrames << ")").str());
+				errors.push_back(fmt::format("[SEI Mcvd view scalability info] num_reorder_frames[{}] value ({}) not in valid range (0..{})", i, num_reorder_frames[i], pSps->MaxDpbFrames));
 			}
 		}
 	}

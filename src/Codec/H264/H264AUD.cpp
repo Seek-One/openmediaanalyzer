@@ -1,5 +1,5 @@
 #include <cstring>
-#include <sstream>
+#include <fmt/core.h>
 
 #include "H264AUD.h"
 
@@ -16,7 +16,7 @@ H264AUD::H264AUD(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 
 std::vector<std::string> H264AUD::dump_fields(){
 	std::vector<std::string> fields;
-	fields.push_back((std::ostringstream() << "primary_pic_type:" << (int)primary_pic_type).str());
+	fields.push_back(fmt::format("primary_pic_type:{}", primary_pic_type));
 	return fields;
 }
 

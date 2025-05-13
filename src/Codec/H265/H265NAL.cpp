@@ -1,5 +1,5 @@
 #include <cstring>
-#include <sstream>
+#include <fmt/core.h>
 
 #include "H265Utils.h"
 
@@ -94,14 +94,14 @@ bool H265NAL::isSTSA() const{
 
 std::vector<std::string> H265NAL::dump_fields(){
 	std::vector<std::string> fields;
-	fields.push_back((std::ostringstream() << "nuh_layer_id:" << (int)nuh_layer_id).str());
-	fields.push_back((std::ostringstream() << "TemporalId:" << (int)TemporalId).str());
+	fields.push_back(fmt::format("nuh_layer_id:{}", nuh_layer_id));
+	fields.push_back(fmt::format("TemporalId:{}", TemporalId));
 	return fields;
 }
 
 void H265NAL::validate(){
 	if(forbidden_zero_bit != 0) minorErrors.push_back("[NAL header] forbidden_zero_bit not equal to 0");
-	if(nuh_layer_id > 62) minorErrors.push_back((std::ostringstream() << "nuh_layer_id value (" << (int)nuh_layer_id <<") not in valid range(0..62)").str());
+	if(nuh_layer_id > 62) minorErrors.push_back(fmt::format("nuh_layer_id value ({}) not in valid range(0..62)", nuh_layer_id));
 	if(nuh_temporal_id_plus1 == 0) minorErrors.push_back("[NAL header] nuh_temporal_id_plus1 equal to 0");
 	if(isIRAP() && TemporalId != 0) minorErrors.push_back("[NAL header] TemporalId of IRAP picture not equal to 0");
 	else if(TemporalId == 0){

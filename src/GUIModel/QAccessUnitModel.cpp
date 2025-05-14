@@ -31,14 +31,14 @@ uint8_t* QAccessUnitModel::serialize() const{
     uint32_t index = 0;
     if(isH264()){
         const H264AccessUnit* pAccessUnit = std::get<const H264AccessUnit*>(m_pAccessUnit);
-        serialized = new uint8_t[pAccessUnit->size()];
+        serialized = new uint8_t[pAccessUnit->byteSize()];
         for(H264NAL* pNALUnit : pAccessUnit->getNALUnits()){
             memcpy(serialized+index, pNALUnit->nal_data, pNALUnit->nal_size);
             index += pNALUnit->nal_size;
         }
     } else if(isH265()){
         const H265AccessUnit* pAccessUnit = std::get<const H265AccessUnit*>(m_pAccessUnit);
-        serialized = new uint8_t[pAccessUnit->size()];
+        serialized = new uint8_t[pAccessUnit->byteSize()];
         for(H265NAL* pNALUnit : pAccessUnit->getNALUnits()){
             memcpy(serialized+index, pNALUnit->nal_data, pNALUnit->nal_size);
             index += pNALUnit->nal_size;
@@ -108,7 +108,7 @@ bool QAccessUnitModel::isH265() const {
 }
 
 uint64_t QAccessUnitModel::size() const {
-    if(isH264()) return std::get<const H264AccessUnit*>(m_pAccessUnit)->size();
-    else if(isH265()) return std::get<const H265AccessUnit*>(m_pAccessUnit)->size();
+    if(isH264()) return std::get<const H264AccessUnit*>(m_pAccessUnit)->byteSize();
+    else if(isH265()) return std::get<const H265AccessUnit*>(m_pAccessUnit)->byteSize();
     return 0;
 }

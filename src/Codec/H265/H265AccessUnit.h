@@ -18,14 +18,13 @@ struct H265AccessUnit {
 
     H265AccessUnit();
     ~H265AccessUnit();
-
     H265Slice* slice() const;
     std::vector<H265Slice*> slices() const;
     bool empty() const;
     std::vector<H265NAL*> getNALUnits() const;
     void addNALUnit(std::unique_ptr<H265NAL> NALUnit);
-    uint32_t count() const;
-    uint64_t size() const;
+    uint32_t size() const;
+    uint64_t byteSize() const;
     std::optional<uint16_t> frameNumber() const;
     bool isIRAP() const;
     bool isIDR() const;
@@ -40,17 +39,10 @@ struct H265AccessUnit {
     std::vector<std::unique_ptr<H265NAL>> NALUnits;
     int32_t PicOrderCntVal;
     uint32_t PicOrderCntMsb;
-    bool POCDecoded;
     std::vector<std::string> minorErrors;
     std::vector<std::string> majorErrors;
     ReferenceStatus status;
-
-    // Variables to handle the decoding process 8
-	uint8_t TargetDecLayerIdList; // 8.1.2
-	uint8_t HighestTid; // 8.1.2
-	bool SubPicHrdFlag; // 8.1.2
-
-    bool RPSDecoded;
+    bool decodable;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265ACCESS_UNIT_H_

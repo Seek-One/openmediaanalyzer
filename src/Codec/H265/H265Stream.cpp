@@ -31,7 +31,7 @@ std::deque<H265GOP*> H265Stream::getGOPs() const
 uint32_t H265Stream::popFrontGOPs(uint32_t count){
 	uint32_t removedAccessUnits = 0;
 	for(int i = 0;i < count;++i) {
-		removedAccessUnits += m_GOPs.front()->count();
+		removedAccessUnits += m_GOPs.front()->size();
 		m_GOPs.pop_front();
 	}
 	return removedAccessUnits;
@@ -40,7 +40,7 @@ uint32_t H265Stream::popFrontGOPs(uint32_t count){
 uint32_t H265Stream::accessUnitCount() const
 {
 	return std::accumulate(m_GOPs.begin(), m_GOPs.end(), 0, [](uint32_t accumulator, const std::unique_ptr<H265GOP>& ptr){
-		return accumulator + ptr->count();
+		return accumulator + ptr->size();
 	});
 }
 
@@ -113,6 +113,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			try{ bitstreamReader.readVPS(*m_pActiveVPS);
 			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what())); }
 			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				m_pCurrentAccessUnit->decodable = true;
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -126,6 +127,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			try { bitstreamReader.readSPS(*m_pActiveSPS);
 			} catch(const std::runtime_error& e){ m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); }
 			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				m_pCurrentAccessUnit->decodable = true;
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -139,6 +141,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			try { bitstreamReader.readPPS(*m_pActivePPS);
 			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); }
 			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				m_pCurrentAccessUnit->decodable = true;
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -153,6 +156,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			try { bitstreamReader.readSEI(*pSEI);
 			} catch(const std::runtime_error& e){ pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what())); }
 			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice){
+				m_pCurrentAccessUnit->decodable = true;
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -170,6 +174,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			try { bitstreamReader.readSlice(*pSlice, getAccessUnits(), m_pNextAccessUnit);
 			} catch(const std::runtime_error& e){ pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what())); }
 			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
+				m_pCurrentAccessUnit->decodable = true;
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
@@ -183,6 +188,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 					m_GOPs.push_back(std::make_unique<H265GOP>());
 					m_GOPs.back()->accessUnits.push_back(std::move(previousGOP->accessUnits.back()));
 					previousGOP->accessUnits.pop_back();
+					previousGOP->accessUnits.back()->decodable = true;
 					previousGOP->validate();
 
 					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());

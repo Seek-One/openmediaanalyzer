@@ -12,8 +12,9 @@
 
 #include "H264AccessUnit.h"
 
-H264AccessUnit::H264AccessUnit(){
-    hasFrameGaps = false;
+H264AccessUnit::H264AccessUnit():
+    decodable(false), hasFrameGaps(false)
+{
 }
 
 H264AccessUnit::~H264AccessUnit(){
@@ -37,11 +38,11 @@ void H264AccessUnit::addNALUnit(std::unique_ptr<H264NAL> NALUnit){
     NALUnits.push_back(std::move(NALUnit));
 }
 
-uint32_t H264AccessUnit::count() const{
+uint32_t H264AccessUnit::size() const{
     return NALUnits.size();
 }
 
-uint64_t H264AccessUnit::size() const{
+uint64_t H264AccessUnit::byteSize() const{
     return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264NAL>& unit){
         return acc+unit->nal_size;
     });

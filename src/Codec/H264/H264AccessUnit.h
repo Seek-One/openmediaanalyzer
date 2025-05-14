@@ -14,6 +14,7 @@ struct H264AccessUnit {
     ~H264AccessUnit();
 
     std::vector<std::unique_ptr<H264NAL>> NALUnits;
+    bool decodable;
     std::vector<std::string> minorErrors;
     std::vector<std::string> majorErrors;
     bool hasFrameGaps;
@@ -21,8 +22,8 @@ struct H264AccessUnit {
     bool empty() const;
     std::vector<H264NAL*> getNALUnits() const;
     void addNALUnit(std::unique_ptr<H264NAL> NALUnit);
-    uint32_t count() const;
-    uint64_t size() const;
+    uint32_t size() const;
+    uint64_t byteSize() const;
     std::optional<uint16_t> frameNumber() const;
     H264Slice* slice() const;
     H264Slice* primary_coded_slice() const;

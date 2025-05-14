@@ -75,6 +75,8 @@ private:
     void emitH265SPSErrors();
     void emitH265PPSErrors();
     void checkForNewGOP();
+    void decodeCurrentH264GOP();
+    void decodeCurrentH265GOP();
     void validateCurrentGOP();
     void validateH264GOPFrames();
     void validateH265GOPFrames();

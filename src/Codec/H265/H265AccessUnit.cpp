@@ -12,7 +12,7 @@
 #include "H265AccessUnit.h"
 
 H265AccessUnit::H265AccessUnit():
-    POCDecoded(false), RPSDecoded(false)
+    decodable(false)
 {
 }
 
@@ -53,14 +53,11 @@ void H265AccessUnit::addNALUnit(std::unique_ptr<H265NAL> NALUnit){
     NALUnits.push_back(std::move(NALUnit));
 }
 
-uint32_t H265AccessUnit::count() const{
+uint32_t H265AccessUnit::size() const{
     return NALUnits.size();
 }
 
-/*  Returns the total size in bytes of all the NAL units in the access unit.
-    Not to be confused with count() for the number of NAL units itself.
-*/
-uint64_t H265AccessUnit::size() const{
+uint64_t H265AccessUnit::byteSize() const{
     return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H265NAL>& NALUnit){
         return acc + NALUnit->nal_size;
     });

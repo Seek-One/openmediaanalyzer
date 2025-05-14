@@ -13,8 +13,8 @@ struct H264GOP {
     H264GOP();
     ~H264GOP();
 
-    uint32_t count() const;
-    uint64_t size() const;
+    uint32_t size() const;
+    uint64_t byteSize() const;
     std::vector<H264Slice*> slices() const;
     std::vector<H264AccessUnit*> getAccessUnits() const;
     void validate();

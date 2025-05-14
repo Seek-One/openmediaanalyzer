@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <unordered_set>
 
 #include "H264AccessUnit.h"
 #include "H264Slice.h"
@@ -17,13 +18,13 @@ H264GOP::~H264GOP(){
     accessUnits.clear();
 }
 
-uint32_t H264GOP::count() const {
+uint32_t H264GOP::size() const {
     return accessUnits.size();
 }
 
-uint64_t H264GOP::size() const {
+uint64_t H264GOP::byteSize() const {
     return std::accumulate(accessUnits.begin(), accessUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264AccessUnit>& pAccessUnit){
-        return acc + pAccessUnit->size();
+        return acc + pAccessUnit->byteSize();
     });
 }
 
@@ -49,6 +50,7 @@ void H264GOP::validate(){
     bool encounteredIFrame = false;
     bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
+    std::unordered_set<uint16_t> seenFrameNumbers;
     for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){   
         accessUnit->validate();     
         if(accessUnit->empty() || !accessUnit->slice()) continue;
@@ -61,8 +63,9 @@ void H264GOP::validate(){
             majorErrors.push_back("[GOP] Out of order frames detected");
         }
         prevFrameNumber = pSlice->frame_num;
+        seenFrameNumbers.insert(pSlice->frame_num);
     }
-    if(maxFrameNumber+1 != count() && !noSPSorPPS) majorErrors.push_back("[GOP] Skipped frames detected");
+    if(!noSPSorPPS && seenFrameNumbers.size() < maxFrameNumber+1) majorErrors.push_back("[GOP] Skipped frames detected");
     if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
 }
 

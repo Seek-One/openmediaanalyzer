@@ -14,8 +14,8 @@ struct H265GOP {
     ~H265GOP();
 
     bool empty() const;
-    uint32_t count() const;
-    uint64_t size() const;
+    uint32_t size() const;
+    uint64_t byteSize() const;
     std::vector<H265AccessUnit*> getAccessUnits() const;
     void validate();
     bool hasMajorErrors() const;

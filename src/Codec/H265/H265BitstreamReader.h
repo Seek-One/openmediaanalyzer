@@ -25,10 +25,6 @@ public:
 	void readSEI(H265SEI& h265SEI);
 
 private:
-	int32_t lastDecodedPOC;
-	std::vector<H265AccessUnit*> lastDecodedRefPicList0; // 8.3.4 (For P-slice)
-	std::vector<H265AccessUnit*> lastDecodedRefPicList1; // 8.3.4 (For B-slice)
-
 	H265ProfileTierLevel readProfileTierLevel(uint8_t iProfilePresentFlag, uint8_t iMaxNumSubLayersMinus1);
 	H265ScalingList readScalingList();
 	H265ShortTermRefPicSet readShortTermRefPicSet(uint32_t iShortTermSetIndex, const H265SPS& h265SPS);

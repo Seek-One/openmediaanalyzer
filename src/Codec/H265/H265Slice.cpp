@@ -200,6 +200,7 @@ H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t
 	NumLongTermPictureSliceHeaderBits = 0;
 	NumRpsCurrTempList0 = 0;
 	NumRpsCurrTempList1 = 0;
+	SliceQpY = 0;
 }
 
 std::vector<std::string> H265Slice::dump_fields(){

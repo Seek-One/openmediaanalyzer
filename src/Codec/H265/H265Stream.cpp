@@ -161,7 +161,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			break;
 		}
 		default:{
-			if (!m_currentNAL.isSlice()) std::cerr << "[Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
+			if (!m_currentNAL.isSlice()) {
+				std::cerr << "[Stream] Unsupported NAL unit type : " << (int)m_currentNAL.nal_unit_type << "\n";
+				break;
+			}
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
 			try { bitstreamReader.readSlice(*pSlice, getAccessUnits(), m_pNextAccessUnit);

@@ -10,14 +10,14 @@
 #include "QAccessUnitModel.h"
 
 QAccessUnitModel::QAccessUnitModel(const H264AccessUnit* pAccessUnit, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status_OK), m_id(id), m_sliceType(SliceType_Unspecified){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status_OK), m_id(id), m_sliceType(SliceType_Unspecified), decoded(false){
     setDisplayedFrameNumber();
     setSliceType();
     setStatus();
 }
 
 QAccessUnitModel::QAccessUnitModel(const H265AccessUnit* pAccessUnit, QUuid id) 
-    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status_OK), m_id(id), m_sliceType(SliceType_Unspecified){
+    : m_pAccessUnit(pAccessUnit), m_displayedFrameNum(std::nullopt), m_status(Status_OK), m_id(id), m_sliceType(SliceType_Unspecified), decoded(false){
     setDisplayedFrameNumber();
     setSliceType();
     setStatus();

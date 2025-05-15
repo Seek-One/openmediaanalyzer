@@ -48,4 +48,5 @@ public:
     Status m_status;
     SliceType m_sliceType;
     QUuid m_id;
+    bool decoded;
 };

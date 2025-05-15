@@ -100,7 +100,7 @@ private:
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
-    std::queue<QUuid> m_requestedFrames;
+    std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
 
     const AVCodec* m_pH264Codec;
     AVCodecContext* m_pH264CodecCtx;

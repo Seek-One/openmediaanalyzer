@@ -70,14 +70,14 @@ void H264GOP::validate(){
 }
 
 bool H264GOP::hasMajorErrors() const {
-    return !majorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H264AccessUnit>& accessUnit){
-        return acc || accessUnit->hasMajorErrors();
+    return !majorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
+        return accessUnit->hasMajorErrors();
     });
 }
 
 bool H264GOP::hasMinorErrors() const {
-    return !minorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H264AccessUnit>& accessUnit){
-        return acc || accessUnit->hasMinorErrors();
+    return !minorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
+        return accessUnit->hasMinorErrors();
     });
 }
 

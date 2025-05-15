@@ -98,13 +98,13 @@ void H265GOP::validate(){
 }
 
 bool H265GOP::hasMajorErrors() const {
-    return !majorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H265AccessUnit>& accessUnit){
-        return acc || accessUnit->hasMajorErrors();
+    return !majorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H265AccessUnit>& accessUnit){
+        return accessUnit->hasMajorErrors();
     });
 }
 
 bool H265GOP::hasMinorErrors() const {
-    return !minorErrors.empty() || std::accumulate(accessUnits.begin(), accessUnits.end(), false, [](bool acc, const std::unique_ptr<H265AccessUnit>& accessUnit){
-        return acc || accessUnit->hasMinorErrors();
+    return !minorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H265AccessUnit>& accessUnit){
+        return accessUnit->hasMinorErrors();
     });
 }

@@ -163,13 +163,13 @@ bool H265AccessUnit::isValid() const{
 }
 
 bool H265AccessUnit::hasMajorErrors() const{
-    return !majorErrors.empty() || std::accumulate(NALUnits.begin(), NALUnits.end(), false, [](bool acc, const std::unique_ptr<H265NAL>& NALUnit){
-        return acc || !NALUnit->majorErrors.empty();
+    return !majorErrors.empty() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+        return !NALUnit->majorErrors.empty();
     });
 }
 
 bool H265AccessUnit::hasMinorErrors() const{
-    return !minorErrors.empty() || std::accumulate(NALUnits.begin(), NALUnits.end(), false, [](bool acc, const std::unique_ptr<H265NAL>& NALUnit){
-        return acc || !NALUnit->minorErrors.empty();
+    return !minorErrors.empty() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+        return !NALUnit->minorErrors.empty();
     });
 }

@@ -817,11 +817,11 @@ void QDecoderModel::updateH264StatusBarValidity(){
 
 void QDecoderModel::updateH264StatusBarStatus(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
-    if(!m_majorStreamErrors.empty() || std::accumulate(GOPs.begin(), GOPs.end(), false, [](bool acc, H264GOP* pGOP){
-        return acc || pGOP->hasMajorErrors();
+    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
+        return pGOP->hasMajorErrors();
     })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
-    else if(!m_minorStreamErrors.empty() || std::accumulate(GOPs.begin(), GOPs.end(), false, [](bool acc, H264GOP* pGOP){
-        return acc || pGOP->hasMinorErrors();
+    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
+        return pGOP->hasMinorErrors();
     })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
     else updateStatus(StreamStatus::StreamStatus_OK);
 }
@@ -856,11 +856,11 @@ void QDecoderModel::updateH265StatusBarValidity(){
 
 void QDecoderModel::updateH265StatusBarStatus(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
-    if(!m_majorStreamErrors.empty() || std::accumulate(GOPs.begin(), GOPs.end(), false, [](bool acc, H265GOP* pGOP){
-        return acc || pGOP->hasMajorErrors();
+    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
+        return pGOP->hasMajorErrors();
     })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
-    else if(!m_minorStreamErrors.empty() || std::accumulate(GOPs.begin(), GOPs.end(), false, [](bool acc, H265GOP* pGOP){
-        return acc || pGOP->hasMinorErrors();
+    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
+        return pGOP->hasMinorErrors();
     })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
     else updateStatus(StreamStatus::StreamStatus_OK);
 }

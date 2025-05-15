@@ -231,7 +231,7 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 					m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 				}
 			} 
-			if(pSlice->slice_type == H264Slice::SliceType_I){ // I-frame marks new GOP
+			if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame){ // I-frame marks new GOP
 				// move access unit inserted in the previous GOP to a new one,
 				// unless it's the very first access unit of the GOP (access units can start with
 				// non-slice NAL units)

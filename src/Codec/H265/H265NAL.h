@@ -56,6 +56,7 @@ struct H265NAL {
 	bool isSlice() const;
 	static bool isSlice(UnitType nal_unit_type);
 	bool isIRAP() const;
+	bool isIDR() const;
 	bool isTSA() const;
 	bool isSTSA() const;
 	virtual std::vector<std::string> dump_fields();

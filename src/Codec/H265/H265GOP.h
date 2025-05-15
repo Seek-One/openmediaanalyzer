@@ -13,6 +13,7 @@ struct H265GOP {
     H265GOP();
     ~H265GOP();
 
+    void setAccessUnitDecodability();
     bool empty() const;
     uint32_t size() const;
     uint64_t byteSize() const;

@@ -90,12 +90,25 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
     // add the new access units afterwards to save on update calls
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pAccessUnitModels) {
         QSharedPointer<QAccessUnitElement> pAccessUnitElement = QSharedPointer<QAccessUnitElement>(new QAccessUnitElement());
-        m_pAccessUnitElements.push_back(pAccessUnitElement);
         pAccessUnitElement->setAccessUnitElement(pAccessUnitModel);
-        m_pBarHBoxLayout->addWidget(pAccessUnitElement.get());
+        connect(pAccessUnitElement.get(), &QAccessUnitElement::selectAccessUnit, this, &QTimelineView::accessUnitSelected);
+
+        int insertionIndex = m_pAccessUnitElements.size();
+        if(pAccessUnitModel->m_sliceType == QAccessUnitModel::SliceType_B){
+            auto accessUnitElementIt = m_pAccessUnitElements.rbegin();
+            while(accessUnitElementIt != m_pAccessUnitElements.rend() && ((*accessUnitElementIt)->m_pAccessUnitModel->m_displayedFrameNum.value() > pAccessUnitElement->m_pAccessUnitModel->m_displayedFrameNum.value())){
+                --insertionIndex;
+                ++accessUnitElementIt;
+            }
+            m_pAccessUnitElements.insert(std::next(m_pAccessUnitElements.begin(), insertionIndex), pAccessUnitElement);
+            m_pBarHBoxLayout->insertWidget(insertionIndex, pAccessUnitElement.get());
+        } else {
+            m_pAccessUnitElements.push_back(pAccessUnitElement);
+            m_pBarHBoxLayout->addWidget(pAccessUnitElement.get());
+        }
+
         uint16_t accessUnitCount = m_pBarHBoxLayout->count();
         m_pCounterHBoxLayout->addWidget(new QTimelineCounterElement(accessUnitCount, this));
-        connect(pAccessUnitElement.get(), &QAccessUnitElement::selectAccessUnit, this, &QTimelineView::accessUnitSelected);
     }
     if(clampScrollRight) hScrollBar->setValue(hScrollBar->maximum());
     else hScrollBar->setValue(hScrollBar->value() - (hScrollBar->maximum() - prevHScrollBarMax));

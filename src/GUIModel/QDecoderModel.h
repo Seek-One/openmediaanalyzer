@@ -5,6 +5,7 @@
 #include <QFileSystemModel>
 #include <QStandardItemModel>
 #include <QImage>
+#include <queue>
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -88,8 +89,8 @@ private:
     void updateH265StatusBarValidity();
     void updateH265StatusBarStatus();
     void updateH265StatusBar();
-    QImage* decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
-    QImage* decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    void decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    void decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* getQImageFromH264Frame(const AVFrame* pFrame);
     QImage* getQImageFromH265Frame(const AVFrame* pFrame);
 
@@ -99,6 +100,7 @@ private:
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
+    std::queue<QUuid> m_requestedFrames;
 
     const AVCodec* m_pH264Codec;
     AVCodecContext* m_pH264CodecCtx;

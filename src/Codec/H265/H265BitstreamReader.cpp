@@ -305,7 +305,7 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 
 void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit)
 {
-	h265Slice.IdrPicFlag = (h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL) || (h265Slice.nal_unit_type == H265NAL::UnitType_IDR_N_LP);
+	h265Slice.IdrPicFlag = h265Slice.isIDR();
 	h265Slice.IRAPPicture = (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP) && (h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23);
 	h265Slice.NoRaslOutputFlag = h265Slice.NoRaslOutputFlag || 
 									h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL ||
@@ -1346,7 +1346,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 	std::vector<int32_t> PocLtFoll; 
 	std::vector<uint8_t> CurrDeltaPocMsbPresentFlag;
 	std::vector<uint8_t> FollDeltaPocMsbPresentFlag;
-	if(h265Slice.nal_unit_type != H265NAL::UnitType_IDR_N_LP && h265Slice.nal_unit_type != H265NAL::UnitType_IDR_W_RADL){
+	if(!h265Slice.isIDR()){
 		if(!pCurrentSPS) {
 			return;
 		}

@@ -78,7 +78,7 @@ bool H265AccessUnit::isIRAP() const {
 bool H265AccessUnit::isIDR() const {
     H265Slice* pSlice = slice();
     if(!pSlice) return false;
-    return pSlice->nal_unit_type == H265NAL::UnitType_IDR_N_LP || pSlice->nal_unit_type == H265NAL::UnitType_IDR_W_RADL;
+    return pSlice->isIDR();
 }
 
 bool H265AccessUnit::isRASL() const {

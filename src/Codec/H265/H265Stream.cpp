@@ -179,7 +179,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pNextAccessUnit = new H265AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 			}
-			if(pSlice->isIDR() && pSlice->first_slice_segment_in_pic_flag){ // IDR-frame marks new GOP
+			if(pSlice->slice_type == H265Slice::SliceType_I && pSlice->first_slice_segment_in_pic_flag){ // I-frame marks new GOP
 				// move access unit inserted in the previous GOP to a new one,
 				// unless it's the very first access unit of the GOP (access units can start with
 				// non-slice NAL units)

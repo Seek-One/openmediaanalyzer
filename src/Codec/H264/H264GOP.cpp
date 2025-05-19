@@ -50,6 +50,8 @@ void H264GOP::validate(){
     bool encounteredIFrame = false;
     bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
+    uint16_t minFrameNumber = 0;
+    if(accessUnits.front()->slice()) maxFrameNumber = minFrameNumber = accessUnits.front()->slice()->frame_num;
     std::unordered_set<uint16_t> seenFrameNumbers;
     for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){   
         accessUnit->validate();     
@@ -65,7 +67,15 @@ void H264GOP::validate(){
         prevFrameNumber = pSlice->frame_num;
         seenFrameNumbers.insert(pSlice->frame_num);
     }
-    if(!noSPSorPPS && seenFrameNumbers.size() < maxFrameNumber+1) majorErrors.push_back("[GOP] Skipped frames detected");
+    if(!noSPSorPPS) {
+        bool frameSkipped = false;
+        for(uint16_t i = minFrameNumber+1;i < maxFrameNumber && !frameSkipped;++i){
+            if(seenFrameNumbers.find(i) == seenFrameNumbers.end()){
+                majorErrors.push_back("[GOP] Skipped frames detected");
+                frameSkipped = true;
+            } 
+        }
+    }
     if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
 }
 

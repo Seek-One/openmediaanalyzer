@@ -72,6 +72,8 @@ void H265GOP::validate(){
     bool encounteredIFrame = false;
     bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
+    uint16_t minFrameNumber = 0;
+    if(accessUnits.front()->slice()) minFrameNumber = maxFrameNumber = accessUnits.front()->slice()->slice_pic_order_cnt_lsb;
     uint16_t lastNonBFrameNumber = 0;
     std::unordered_set<uint16_t> seenFrameNumbers;
     for(const std::unique_ptr<H265AccessUnit>& accessUnit : accessUnits){
@@ -81,6 +83,7 @@ void H265GOP::validate(){
         if(!pSlice->getPPS() || !pSlice->getSPS() || !pSlice->getVPS()) continue;
         noSPSorPPS = false;
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
+        if(pSlice->slice_pic_order_cnt_lsb < minFrameNumber) minFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
         if(pSlice->slice_type == H265Slice::SliceType_B){
             if(pSlice->slice_pic_order_cnt_lsb > lastNonBFrameNumber) majorErrors.push_back("[GOP] Out of order frames detected");
@@ -93,7 +96,15 @@ void H265GOP::validate(){
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         seenFrameNumbers.insert(pSlice->slice_pic_order_cnt_lsb);
     }
-    if(!noSPSorPPS && seenFrameNumbers.size() < maxFrameNumber+1) majorErrors.push_back("[GOP] Skipped frames detected");
+    if(!noSPSorPPS){
+        bool frameSkipped = false;
+        for(uint16_t i = minFrameNumber+1;i < maxFrameNumber && !frameSkipped;++i){
+            if(seenFrameNumbers.find(i) == seenFrameNumbers.end()){
+                majorErrors.push_back("[GOP] Skipped frames detected");
+                frameSkipped = true;
+            } 
+        }
+    } 
     if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
 }
 

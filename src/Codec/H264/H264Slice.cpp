@@ -226,7 +226,7 @@ void H264Slice::validate(){
 		}
 	}
 
-	if(slice_type == H264Slice::SliceType_I && frame_num != 0){
+	if(nal_unit_type == H264NAL::UnitType_IDRFrame && frame_num != 0){
 		
 		minorErrors.push_back(fmt::format("[Slice] frame_num of an IDR picture ({}) should be 0", frame_num));
 	}

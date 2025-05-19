@@ -514,9 +514,16 @@ void QDecoderModel::frameDeleted(QUuid id){
 void QDecoderModel::folderLoaded(){
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
+
     std::deque<H264GOP*> h264GOPs = m_pH264Stream->getGOPs();
     std::deque<H265GOP*> h265GOPs = m_pH265Stream->getGOPs();
     if(!h264GOPs.empty()){
+        std::transform(m_pH264Stream->minorErrors.begin(), m_pH264Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
+        std::transform(m_pH264Stream->majorErrors.begin(), m_pH264Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
         h264GOPs.back()->getAccessUnits().back()->decodable = true;
         h264GOPs.back()->validate();
         decodeCurrentH264GOP();
@@ -531,6 +538,12 @@ void QDecoderModel::folderLoaded(){
         updateH264StatusBarValidity();
         updateH264StatusBarStatus();
     } else if(!h265GOPs.empty()){
+        std::transform(m_pH265Stream->minorErrors.begin(), m_pH265Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
+        std::transform(m_pH265Stream->majorErrors.begin(), m_pH265Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
+            return QString(err.c_str());
+        });
         h265GOPs.back()->setAccessUnitDecodability();
         h265GOPs.back()->validate();
         decodeCurrentH265GOP();

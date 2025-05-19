@@ -80,6 +80,18 @@ std::list<H264AccessUnit*> H264Stream::getLastAccessUnits(uint32_t count) const
 	return pAccessUnits;
 }
 
+std::vector<H264AccessUnit*> H264Stream::getAccessUnits() const
+{
+	std::vector<H264AccessUnit*> pAccessUnits = std::vector<H264AccessUnit*>();
+	for(auto itGOP = m_GOPs.begin(); itGOP != m_GOPs.end();++itGOP){
+		H264GOP* pGOP = itGOP->get();
+		for(auto itAccessUnit = pGOP->accessUnits.begin(); itAccessUnit != pGOP->accessUnits.end();++itAccessUnit){
+			pAccessUnits.push_back(itAccessUnit->get());
+		}
+	}
+	return pAccessUnits;
+}
+
 
 PictureOrderCount H264Stream::computePOC() {
 	if (m_GOPs.back()->accessUnits.size() == 0) {
@@ -500,7 +512,7 @@ PictureOrderCount H264Stream::computePOCType2() {
 
 void H264Stream::validateFrameNum(H264Slice* pSlice){
 	if(!pSlice->getSPS()) return;
-	std::list<H264AccessUnit*> pAccessUnits = getLastAccessUnits(accessUnitCount());
+	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	pAccessUnits.pop_back(); // remove the current access unit
 	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) pSlice->PrevRefFrameNum = 0;
 	else {

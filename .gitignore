@@ -2,8 +2,10 @@
 /CMakeFiles
 /h26*_samples
 /openmediaanalyzer_autogen
+/openmediaanalyzer-testsuite_autogen
 cmake_install.cmake
 CMakeCache.txt
 Makefile
 openmediaanalyzer
+openmediaanalyzer-testsuite
 ts/*.qm

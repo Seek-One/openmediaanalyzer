@@ -37,6 +37,7 @@ public:
 	uint32_t popFrontGOPs(uint32_t count);
 	uint32_t accessUnitCount() const;
 	std::list<H264AccessUnit*> getLastAccessUnits(uint32_t count) const;
+	std::vector<H264AccessUnit*> getAccessUnits() const;
 
 	PictureOrderCount computePOC();
 

@@ -63,6 +63,14 @@ H264Slice* H264AccessUnit::slice() const{
     return nullptr;
 }
 
+std::vector<H264Slice*> H264AccessUnit::slices() const{
+    std::vector<H264Slice*> pSlices;
+    for(const std::unique_ptr<H264NAL>& NALUnit : NALUnits){
+        if(H264Slice::isSlice(NALUnit.get())) pSlices.push_back(reinterpret_cast<H264Slice*>(NALUnit.get()));
+    }
+    return pSlices;
+}
+
 H264Slice* H264AccessUnit::primary_coded_slice() const{
     for(auto& NALUnit : NALUnits){
         if(H264Slice::isSlice(NALUnit.get())){

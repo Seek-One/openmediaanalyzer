@@ -1,4 +1,5 @@
-#include "Codec/H264/H264Stream.h"
+#include "Codec/H264/H264AUD.h"
+#include "Codec/H264/H264SEI.h"
 
 #include "CameraSamplesParsing.h"
 
@@ -9,9 +10,8 @@ CameraSamplesParsing::CameraSamplesParsing(const char* szDirTestFile)
 	m_szDirTestFile = szDirTestFile;
 }
 
-void CameraSamplesParsing::test_h264AxisBitstream()
-{
-	QDir dirFrame = QDir(QString("%0/h264_samples/h264-axis").arg(m_szDirTestFile));
+void CameraSamplesParsing::loadStream(const QString& szDirName, H264Stream& stream){
+	QDir dirFrame = QDir(QString("%0/stream-samples/%1").arg(m_szDirTestFile, szDirName));
 
 	QStringList listFrame = dirFrame.entryList(QDir::Files, QDir::Name);
 	QByteArray bitstream;
@@ -23,9 +23,13 @@ void CameraSamplesParsing::test_h264AxisBitstream()
 		bitstream.append(data);
 	}
 
-	H264Stream stream;
 	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()));
-	
+}
+
+void CameraSamplesParsing::test_h264AxisBitstream()
+{
+	H264Stream stream;
+	loadStream("h264-axis", stream);	
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
 
 
@@ -132,6 +136,64 @@ void CameraSamplesParsing::test_h264AxisBitstream()
 	QVERIFY(pSlice->disable_deblocking_filter_idc == 0);
 	QVERIFY(pSlice->slice_alpha_c0_offset_div2 == 0);
 	QVERIFY(pSlice->slice_beta_offset_div2 == 0);
+}
+
+void CameraSamplesParsing::test_h264IQEyeBitstream(){
+	H264Stream stream;
+	loadStream("h264-iqeye", stream);
+	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+
+	H264AccessUnit* pFirstAccessUnit = pAccessUnits.front();
+	QVERIFY(pFirstAccessUnit->size() == 7);
+	std::vector<H264NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
+	QVERIFY(pFirstAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
+	H264AUD* pAUD = (H264AUD*)pFirstAccessUnitNALUnits[0];
+	QVERIFY(pAUD->primary_pic_type == 0);
+
+	QVERIFY(pFirstAccessUnitNALUnits[1]->nal_unit_type == H264NAL::UnitType_SPS);
+	QVERIFY(pFirstAccessUnitNALUnits[2]->nal_unit_type == H264NAL::UnitType_PPS);
+
+	for(int i = 3;i < 6;++i) QVERIFY(pFirstAccessUnitNALUnits[i]->nal_unit_type == H264NAL::UnitType_SEI);
+	H264SEI* pSEI = (H264SEI*)pFirstAccessUnitNALUnits[4];
+	QVERIFY(pSEI->messages.size() == 1);
+	QVERIFY(pSEI->messages.front()->payloadType == SEI_PIC_TIMING);
+	H264SEIPicTiming* pSEIPicTiming = (H264SEIPicTiming*)pSEI->messages.front();
+	QVERIFY(pSEIPicTiming->cpb_removal_delay == 40);
+	QVERIFY(pSEIPicTiming->dpb_output_delay == 2);
+
+	QVERIFY(pFirstAccessUnitNALUnits[6]->nal_unit_type == H264NAL::UnitType_IDRFrame);
+
+	H264AccessUnit* pRandomAccessUnit = pAccessUnits[24];
+	QVERIFY(pRandomAccessUnit->size() == 3);
+	std::vector<H264NAL*> pRandomAccessUnitNALUnits = pRandomAccessUnit->getNALUnits();
+	QVERIFY(pRandomAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
+	QVERIFY(pRandomAccessUnitNALUnits[1]->nal_unit_type == H264NAL::UnitType_SEI);
+	QVERIFY(pRandomAccessUnitNALUnits[2]->nal_unit_type == H264NAL::UnitType_NonIDRFrame);
+
+	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
+	QVERIFY(pLastAccessUnit->size() == 1);
+	std::vector<H264NAL*> pLastAccessUnitNALUnits = pRandomAccessUnit->getNALUnits();
+	QVERIFY(pLastAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
+}
+
+void CameraSamplesParsing::test_h264Sony4kBitstream(){
+	H264Stream stream;
+	loadStream("h264-sony4k", stream);
+	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+
+	for(int i = 0;i < pAccessUnits.size();++i){
+		std::vector<H264Slice*> pSlices = pAccessUnits[i]->slices();
+		QVERIFY(!pSlices.empty());
+		if(i%3 == 0) QVERIFY(pSlices.front()->slice_type == H264Slice::SliceType_I || pSlices.front()->slice_type == H264Slice::SliceType_P);
+		else QVERIFY(pSlices.front()->slice_type == H264Slice::SliceType_B); // IBBPBBPBBPBB... pattern
+		// multi-slice access unit
+		uint32_t last_first_mb_in_slice = pSlices.front()->first_mb_in_slice;
+		for(H264Slice* pSlice : pSlices){
+			QVERIFY(pSlice->frame_num == pSlices.front()->frame_num);
+			QVERIFY(pSlice->first_mb_in_slice >= last_first_mb_in_slice);
+			last_first_mb_in_slice = pSlice->first_mb_in_slice;
+		}
+	}
 }
 
 QByteArray CameraSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)

@@ -26,6 +26,7 @@ struct H264AccessUnit {
     uint64_t byteSize() const;
     std::optional<uint16_t> frameNumber() const;
     H264Slice* slice() const;
+    std::vector<H264Slice*> slices() const;
     H264Slice* primary_coded_slice() const;
     H264NAL* last() const;
     void validate();

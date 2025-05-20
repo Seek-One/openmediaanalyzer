@@ -6,8 +6,7 @@ H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 {
 	m_pNALData = pNALData;
 	m_iBitsOffset = 0;
-
-	// Remove empty trailing octets
+	// Remove empty trailing bytes
 	while (pNALData[iNALLength - 1] == 0) {
 		--iNALLength;
 	};

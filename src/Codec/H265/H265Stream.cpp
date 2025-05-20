@@ -95,10 +95,26 @@ bool H265Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	return bRes;
 }
 
+void H265Stream::lastPacketParsed(){
+	H265GOP* lastGOP = m_GOPs.back().get();
+	lastGOP->setAccessUnitDecodability();
+	lastGOP->validate();
+
+	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
+	lastGOP->minorErrors.clear();
+	for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+
+	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
+	lastGOP->majorErrors.clear();
+	for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+}
+
 bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 {
 	H265BitstreamReader bitstreamReader(pNALData, iNALLength);
-	bitstreamReader.readNALHeader(m_currentNAL);
+	try { bitstreamReader.readNALHeader(m_currentNAL);
+	} catch(const std::runtime_error& e) { majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));}
+
 
 	if(!m_pCurrentAccessUnit) {
 		m_pCurrentAccessUnit = new H265AccessUnit();
@@ -188,7 +204,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 					m_GOPs.push_back(std::make_unique<H265GOP>());
 					m_GOPs.back()->accessUnits.push_back(std::move(previousGOP->accessUnits.back()));
 					previousGOP->accessUnits.pop_back();
-					previousGOP->accessUnits.back()->decodable = true;
+					previousGOP->setAccessUnitDecodability();
 					previousGOP->validate();
 
 					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());

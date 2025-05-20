@@ -2,8 +2,6 @@
 
 #include "H26XBitstreamReader.h"
 
-#define END_OF_STREAM_ERR_MSG "Prematurely reached end of bitstream during parsing"
-
 H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 {
 	m_pNALData = pNALData;

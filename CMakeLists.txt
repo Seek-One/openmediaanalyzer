@@ -203,25 +203,13 @@ SET (UNITTEST_SRC
     test/main.cpp
     test/Codec/H264/CameraSamplesParsing.cpp
     test/Codec/H264/CameraSamplesParsing.h
+    test/Codec/H264/InvalidSamplesParsing.cpp
+    test/Codec/H264/InvalidSamplesParsing.h
 )
 
-# set(UNITTEST_MOC_HEADERS
-#     test/Codec/H264/CameraSamplesParsing.h
-# )
+set (UNITTEST_EXE ${APPLICATION_EXE_NAME}-testsuite)
+add_executable (${UNITTEST_EXE} ${UNITTEST_SRC} ${CODEC_SOURCES} ${UNITTEST_MOC_OUTFILES})
 
-qt_wrap_cpp(
-    UNITTEST_MOC_OUTFILES
-    ${UNITTEST_MOC_HEADERS}
-)
-
-if (NOT SINGLE_UNIT_COMPILATION)
-	set (UNITTEST_EXE ${APPLICATION_EXE_NAME}-testsuite)
-	add_executable (${UNITTEST_EXE} ${CODEC_SOURCES} ${UNITTEST_SRC} ${UNITTEST_MOC_OUTFILES})
-else()
-	set (UNITTEST_EXE ${APPLICATION_EXE_NAME}-testsuite)
-	generate_single_unit_sources(${UNITTEST_EXE} "${UNITTEST_SRC}" SINGLE_UNIT_FILES)
-	add_executable (${UNITTEST_EXE} ${SINGLE_UNIT_FILES} ${CODEC_SOURCES} ${UNITTEST_MOC_OUTFILES} ${UNITTEST_MOC_HEADERS})
-endif()
 set_target_properties(${UNITTEST_EXE} PROPERTIES 
     COMPILE_FLAGS -DUNITTEST
     AUTOMOC ON
@@ -232,4 +220,4 @@ target_link_libraries (${UNITTEST_EXE}
     Qt5::Test
     fmt::fmt
 )
-install(TARGETS ${APPLICATION_EXE_NAME}-testsuite DESTINATION ${INSTALL_PATH_BIN})
+install(TARGETS ${UNITTEST_EXE} DESTINATION ${INSTALL_PATH_BIN})

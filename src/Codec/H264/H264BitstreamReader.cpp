@@ -708,7 +708,7 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 			last_payload_size_byte = readBits(8);
 		}
 		payloadSize += last_payload_size_byte;
-		if(payloadSize*8 > m_iRemainingBits) return;
+		if(payloadSize*8 > m_iRemainingBits) throw std::runtime_error("Payload size exceeds remaining bitstream length left");
 		switch(payloadType){
 			case SEI_BUFFERING_PERIOD:
 				readSEIBufferingPeriod(h264SEI);

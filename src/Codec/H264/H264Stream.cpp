@@ -135,9 +135,9 @@ bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
 
-	bool bRes;
+	bool bRes = true;
 	for (int i = 0; i < listNAL.size(); ++i) {
-		bRes = bRes && parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength);
+		if(!parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength)) bRes = false;
 	}
 
 	if (bRes) {
@@ -145,6 +145,20 @@ bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	}
 
 	return bRes;
+}
+
+void H264Stream::lastPacketParsed(){
+	H264GOP* lastGOP = m_GOPs.back().get();
+	lastGOP->accessUnits.back()->decodable = true;
+	lastGOP->validate();
+
+	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
+	lastGOP->minorErrors.clear();
+	for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+
+	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
+	lastGOP->majorErrors.clear();
+	for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 }
 
 // returns true if curr marks the beginning of a new access unit
@@ -190,8 +204,11 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		H264NAL* lastUnit = m_pCurrentAccessUnit->last();
 		previousUnitIsVLC = lastUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame || lastUnit->nal_unit_type == H264NAL::UnitType_IDRFrame;
 	} 
-	bitstreamReader.readNALHeader(m_currentNAL);
-
+	try { bitstreamReader.readNALHeader(m_currentNAL);
+	} catch(const std::runtime_error& e) { 
+		majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));
+		return false;
+	}
 
 	if ((m_currentNAL.nal_unit_type == H264NAL::UnitType_PrefixNAL) ||
 		(m_currentNAL.nal_unit_type == H264NAL::UnitType_SVCExt) ||
@@ -511,7 +528,7 @@ PictureOrderCount H264Stream::computePOCType2() {
 }
 
 void H264Stream::validateFrameNum(H264Slice* pSlice){
-	if(!pSlice->getSPS()) return;
+	if(!pSlice->getSPS() || !pSlice->majorErrors.empty()) return;
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	pAccessUnits.pop_back(); // remove the current access unit
 	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) pSlice->PrevRefFrameNum = 0;

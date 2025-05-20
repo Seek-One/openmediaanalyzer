@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#define END_OF_STREAM_ERR_MSG "Prematurely reached end of bitstream during parsing"
+
 class H26XBitstreamReader {
 public:
 	H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength);

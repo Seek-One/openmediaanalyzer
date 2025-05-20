@@ -35,6 +35,7 @@ public:
 	Size getPictureSize() const;
 
 	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength);
+	void lastPacketParsed();
 
 	// Extract all necessary information for the decoding process
 	void startDecodingProcess();

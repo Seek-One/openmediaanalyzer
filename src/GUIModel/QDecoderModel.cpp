@@ -518,43 +518,25 @@ void QDecoderModel::folderLoaded(){
     std::deque<H264GOP*> h264GOPs = m_pH264Stream->getGOPs();
     std::deque<H265GOP*> h265GOPs = m_pH265Stream->getGOPs();
     if(!h264GOPs.empty()){
+        m_pH264Stream->lastPacketParsed();
         std::transform(m_pH264Stream->minorErrors.begin(), m_pH264Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
         std::transform(m_pH264Stream->majorErrors.begin(), m_pH264Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
-        h264GOPs.back()->getAccessUnits().back()->decodable = true;
-        h264GOPs.back()->validate();
         decodeCurrentH264GOP();
-        std::transform(h264GOPs.back()->minorErrors.begin(), h264GOPs.back()->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        h264GOPs.back()->minorErrors.clear();
-        std::transform(h264GOPs.back()->majorErrors.begin(), h264GOPs.back()->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        h264GOPs.back()->majorErrors.clear();
         updateH264StatusBarValidity();
         updateH264StatusBarStatus();
     } else if(!h265GOPs.empty()){
+        m_pH265Stream->lastPacketParsed();
         std::transform(m_pH265Stream->minorErrors.begin(), m_pH265Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
         std::transform(m_pH265Stream->majorErrors.begin(), m_pH265Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
-        h265GOPs.back()->setAccessUnitDecodability();
-        h265GOPs.back()->validate();
         decodeCurrentH265GOP();
-        std::transform(h265GOPs.back()->minorErrors.begin(), h265GOPs.back()->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        h265GOPs.back()->minorErrors.clear();
-        std::transform(h265GOPs.back()->majorErrors.begin(), h265GOPs.back()->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        h265GOPs.back()->majorErrors.clear();
         updateH265StatusBarValidity();
         updateH265StatusBarStatus();
     }

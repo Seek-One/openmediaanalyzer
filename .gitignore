@@ -9,4 +9,3 @@ Makefile
 openmediaanalyzer
 openmediaanalyzer-testsuite
 ts/*.qm
-stream-samples

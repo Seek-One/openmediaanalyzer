@@ -28,6 +28,7 @@ void InvalidSamplesParsing::test_h264EndOfStreamBitstream()
 {
 	H264Stream stream;
 	loadStream("h264-end-of-stream", stream, false);	
+	QVERIFY(stream.getGOPs().size() == 1);
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), std::string("[NAL Header] ")+std::string(END_OF_STREAM_ERR_MSG)) != stream.majorErrors.end());
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
 	QVERIFY(pAccessUnits.size() == 2);
@@ -64,6 +65,7 @@ void InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 	QVERIFY(stream.majorErrors.empty());
 	QVERIFY(stream.minorErrors.empty());
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 3);
 	QVERIFY(pAccessUnits.front()->isValid());
 	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
 	std::vector<H264NAL*> pLastAccessUnitNALUnits = pLastAccessUnit->getNALUnits();

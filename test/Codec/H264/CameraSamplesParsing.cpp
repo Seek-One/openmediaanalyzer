@@ -31,6 +31,14 @@ void CameraSamplesParsing::test_h264AxisBitstream()
 	H264Stream stream;
 	loadStream("h264-axis", stream);	
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 64);
+	QVERIFY(stream.getGOPs().size() == 2);
+	for(H264AccessUnit* pAccessUnit : pAccessUnits){
+		H264Slice* pSlice = pAccessUnit->slice();
+		QVERIFY(pSlice != nullptr);
+		QVERIFY(pAccessUnit->size() == (pSlice->slice_type == H264Slice::SliceType_I ? 3 : 1));
+		QVERIFY(pAccessUnit->slices().size() == 1);
+	}
 
 
 	// Data extracted from command: ffmpeg -i bitstream.h264 -c copy -bsf:v trace_headers -f null - 2> /tmp/tmp.txt
@@ -142,6 +150,8 @@ void CameraSamplesParsing::test_h264IQEyeBitstream(){
 	H264Stream stream;
 	loadStream("h264-iqeye", stream);
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 61);
+	QVERIFY(stream.getGOPs().size() == 2);
 
 	H264AccessUnit* pFirstAccessUnit = pAccessUnits.front();
 	QVERIFY(pFirstAccessUnit->size() == 7);
@@ -180,6 +190,14 @@ void CameraSamplesParsing::test_h264Sony4kBitstream(){
 	H264Stream stream;
 	loadStream("h264-sony4k", stream);
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 180);
+	QVERIFY(stream.getGOPs().size() == 2);
+	for(H264AccessUnit* pAccessUnit : pAccessUnits){
+		H264Slice* pSlice = pAccessUnit->slice();
+		QVERIFY(pSlice != nullptr);
+		QVERIFY(pAccessUnit->size() == (pSlice->slice_type == H264Slice::SliceType_I ? 11 : 9));
+		QVERIFY(pAccessUnit->slices().size() == 8);
+	}
 
 	for(int i = 0;i < pAccessUnits.size();++i){
 		std::vector<H264Slice*> pSlices = pAccessUnits[i]->slices();

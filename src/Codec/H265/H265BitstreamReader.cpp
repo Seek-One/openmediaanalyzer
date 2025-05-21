@@ -916,14 +916,14 @@ H265HrdParameters H265BitstreamReader::readHrdParameters(uint8_t commonInfPresen
 			h265HrdParameters.dpb_output_delay_length_minus1 = readBits(5);
 		}
 	}
-	h265HrdParameters.fixed_pic_rate_general_flag.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.fixed_pic_rate_within_cvs_flag.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.elemental_duration_in_tc_minus1.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.low_delay_hrd_flag.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.cpb_cnt_minus1.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.nal_sub_layer_hrd_parameters.resize(maxNumSubLayersMinus1);
-	h265HrdParameters.vcl_sub_layer_hrd_parameters.resize(maxNumSubLayersMinus1);
-	for(int i = 0;i < maxNumSubLayersMinus1;++i){
+	h265HrdParameters.fixed_pic_rate_general_flag.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.fixed_pic_rate_within_cvs_flag.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.elemental_duration_in_tc_minus1.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.low_delay_hrd_flag.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.cpb_cnt_minus1.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.nal_sub_layer_hrd_parameters.resize(maxNumSubLayersMinus1+1);
+	h265HrdParameters.vcl_sub_layer_hrd_parameters.resize(maxNumSubLayersMinus1+1);
+	for(int i = 0;i <= maxNumSubLayersMinus1;++i){
 		h265HrdParameters.fixed_pic_rate_general_flag[i] = readBits(1);
 		if(!h265HrdParameters.fixed_pic_rate_general_flag[i]) h265HrdParameters.fixed_pic_rate_within_cvs_flag[i] = readBits(1);
 		else h265HrdParameters.fixed_pic_rate_within_cvs_flag[i] = 1;

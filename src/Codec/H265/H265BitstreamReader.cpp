@@ -1541,8 +1541,8 @@ H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slic
 		}
 		if(h265PredWeightTable.chroma_weight_l0_flag[i]){
 			for(int j = 0;j < 2;++j){
-				h265PredWeightTable.delta_chroma_weight_l0[i][j];
-				h265PredWeightTable.delta_chroma_offset_l0[i][j];
+				h265PredWeightTable.delta_chroma_weight_l0[i][j] = readGolombSE();
+				h265PredWeightTable.delta_chroma_offset_l0[i][j] = readGolombSE();
 			}
 		}
 	}
@@ -1567,8 +1567,8 @@ H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slic
 			}
 			if(h265PredWeightTable.chroma_weight_l1_flag[i]){
 				for(int j = 0;j < 2;++j){
-					h265PredWeightTable.delta_chroma_weight_l1[i][j];
-					h265PredWeightTable.delta_chroma_offset_l1[i][j];
+					h265PredWeightTable.delta_chroma_weight_l1[i][j] = readGolombSE();
+					h265PredWeightTable.delta_chroma_offset_l1[i][j] = readGolombSE();
 				}
 			}
 		}

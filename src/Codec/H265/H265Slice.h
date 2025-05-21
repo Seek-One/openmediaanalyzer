@@ -31,7 +31,7 @@ struct H265PredWeightTable {
 	H265PredWeightTable();
 
 	uint8_t luma_log2_weight_denom;
-	uint8_t delta_chroma_log2_weight_denom;
+	int8_t delta_chroma_log2_weight_denom;
 	std::array<uint8_t, 15> luma_weight_l0_flag;
 	std::array<uint8_t, 15> chroma_weight_l0_flag;
 	std::array<int16_t, 15> delta_luma_weight_l0;
@@ -95,7 +95,7 @@ struct H265Slice : public H265NAL {
 	uint8_t collocated_from_l0_flag;
 	uint32_t collocated_ref_idx;
 	H265PredWeightTable pred_weight_table;
-	uint32_t five_minus_max_num_merge_cand;
+	uint8_t five_minus_max_num_merge_cand;
 	uint8_t use_integer_mv_flag;
 	int32_t slice_qp_delta;
 	int32_t slice_cb_qp_offset;

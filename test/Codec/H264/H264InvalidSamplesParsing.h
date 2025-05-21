@@ -14,6 +14,7 @@ private slots:
 	void test_h264EndOfStreamBitstream();
 	void test_h264AccessUnitErrorsBitstream();
 	void test_h264FramesOutOfOrderBitstream();
+	void test_h264InvalidFrameNumsBitstream();
 	void test_h264MissingIFrameBitstream();
 	void test_h264MissingPPSBitstream();
 	void test_h264MissingSPSBitstream();

@@ -550,17 +550,12 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 	if(!pSlice->getSPS() || !pSlice->majorErrors.empty()) return;
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	pAccessUnits.pop_back(); // remove the current access unit
-	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) pSlice->PrevRefFrameNum = 0;
+	// frame_num of an IDR picure equal to 0 : already covered in H264Slice::validate();
+	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) {
+		pSlice->PrevRefFrameNum = 0;
+		return;
+	}
 	else {
-		// no gaps
-		bool foundNoGaps = false;
-		for(auto it = pAccessUnits.rbegin();it != pAccessUnits.rend();++it){ // most recent previous access unit that has a reference pic
-			if((*it)->hasReferencePicture()) {
-				pSlice->PrevRefFrameNum = (*it)->frameNumber().value();
-				foundNoGaps = true;
-				break;
-			}
-		}
 		// gaps : rarely allowed and entails more checks/processing, do later if time allows it
 		// bool foundGaps = false;
 		// for(auto it = pAccessUnits.rbegin();it != pAccessUnits.rend()-1;++it){
@@ -572,8 +567,18 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		// 	}
 		// }
 
-		if(!foundNoGaps){ // if(!foundNoGaps && !foundGaps){
-			pSlice->minorErrors.push_back("[Slice Frame number] Couldn't derive PrevRefFrameNumber");
+		// no gaps
+		bool foundPrevFrame = false;
+		for(auto it = pAccessUnits.rbegin();it != pAccessUnits.rend();++it){ // most recent previous access unit that has a reference pic
+			if((*it)->hasReferencePicture()) {
+				pSlice->PrevRefFrameNum = (*it)->frameNumber().value();
+				foundPrevFrame = true;
+				break;
+			}
+		}
+
+		if(!foundPrevFrame){
+			pSlice->minorErrors.push_back("[Slice frame number] Couldn't derive PrevRefFrameNumber");
 			return;
 		}
 	}	
@@ -602,13 +607,13 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 		bool precedingPreviousReference = precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice() && precedingPreviousAccessUnit->primary_coded_slice()->nal_ref_idc == 0;
 		if(!consecutive || !oppositeParities || (!precedingIsIDR && !markingPictureOperation && !precedingPreviousPrimaryPic && !precedingPreviousReference)){
-			pSlice->minorErrors.push_back("[Slice Frame number] frame_num shouldn't be equal to PrevRefFrameNum");
+			pSlice->minorErrors.push_back("[Slice frame number] frame_num shouldn't be equal to PrevRefFrameNum");
 			return;
 		}
 	} else {
 		std::vector<uint16_t> UnusedShortTermFrameNums;
 		uint16_t MaxFrameNum = pSlice->getSPS()->computeMaxFrameNumber();
-		for(uint16_t i = (pSlice->PrevRefFrameNum+1)%MaxFrameNum;i != pSlice->frame_num;++i){
+		for(uint16_t i = (pSlice->PrevRefFrameNum+1)%MaxFrameNum;i < pSlice->frame_num;++i){
 			UnusedShortTermFrameNums.push_back(i);
 		}
 		std::vector<H264AccessUnit*> pCurrentGOPAccessUnits = m_GOPs.back()->getAccessUnits();
@@ -617,14 +622,14 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 			H264Slice* previousSlice = pAccessUnit->slice();
 			if(previousSlice && previousSlice->nal_ref_idc != 0 && !previousSlice->drpm.long_term_reference_flag){
 				if(std::find(UnusedShortTermFrameNums.begin(), UnusedShortTermFrameNums.end(), previousSlice->frame_num) != UnusedShortTermFrameNums.end()){
-					pSlice->minorErrors.push_back("[Slice Frame number] Previous frame/field has a frame_num marked as unused");
+					pSlice->minorErrors.push_back("[Slice frame number] Previous frame/field has a frame_num marked as unused");
 					return;
 				}
 			}
 		}
 		if(!pSlice->getSPS()->gaps_in_frame_num_value_allowed_flag){
 			if(pSlice->frame_num != ((pSlice->PrevRefFrameNum+1)%MaxFrameNum)){
-				pSlice->minorErrors.push_back("[Slice Frame number] frame_num isn't directly succeeding PrevRefFrameNum");
+				pSlice->minorErrors.push_back("[Slice frame number] frame_num isn't directly succeeding PrevRefFrameNum");
 				return;
 			}
 		} else {

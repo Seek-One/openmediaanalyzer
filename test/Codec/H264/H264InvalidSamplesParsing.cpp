@@ -91,6 +91,29 @@ void H264InvalidSamplesParsing::test_h264FramesOutOfOrderBitstream(){
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Out of order frames detected") != stream.majorErrors.end());
 }
 
+void H264InvalidSamplesParsing::test_h264InvalidFrameNumsBitstream(){
+	H264Stream stream;
+	loadStream("h264-frames-out-of-order", stream, true);	
+	stream.lastPacketParsed();
+	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 18);
+	H264Slice* pSlice1 = pAccessUnits[11]->slice();
+	QVERIFY(pSlice1 != nullptr);
+	QVERIFY(!pSlice1->minorErrors.empty());
+	QVERIFY(std::find(pSlice1->minorErrors.begin(), pSlice1->minorErrors.end(), "[Slice frame number] frame_num isn't directly succeeding PrevRefFrameNum") != pSlice1->minorErrors.end());	
+	
+	H264Slice* pSlice2 = pAccessUnits[12]->slice();
+	QVERIFY(pSlice2 != nullptr);
+	QVERIFY(!pSlice2->minorErrors.empty());	
+	QVERIFY(std::find(pSlice2->minorErrors.begin(), pSlice2->minorErrors.end(), "[Slice frame number] frame_num isn't directly succeeding PrevRefFrameNum") != pSlice2->minorErrors.end());	
+	
+	H264Slice* pSlice3 = pAccessUnits[13]->slice();
+	QVERIFY(pSlice3 != nullptr);
+	QVERIFY(!pSlice3->minorErrors.empty());	
+	QVERIFY(std::find(pSlice3->minorErrors.begin(), pSlice3->minorErrors.end(), "[Slice frame number] Previous frame/field has a frame_num marked as unused") != pSlice2->minorErrors.end());	
+
+}
+
 void H264InvalidSamplesParsing::test_h264MissingIFrameBitstream(){
 	H264Stream stream;
 	loadStream("h264-missing-iframe", stream, true);	

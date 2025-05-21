@@ -205,6 +205,7 @@ H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t
 
 std::vector<std::string> H265Slice::dump_fields(){
 	std::vector<std::string> fields = H265NAL::dump_fields();
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("first_slice_segment_in_pic_flag:{}", first_slice_segment_in_pic_flag));
 	if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23) fields.push_back(fmt::format("  no_output_of_prior_pics_flag:{}", no_output_of_prior_pics_flag));
 	fields.push_back(fmt::format("slice_pic_parameter_set_id:{}", slice_pic_parameter_set_id));
@@ -346,6 +347,7 @@ H265VPS* H265Slice::getVPS() const{
 
 void H265Slice::validate(){
 	H265NAL::validate();
+	if(!completelyParsed) return;
 	if(slice_pic_parameter_set_id > 63) minorErrors.push_back(fmt::format("[Slice] slice_pic_parameter_set_id value ({}) not in valid range (0..63)", slice_pic_parameter_set_id));
 	H265PPS* pPps = getPPS();
 	if(!pPps){
@@ -358,7 +360,22 @@ void H265Slice::validate(){
 		return;
 	}
 	H265VPS* pVps = getVPS();
-	if(!pVps) majorErrors.push_back(fmt::format("[Slice] reference to unknown VPS ({})", pSps->sps_video_parameter_set_id));
+	if(!pVps) {
+		majorErrors.push_back(fmt::format("[Slice] reference to unknown VPS ({})", pSps->sps_video_parameter_set_id));
+		return;
+	}
+	if(!pPps->completelyParsed){
+		majorErrors.push_back("[Slice] referenced PPS is incomplete");
+		return;
+	}
+	if(!pSps->completelyParsed){
+		majorErrors.push_back("[Slice] referenced SPS is incomplete");
+		return;
+	}
+	if(!pVps->completelyParsed){
+		majorErrors.push_back("[Slice] referenced VPS is incomplete");
+		return;
+	}
 	if(pPps->TemporalId > TemporalId) minorErrors.push_back("[Slice] referenced PPS has a greater TemporalId value");
 	if(pPps->nuh_layer_id > nuh_layer_id) minorErrors.push_back("[Slice] referenced PPS has a greater nuh_layer_id value");
 	if(pSps->nuh_layer_id > nuh_layer_id) minorErrors.push_back("[Slice] referenced SPS has a greater nuh_layer_id value");

@@ -23,6 +23,7 @@ struct H265SEI : public H265NAL {
     std::vector<H265SEIMessage*> messages;
 	
 	std::vector<std::string> dump_fields() override;
+	void validate() override;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265SEI_H_

@@ -1658,7 +1658,7 @@ void H265BitstreamReader::readSEI(H265SEI& h265SEI){
 			last_payload_size_byte = readBits(8);
 		}
 		payloadSize += last_payload_size_byte;
-		if(payloadSize*8 > m_iRemainingBits) return;
+		if(payloadSize*8 > m_iRemainingBits) throw std::runtime_error("Payload size exceeds remaining bitstream length left");
 		switch(payloadType){
 			default:
 				std::cerr << "Unsupported SEI message type : " << payloadType << "\n";

@@ -39,6 +39,8 @@ struct H264NAL {
 	uint32_t nal_size;
 	uint8_t* nal_data;
 
+	bool completelyParsed;
+
 	std::vector<std::string> minorErrors;
 	std::vector<std::string> majorErrors;
 

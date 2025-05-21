@@ -223,7 +223,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H264NAL::UnitType_SPS: {
 			H264SPS* pSps = new H264SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readSPS(*pSps);
-			} catch(const std::runtime_error& e) { pSps->majorErrors.push_back(std::string("[SPS] ").append(e.what()));}
+			} catch(const std::runtime_error& e) { 
+				pSps->majorErrors.push_back(std::string("[SPS] ").append(e.what()));
+				pSps->completelyParsed = false;
+			}
 			if(previousUnitIsVLC) {
 				m_GOPs.back()->hasSlice = true;
 				m_pCurrentAccessUnit->decodable = true;
@@ -238,7 +241,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H264NAL::UnitType_PPS: {
 			H264PPS* pPps = new H264PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readPPS(*pPps);
-			} catch(const std::runtime_error& e) { pPps->majorErrors.push_back(std::string("[PPS] ").append(e.what()));}
+			} catch(const std::runtime_error& e) { 
+				pPps->majorErrors.push_back(std::string("[PPS] ").append(e.what()));
+				pPps->completelyParsed = false;
+			}
 			if(previousUnitIsVLC) {
 				m_GOPs.back()->hasSlice = true;
 				m_pCurrentAccessUnit->decodable = true;
@@ -254,7 +260,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H264NAL::UnitType_NonIDRFrame: {
 			H264Slice* pSlice = new H264Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, m_currentNAL.nal_unit_type, iNALLength, pNALData);
 			try { bitstreamReader.readSlice(*pSlice);
-			} catch(const std::runtime_error& e) { pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));}
+			} catch(const std::runtime_error& e) { 
+				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
+				pSlice->completelyParsed = false;
+			}
 			if(previousUnitIsVLC){
 				H264Slice* previousSlice = m_pCurrentAccessUnit->slice();
 				if(newCodedPicture(previousSlice, pSlice)) {
@@ -293,7 +302,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H264NAL::UnitType_SEI: {
 			H264SEI* pSei = new H264SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readSEI(*pSei, *m_pActiveSPS);
-			} catch(const std::runtime_error& e) { pSei->minorErrors.push_back(std::string("[SEI] ").append(e.what()));}
+			} catch(const std::runtime_error& e) { 
+				pSei->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
+				pSei->completelyParsed = false;
+			}
 			if(previousUnitIsVLC) {
 				m_GOPs.back()->hasSlice = true;
 				m_pCurrentAccessUnit->decodable = true;
@@ -306,7 +318,10 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H264NAL::UnitType_AUD: {
 			H264AUD* pAud = new H264AUD(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readAUD(*pAud);
-			} catch(const std::runtime_error& e) { pAud->minorErrors.push_back(std::string("[AUD] ").append(e.what()));}
+			} catch(const std::runtime_error& e) { 
+				pAud->minorErrors.push_back(std::string("[AUD] ").append(e.what()));
+				pAud->completelyParsed = false;
+			}
 			if(previousUnitIsVLC) {
 				m_GOPs.back()->hasSlice = true;
 				m_pCurrentAccessUnit->decodable = true;

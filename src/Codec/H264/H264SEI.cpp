@@ -35,6 +35,7 @@ void H264SEIMessage::validate(){}
 
 std::vector<std::string> H264SEI::dump_fields(){
 	std::vector<std::string> fields;
+	if(!completelyParsed) return fields;
 	for(H264SEIMessage* message : messages){
 		std::vector<std::string> msgFields = message->dump_fields();
 		fields.insert(fields.end(), msgFields.begin(), msgFields.end());
@@ -44,6 +45,7 @@ std::vector<std::string> H264SEI::dump_fields(){
 
 void H264SEI::validate(){
 	H264NAL::validate();
+	if(!completelyParsed) return;
 	for(H264SEIMessage* message : messages){
 		message->validate();
 		minorErrors.insert(minorErrors.end(), message->errors.begin(), message->errors.end());

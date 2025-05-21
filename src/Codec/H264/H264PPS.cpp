@@ -69,6 +69,7 @@ H264PPS::H264PPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 
 std::vector<std::string> H264PPS::dump_fields(){
 	std::vector<std::string> fields;
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("pic_parameter_set_id:{}", pic_parameter_set_id));
 	fields.push_back(fmt::format("seq_parameter_set_id:{}", seq_parameter_set_id));
 	fields.push_back(fmt::format("entropy_coding_mode_flag:{}", entropy_coding_mode_flag));
@@ -116,6 +117,7 @@ std::vector<std::string> H264PPS::dump_fields(){
 
 void H264PPS::validate(){
 	H264NAL::validate();
+	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
 		minorErrors.push_back(fmt::format("[PPS] seq_parameter_set_id value ({}) not in valid range (0..31)", seq_parameter_set_id));
 	}

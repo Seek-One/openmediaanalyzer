@@ -101,6 +101,7 @@ bool H264Slice::isSlice(H264NAL* NALUnit){
 
 std::vector<std::string> H264Slice::dump_fields(){
 	std::vector<std::string> fields;
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("first_mb_in_slice:{}", first_mb_in_slice));
     fields.push_back(fmt::format("slice_type:{}", slice_type-1));
     fields.push_back(fmt::format("pic_parameter_set_id:{}", pic_parameter_set_id));
@@ -192,6 +193,8 @@ std::vector<std::string> H264Slice::dump_fields(){
 }
 
 void H264Slice::validate(){
+	H264NAL::validate();
+	if(!completelyParsed) return;
 	if(slice_type == H264Slice::SliceType_Unspecified){
 		majorErrors.push_back("[Slice] Invalid slice type");
 	}

@@ -131,7 +131,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H265NAL::UnitType_VPS:{
 			m_pActiveVPS = new H265VPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try{ bitstreamReader.readVPS(*m_pActiveVPS);
-			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what())); }
+			} catch(const std::runtime_error& e){ 
+				m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what()));
+				m_pActiveVPS->completelyParsed = false;
+			}
 			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_GOPs.back()->setAccessUnitDecodability();
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
@@ -145,7 +148,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H265NAL::UnitType_SPS:{
 			m_pActiveSPS = new H265SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try { bitstreamReader.readSPS(*m_pActiveSPS);
-			} catch(const std::runtime_error& e){ m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); }
+			} catch(const std::runtime_error& e){ 
+				m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); 
+				m_pActiveSPS->completelyParsed = false;
+			}
 			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_GOPs.back()->setAccessUnitDecodability();
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
@@ -159,7 +165,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H265NAL::UnitType_PPS:{
 			m_pActivePPS = new H265PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try { bitstreamReader.readPPS(*m_pActivePPS);
-			} catch(const std::runtime_error& e){ m_pActiveVPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); }
+			} catch(const std::runtime_error& e){ 
+				m_pActivePPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); 
+				m_pActivePPS->completelyParsed = false;
+			}
 			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_GOPs.back()->setAccessUnitDecodability();
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
@@ -174,7 +183,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		case H265NAL::UnitType_SEI_SUFFIX: {
 			H265SEI* pSEI = new H265SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try { bitstreamReader.readSEI(*pSEI);
-			} catch(const std::runtime_error& e){ pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what())); }
+			} catch(const std::runtime_error& e){ 
+				pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
+				pSEI->completelyParsed = false;
+			}
 			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice){
 				m_GOPs.back()->setAccessUnitDecodability();
 				m_pCurrentAccessUnit = m_pNextAccessUnit;
@@ -192,7 +204,10 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			H265Slice* pSlice = new H265Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
 			try { bitstreamReader.readSlice(*pSlice, getAccessUnits(), m_pNextAccessUnit);
-			} catch(const std::runtime_error& e){ pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what())); }
+			} catch(const std::runtime_error& e){ 
+				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
+				pSlice->completelyParsed = false;
+			}
 			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
 				m_GOPs.back()->setAccessUnitDecodability();
 				m_pCurrentAccessUnit = m_pNextAccessUnit;

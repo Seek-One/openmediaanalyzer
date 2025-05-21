@@ -33,6 +33,7 @@ H265VPS::H265VPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 std::vector<std::string> H265VPS::dump_fields(){
 	std::vector<std::string> fields = H265NAL::dump_fields();
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("vps_video_parameter_set_id:{}", vps_video_parameter_set_id));
 	fields.push_back(fmt::format("vps_base_layer_internal_flag:{}", vps_base_layer_internal_flag));
 	fields.push_back(fmt::format("vps_base_layer_available_flag:{}", vps_base_layer_available_flag));
@@ -78,6 +79,7 @@ std::vector<std::string> H265VPS::dump_fields(){
 
 void H265VPS::validate(){
 	H265NAL::validate();
+	if(!completelyParsed) return;
 	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0) minorErrors.push_back("[VPS] vps_max_layers_minus1 not greater than 0");
 	if(vps_max_layers_minus1 > 62) minorErrors.push_back(fmt::format("[VPS] vps_max_layers_minus1 value ({}) not in valid range (0..62)", vps_max_layers_minus1));
 	if(vps_max_sub_layers_minus1 > 6) minorErrors.push_back(fmt::format("[VPS] vps_max_sub_layers_minus1 value ({}) not in valid range (0..6)", vps_max_sub_layers_minus1));

@@ -140,6 +140,7 @@ H264SPS::H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 
 std::vector<std::string> H264SPS::dump_fields(){
 	std::vector<std::string> fields;
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("profile_idc:{}", profile_idc));
 	fields.push_back(fmt::format("constraint_set0_flag:{}", constraint_set0_flag));
 	fields.push_back(fmt::format("constraint_set1_flag:{}", constraint_set1_flag));
@@ -276,6 +277,8 @@ std::vector<std::string> H264SPS::dump_fields(){
 }
 
 void H264SPS::validate(){
+	H264NAL::validate();
+	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
 		minorErrors.push_back(fmt::format("[SPS] seq_parameter_set_id value ({}) not in valid range (0..31)", seq_parameter_set_id));
 	}

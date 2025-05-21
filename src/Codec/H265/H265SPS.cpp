@@ -269,9 +269,9 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 	SubWidthC = 0;
 	SubHeightC = 0;
-	MinCbLog2SizeY = 0;
+	MinCbLog2SizeY = 3;
 	CtbLog2SizeY = 0;
-	MinCbSizeY = 0;
+	MinCbSizeY = 1 << MinCbLog2SizeY;
 	CtbSizeY = 0;
 	PicWidthInMinCbsY = 0;
 	PicWidthInCtbsY = 0;
@@ -300,6 +300,7 @@ H265SPS::~H265SPS(){}
 
 std::vector<std::string> H265SPS::dump_fields(){
 	std::vector<std::string> fields = H265NAL::dump_fields();
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("sps_video_parameter_set_id:{}", sps_video_parameter_set_id));
 	fields.push_back(fmt::format("sps_max_sub_layers_minus1:{}", sps_max_sub_layers_minus1));
 	fields.push_back(fmt::format("sps_temporal_id_nesting_flag:{}", sps_temporal_id_nesting_flag));
@@ -414,6 +415,7 @@ std::vector<std::string> H265SPS::dump_fields(){
 
 void H265SPS::validate(){
 	H265NAL::validate();
+	if(!completelyParsed) return;
 	if(sps_max_sub_layers_minus1 > 6) minorErrors.push_back(fmt::format("[SPS] sps_max_sub_layers_minus1 value ({}) not in valid range (0..6)", sps_max_sub_layers_minus1));
 	auto referencedVPS = H265VPS::VPSMap.find(sps_video_parameter_set_id);
 	H265VPS* pVps = nullptr;

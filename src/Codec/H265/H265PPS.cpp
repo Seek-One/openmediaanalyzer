@@ -249,6 +249,7 @@ H265PPS::~H265PPS(){}
 
 std::vector<std::string> H265PPS::dump_fields(){
 	std::vector<std::string> fields = H265NAL::dump_fields();
+	if(!completelyParsed) return fields;
 	fields.push_back(fmt::format("pps_pic_parameter_set_id:{}", pps_pic_parameter_set_id));
 	fields.push_back(fmt::format("pps_seq_parameter_set_id:{}", pps_seq_parameter_set_id));
 	fields.push_back(fmt::format("dependent_slice_segments_enabled_flag:{}", dependent_slice_segments_enabled_flag));
@@ -340,6 +341,7 @@ std::vector<std::string> H265PPS::dump_fields(){
 
 void H265PPS::validate(){
 	H265NAL::validate();
+	if(!completelyParsed) return;
 	if(pps_pic_parameter_set_id > 63) minorErrors.push_back(fmt::format("[PPS] pps_pic_parameter_set_id value ({}) not in valid range (0..63)", pps_pic_parameter_set_id));
 	if(pps_seq_parameter_set_id > 15) minorErrors.push_back(fmt::format("[PPS] pps_seq_parameter_set_id value({}) not in valid range (0..63)", pps_seq_parameter_set_id));
 	auto referencedSPS = H265SPS::SPSMap.find(pps_seq_parameter_set_id);

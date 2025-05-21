@@ -444,7 +444,6 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 				(h265PPS->weighted_bipred_flag && h265Slice.slice_type == H265Slice::SliceType_B))
 			{
 				h265Slice.pred_weight_table = readSlicePredWeightTable(h265Slice);
-				return;
 			}
 			h265Slice.five_minus_max_num_merge_cand = readGolombUE();
 			if(h265SPS->sps_scc_extension.motion_vector_resolution_control_idc == 2 )

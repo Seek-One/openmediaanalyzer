@@ -6,13 +6,14 @@
 
 #include <QtTest>
 
-class H265CameraSamplesParsing : public QObject {
+class H265ValidSamplesParsing : public QObject {
 	Q_OBJECT
 public:
-	H265CameraSamplesParsing(const char* szDirTestFile);
+	H265ValidSamplesParsing(const char* szDirTestFile);
 
 private slots:
 	void test_h265DahuaBitstream();
+	void test_h265WebSampleBunnyBitstream();
 
 private:
 	QByteArray loadFrame(const QDir& dirFrame, const QString& szFilename);

@@ -201,12 +201,12 @@ set_target_properties(${APPLICATION_EXE_NAME} PROPERTIES
 
 SET (UNITTEST_SRC
     test/main.cpp
-    test/Codec/H264/H264CameraSamplesParsing.cpp
-    test/Codec/H264/H264CameraSamplesParsing.h
+    test/Codec/H264/H264ValidSamplesParsing.cpp
+    test/Codec/H264/H264ValidSamplesParsing.h
     test/Codec/H264/H264InvalidSamplesParsing.cpp
     test/Codec/H264/H264InvalidSamplesParsing.h
-    test/Codec/H265/H265CameraSamplesParsing.cpp
-    test/Codec/H265/H265CameraSamplesParsing.h
+    test/Codec/H265/H265ValidSamplesParsing.cpp
+    test/Codec/H265/H265ValidSamplesParsing.h
 )
 
 set (UNITTEST_EXE ${APPLICATION_EXE_NAME}-testsuite)

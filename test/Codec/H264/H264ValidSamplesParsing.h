@@ -6,10 +6,10 @@
 
 #include <QtTest>
 
-class H264CameraSamplesParsing : public QObject {
+class H264ValidSamplesParsing : public QObject {
 	Q_OBJECT
 public:
-	H264CameraSamplesParsing(const char* szDirTestFile);
+	H264ValidSamplesParsing(const char* szDirTestFile);
 
 private slots:
 	void test_h264AxisBitstream();

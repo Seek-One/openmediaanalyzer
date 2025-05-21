@@ -17,6 +17,7 @@ private slots:
 	void test_h265MissingSPSBitstream();
 	void test_h265MissingVPSBitstream();
 	void test_h265SkippedFrameBitstream();
+	void test_h265EndOfStreamBitstream();
 
 private:
 	QByteArray loadFrame(const QDir& dirFrame, const QString& szFilename);

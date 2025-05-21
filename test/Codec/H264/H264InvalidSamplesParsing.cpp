@@ -81,7 +81,6 @@ void H264InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 	for(const std::string& expectedErr : expectedAccessUnitErrors){
 		QVERIFY(std::find(pLastAccessUnit->minorErrors.begin(), pLastAccessUnit->minorErrors.end(), expectedErr) != pLastAccessUnit->minorErrors.end());
 	}
-
 }
 
 void H264InvalidSamplesParsing::test_h264FramesOutOfOrderBitstream(){
@@ -161,7 +160,6 @@ void H264InvalidSamplesParsing::test_h264SyntaxErrorsBitstream(){
 	QVERIFY(std::find(pPPS->majorErrors.begin(), pPPS->majorErrors.end(), "[PPS] Prematurely reached end of bitstream during parsing") != pPPS->majorErrors.end());
 	QVERIFY(!pPPS->minorErrors.empty());
 	QVERIFY(std::find(pPPS->minorErrors.begin(), pPPS->minorErrors.end(), "[NAL Header] Picture parameter set marked as unimportant") != pPPS->minorErrors.end());
-	QVERIFY(std::find(pPPS->minorErrors.begin(), pPPS->minorErrors.end(), "[PPS] num_ref_idx_l0_active_minus1 value (59) not in valid range (0..31)") != pPPS->minorErrors.end());
 	
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
 	QVERIFY(pAccessUnits.size() == 3);

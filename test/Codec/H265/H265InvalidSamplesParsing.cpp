@@ -1,4 +1,6 @@
+#include "Codec/H26X/H26XBitstreamReader.h"
 #include "Codec/H265/H265AccessUnit.h"
+#include "Codec/H265/H265SEI.h"
 
 #include "H265InvalidSamplesParsing.h"
 
@@ -88,6 +90,41 @@ void H265InvalidSamplesParsing::test_h265SkippedFrameBitstream(){
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Skipped frames detected") != stream.majorErrors.end());
 	for(H265AccessUnit* pAccessUnit : stream.getAccessUnits()) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
 }
+
+void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()
+{
+	H265Stream stream;
+	loadStream("h265-end-of-stream", stream, true);	
+	QVERIFY(stream.getGOPs().size() == 1);
+	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), std::string("[NAL Header] ")+std::string(END_OF_STREAM_ERR_MSG)) != stream.majorErrors.end());
+	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 2);
+	H265AccessUnit* pFirstAccessUnit = pAccessUnits.front();
+	QVERIFY(pFirstAccessUnit->size() == 4);
+	std::vector<H265NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
+
+	H265SPS* pSPS = (H265SPS*)pFirstAccessUnitNALUnits[0];
+	QVERIFY(!pSPS->majorErrors.empty());
+	QVERIFY(std::find(pSPS->majorErrors.begin(), pSPS->majorErrors.end(), std::string("[SPS] ")+std::string(END_OF_STREAM_ERR_MSG)) != pSPS->majorErrors.end());
+	
+	H265PPS* pPPS = (H265PPS*)pFirstAccessUnitNALUnits[1];
+	QVERIFY(!pPPS->majorErrors.empty());
+	QVERIFY(std::find(pPPS->majorErrors.begin(), pPPS->majorErrors.end(), std::string("[PPS] ")+std::string(END_OF_STREAM_ERR_MSG)) != pPPS->majorErrors.end());
+	
+	H265SEI* pSEI = (H265SEI*)pFirstAccessUnitNALUnits[2];
+	QVERIFY(!pSEI->minorErrors.empty());
+	QVERIFY(std::find(pSEI->minorErrors.begin(), pSEI->minorErrors.end(), "[SEI] Payload size exceeds remaining bitstream length left") != pSEI->minorErrors.end());
+	
+	H265Slice* pSlice = (H265Slice*)pFirstAccessUnitNALUnits[3];
+	QVERIFY(!pSlice->majorErrors.empty());
+	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown VPS (0)") != pSlice->majorErrors.end());
+
+	QVERIFY(pAccessUnits.back()->size() == 1);
+	pSlice = (H265Slice*)pAccessUnits.back()->getNALUnits().front();
+	QVERIFY(!pSlice->majorErrors.empty());
+	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), std::string("[Slice] ")+std::string(END_OF_STREAM_ERR_MSG)) != pSlice->majorErrors.end());
+}
+
 
 QByteArray H265InvalidSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
 {

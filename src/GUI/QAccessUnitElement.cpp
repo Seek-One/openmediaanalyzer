@@ -6,7 +6,7 @@
 QAccessUnitElement::QAccessUnitElement(QWidget* parent)
     : QWidget(parent), m_selected(false), m_hovered(false)
 {
-    setMinimumSize(15, 90);
+    setFixedWidth(15);
     setMouseTracking(true);
 }
 
@@ -22,7 +22,6 @@ void QAccessUnitElement::paintEvent(QPaintEvent* event) {
     updateBarColor();
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    
     QRect fullRect(0, 0, width(), height());
     if(m_selected){
         painter.fillRect(fullRect, QColor::fromRgb(173, 216, 230));

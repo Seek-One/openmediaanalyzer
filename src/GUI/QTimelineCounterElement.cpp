@@ -6,7 +6,7 @@
 QTimelineCounterElement::QTimelineCounterElement(uint16_t value, QWidget* parent)
     : m_value(value), QWidget(parent)
 {
-    setMinimumSize(15, 10);
+    setFixedWidth(15);
     update();
 }
 
@@ -18,6 +18,6 @@ void QTimelineCounterElement::paintEvent(QPaintEvent* event) {
     
     painter.scale(0.75, 0.75);
     painter.rotate(90);
-    painter.drawText(0, -width()*(1/0.75)/2 + 4, (m_value == 1 || m_value%10 == 0) ? QString::number(m_value) : "-");
+    painter.drawText(0, -width()*(1/0.75)/2 + 5, (m_value == 1 || m_value%10 == 0) ? QString::number(m_value) : "-");
     
 }

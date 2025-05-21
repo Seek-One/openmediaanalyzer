@@ -5,10 +5,10 @@
 
 #include <QtTest>
 
-class InvalidSamplesParsing : public QObject {
+class H264InvalidSamplesParsing : public QObject {
 	Q_OBJECT
 public:
-	InvalidSamplesParsing(const char* szDirTestFile);
+	H264InvalidSamplesParsing(const char* szDirTestFile);
 
 private slots:
 	void test_h264EndOfStreamBitstream();

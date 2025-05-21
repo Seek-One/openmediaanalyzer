@@ -1,7 +1,8 @@
 #include <QtTest>
 
-#include "Codec/H264/CameraSamplesParsing.h"
-#include "Codec/H264/InvalidSamplesParsing.h"
+#include "Codec/H264/H264CameraSamplesParsing.h"
+#include "Codec/H264/H264InvalidSamplesParsing.h"
+#include "Codec/H265/H265CameraSamplesParsing.h"
 
 int main(int argc, char**argv)
 {
@@ -10,12 +11,17 @@ int main(int argc, char**argv)
 	int iRes = 0;
 
 	if(iRes == 0){
-		CameraSamplesParsing testCase(".");
+		H264CameraSamplesParsing testCase(".");
 		iRes = QTest::qExec(&testCase, argc, argv);
 	}
 
 	if(iRes == 0){
-		InvalidSamplesParsing testCase(".");
+		H264InvalidSamplesParsing testCase(".");
+		iRes = QTest::qExec(&testCase, argc, argv);
+	}
+
+	if(iRes == 0){
+		H265CameraSamplesParsing testCase(".");
 		iRes = QTest::qExec(&testCase, argc, argv);
 	}
 

@@ -1,16 +1,16 @@
 #include "Codec/H26X/H26XBitstreamReader.h"
 #include "Codec/H264/H264SEI.h"
 
-#include "InvalidSamplesParsing.h"
+#include "H264InvalidSamplesParsing.h"
 
 const static char g_start_code[4] = {0x00, 0x00, 0x00, 0x01};
 
-InvalidSamplesParsing::InvalidSamplesParsing(const char* szDirTestFile)
+H264InvalidSamplesParsing::H264InvalidSamplesParsing(const char* szDirTestFile)
 {
 	m_szDirTestFile = szDirTestFile;
 }
 
-void InvalidSamplesParsing::loadStream(const QString& szDirName, H264Stream& stream, const bool expectedPacketParsingResult){
+void H264InvalidSamplesParsing::loadStream(const QString& szDirName, H264Stream& stream, const bool expectedPacketParsingResult){
 	QDir dirFrame = QDir(QString("%0/stream-samples/%1").arg(m_szDirTestFile, szDirName));
 
 	QStringList listFrame = dirFrame.entryList(QDir::Files, QDir::Name);
@@ -24,7 +24,7 @@ void InvalidSamplesParsing::loadStream(const QString& szDirName, H264Stream& str
 	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()) == expectedPacketParsingResult);
 }
 
-void InvalidSamplesParsing::test_h264EndOfStreamBitstream()
+void H264InvalidSamplesParsing::test_h264EndOfStreamBitstream()
 {
 	H264Stream stream;
 	loadStream("h264-end-of-stream", stream, false);	
@@ -58,14 +58,14 @@ void InvalidSamplesParsing::test_h264EndOfStreamBitstream()
 	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), std::string("[Slice] ")+std::string(END_OF_STREAM_ERR_MSG)) != pSlice->majorErrors.end());
 }
 
-void InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
+void H264InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 	H264Stream stream;
 	loadStream("h264-access-unit-errors", stream, true);
 	stream.lastPacketParsed();
 	QVERIFY(stream.majorErrors.empty());
 	QVERIFY(stream.minorErrors.empty());
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
-	QVERIFY(pAccessUnits.size() == 3);
+	QVERIFY(pAccessUnits.size() == 2);
 	QVERIFY(pAccessUnits.front()->isValid());
 	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
 	std::vector<H264NAL*> pLastAccessUnitNALUnits = pLastAccessUnit->getNALUnits();
@@ -84,7 +84,7 @@ void InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 
 }
 
-void InvalidSamplesParsing::test_h264FramesOutOfOrderBitstream(){
+void H264InvalidSamplesParsing::test_h264FramesOutOfOrderBitstream(){
 	H264Stream stream;
 	loadStream("h264-frames-out-of-order", stream, true);	
 	stream.lastPacketParsed();
@@ -92,7 +92,7 @@ void InvalidSamplesParsing::test_h264FramesOutOfOrderBitstream(){
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Out of order frames detected") != stream.majorErrors.end());
 }
 
-void InvalidSamplesParsing::test_h264MissingIFrameBitstream(){
+void H264InvalidSamplesParsing::test_h264MissingIFrameBitstream(){
 	H264Stream stream;
 	loadStream("h264-missing-iframe", stream, true);	
 	stream.lastPacketParsed();
@@ -100,7 +100,7 @@ void InvalidSamplesParsing::test_h264MissingIFrameBitstream(){
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] No I-frame detected") != stream.majorErrors.end());
 }
 
-void InvalidSamplesParsing::test_h264MissingPPSBitstream(){
+void H264InvalidSamplesParsing::test_h264MissingPPSBitstream(){
 	H264Stream stream;
 	loadStream("h264-missing-pps", stream, true);	
 	stream.lastPacketParsed();
@@ -113,7 +113,7 @@ void InvalidSamplesParsing::test_h264MissingPPSBitstream(){
 	}
 }
 
-void InvalidSamplesParsing::test_h264MissingSPSBitstream(){
+void H264InvalidSamplesParsing::test_h264MissingSPSBitstream(){
 	H264Stream stream;
 	loadStream("h264-missing-sps", stream, true);	
 	stream.lastPacketParsed();
@@ -128,7 +128,7 @@ void InvalidSamplesParsing::test_h264MissingSPSBitstream(){
 	}
 }
 
-void InvalidSamplesParsing::test_h264OnlyVCLBitstream(){
+void H264InvalidSamplesParsing::test_h264OnlyVCLBitstream(){
 	H264Stream stream;
 	loadStream("h264-only-vcl", stream, true);	
 	stream.lastPacketParsed();
@@ -141,7 +141,7 @@ void InvalidSamplesParsing::test_h264OnlyVCLBitstream(){
 	}
 }
 
-void InvalidSamplesParsing::test_h264SkippedFrameBitstream(){
+void H264InvalidSamplesParsing::test_h264SkippedFrameBitstream(){
 	H264Stream stream;
 	loadStream("h264-skipped-frame", stream, true);	
 	stream.lastPacketParsed();
@@ -150,7 +150,7 @@ void InvalidSamplesParsing::test_h264SkippedFrameBitstream(){
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Skipped frames detected") != stream.majorErrors.end());
 	for(H264AccessUnit* pAccessUnit : stream.getAccessUnits()) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
 }
-void InvalidSamplesParsing::test_h264SyntaxErrorsBitstream(){
+void H264InvalidSamplesParsing::test_h264SyntaxErrorsBitstream(){
 	H264Stream stream;
 	loadStream("h264-syntax-errors", stream, true);	
 	stream.lastPacketParsed();
@@ -177,7 +177,7 @@ void InvalidSamplesParsing::test_h264SyntaxErrorsBitstream(){
 	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] Invalid slice type") != pSlice->majorErrors.end());
 }
 
-void InvalidSamplesParsing::test_h264CorruptedBitstream(){
+void H264InvalidSamplesParsing::test_h264CorruptedBitstream(){
 	H264Stream stream;
 	loadStream("h264-corrupted", stream, true);	
 	stream.lastPacketParsed();
@@ -188,7 +188,7 @@ void InvalidSamplesParsing::test_h264CorruptedBitstream(){
 	for(H264AccessUnit* pAccessUnit : stream.getAccessUnits()) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
 }
 
-QByteArray InvalidSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
+QByteArray H264InvalidSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
 {
 	QByteArray data;
 	QFile fileFrame (dirFrame.filePath(szFilename));

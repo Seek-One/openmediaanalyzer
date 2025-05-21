@@ -1,16 +1,16 @@
 #include "Codec/H264/H264AUD.h"
 #include "Codec/H264/H264SEI.h"
 
-#include "CameraSamplesParsing.h"
+#include "H264CameraSamplesParsing.h"
 
 const static char g_start_code[4] = {0x00, 0x00, 0x00, 0x01};
 
-CameraSamplesParsing::CameraSamplesParsing(const char* szDirTestFile)
+H264CameraSamplesParsing::H264CameraSamplesParsing(const char* szDirTestFile)
 {
 	m_szDirTestFile = szDirTestFile;
 }
 
-void CameraSamplesParsing::loadStream(const QString& szDirName, H264Stream& stream){
+void H264CameraSamplesParsing::loadStream(const QString& szDirName, H264Stream& stream){
 	QDir dirFrame = QDir(QString("%0/stream-samples/%1").arg(m_szDirTestFile, szDirName));
 
 	QStringList listFrame = dirFrame.entryList(QDir::Files, QDir::Name);
@@ -26,7 +26,7 @@ void CameraSamplesParsing::loadStream(const QString& szDirName, H264Stream& stre
 	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()));
 }
 
-void CameraSamplesParsing::test_h264AxisBitstream()
+void H264CameraSamplesParsing::test_h264AxisBitstream()
 {
 	H264Stream stream;
 	loadStream("h264-axis", stream);	
@@ -146,7 +146,7 @@ void CameraSamplesParsing::test_h264AxisBitstream()
 	QVERIFY(pSlice->slice_beta_offset_div2 == 0);
 }
 
-void CameraSamplesParsing::test_h264IQEyeBitstream(){
+void H264CameraSamplesParsing::test_h264IQEyeBitstream(){
 	H264Stream stream;
 	loadStream("h264-iqeye", stream);
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
@@ -186,7 +186,7 @@ void CameraSamplesParsing::test_h264IQEyeBitstream(){
 	QVERIFY(pLastAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
 }
 
-void CameraSamplesParsing::test_h264Sony4kBitstream(){
+void H264CameraSamplesParsing::test_h264Sony4kBitstream(){
 	H264Stream stream;
 	loadStream("h264-sony4k", stream);
 	std::vector<H264AccessUnit*> pAccessUnits = stream.getAccessUnits();
@@ -214,7 +214,7 @@ void CameraSamplesParsing::test_h264Sony4kBitstream(){
 	}
 }
 
-QByteArray CameraSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
+QByteArray H264CameraSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
 {
 	QByteArray data;
 	QFile fileFrame (dirFrame.filePath(szFilename));

@@ -208,7 +208,7 @@ void H264Slice::validate(){
 	H264SPS* pH264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(pH264PPS->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		majorErrors.push_back(fmt::format("[Slice] This unit's PPS is referencing an unknown SPS ({})", pH264PPS->seq_parameter_set_id));
+		majorErrors.push_back(fmt::format("[Slice] reference to unknown SPS ({})", pH264PPS->seq_parameter_set_id));
 		return;
 	}
 	pH264SPS = referencedSPS->second;

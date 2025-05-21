@@ -124,7 +124,7 @@ void H264InvalidSamplesParsing::test_h264MissingSPSBitstream(){
 		H264Slice* pSlice = pAccessUnit->slice();
 		QVERIFY(pSlice != nullptr);
 		QVERIFY(!pSlice->majorErrors.empty());
-		QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] This unit's PPS is referencing an unknown SPS (0)") != pSlice->majorErrors.end());
+		QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown SPS (0)") != pSlice->majorErrors.end());
 	}
 }
 

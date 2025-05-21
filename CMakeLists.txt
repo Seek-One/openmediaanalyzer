@@ -204,9 +204,10 @@ SET (UNITTEST_SRC
     test/Codec/H264/H264ValidSamplesParsing.cpp
     test/Codec/H264/H264ValidSamplesParsing.h
     test/Codec/H264/H264InvalidSamplesParsing.cpp
-    test/Codec/H264/H264InvalidSamplesParsing.h
     test/Codec/H265/H265ValidSamplesParsing.cpp
     test/Codec/H265/H265ValidSamplesParsing.h
+    test/Codec/H265/H265InvalidSamplesParsing.cpp
+    test/Codec/H265/H265InvalidSamplesParsing.h
 )
 
 set (UNITTEST_EXE ${APPLICATION_EXE_NAME}-testsuite)

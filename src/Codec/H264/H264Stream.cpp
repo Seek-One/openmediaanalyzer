@@ -147,6 +147,10 @@ bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	return bRes;
 }
 
+/* Called in the case of a finite stream,
+   completes the processing of the very last GOP
+   which is normally done upon detecting a new GOP 
+ */
 void H264Stream::lastPacketParsed(){
 	H264GOP* lastGOP = m_GOPs.back().get();
 	lastGOP->accessUnits.back()->decodable = true;

@@ -1,6 +1,7 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265PPS_H_
 #define TOOLKIT_CODEC_UTILS_H265PPS_H_
 
+#include <array>
 #include <unordered_map>
 
 #include "H265ScalingList.h"

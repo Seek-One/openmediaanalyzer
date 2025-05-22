@@ -2,6 +2,7 @@
 #define TOOLKIT_CODEC_UTILS_H265SPS_H_
 
 #include <cstdint>
+#include <array>
 #include <unordered_map>
 
 #include "H265NAL.h"

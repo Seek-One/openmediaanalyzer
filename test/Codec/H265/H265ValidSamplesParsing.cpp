@@ -678,6 +678,28 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 	QVERIFY(pBSlice->entry_point_offset_minus1[32] == 88);
 }
 
+void H265ValidSamplesParsing::test_h265WisenetBitstream(){
+	H265Stream stream;
+	loadStream("h265-wisenet", stream);
+	stream.lastPacketParsed();
+	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	QVERIFY(pAccessUnits.size() == 20);
+	// multi-slice pic
+	for(H265AccessUnit* pAccessUnit : pAccessUnits){
+		std::vector<H265Slice*> pSlices = pAccessUnit->slices();
+		QVERIFY(pSlices.size() == 8);
+		for(H265Slice* pSlice : pSlices) QVERIFY(pSlice->slice_pic_order_cnt_lsb == pSlices.front()->slice_pic_order_cnt_lsb);
+		QVERIFY(pSlices.front()->first_slice_segment_in_pic_flag);
+		uint32_t last_segment_address = pSlices.front()->slice_segment_address;
+		for(auto pSliceIt = pSlices.begin()+1;pSliceIt != pSlices.end();++pSliceIt){
+			QVERIFY((*pSliceIt)->slice_type == pSlices.front()->slice_type);
+			QVERIFY(!(*pSliceIt)->first_slice_segment_in_pic_flag);
+			QVERIFY((*pSliceIt)->slice_segment_address > last_segment_address);
+			last_segment_address = (*pSliceIt)->slice_segment_address; 
+		}
+	}
+}
+
 
 QByteArray H265ValidSamplesParsing::loadFrame(const QDir& dirFrame, const QString& szFilename)
 {

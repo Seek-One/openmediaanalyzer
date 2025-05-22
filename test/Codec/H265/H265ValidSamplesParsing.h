@@ -14,6 +14,7 @@ public:
 private slots:
 	void test_h265DahuaBitstream();
 	void test_h265WebSampleBunnyBitstream();
+	void test_h265WisenetBitstream();
 
 private:
 	QByteArray loadFrame(const QDir& dirFrame, const QString& szFilename);

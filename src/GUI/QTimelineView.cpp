@@ -116,7 +116,10 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
         int insertionIndex = m_pAccessUnitElements.size();
         if(pAccessUnitModel->m_sliceType == QAccessUnitModel::SliceType_B){
             auto accessUnitElementIt = m_pAccessUnitElements.rbegin();
-            while(accessUnitElementIt != m_pAccessUnitElements.rend() && ((*accessUnitElementIt)->m_pAccessUnitModel->m_displayedFrameNum.value() > pAccessUnitElement->m_pAccessUnitModel->m_displayedFrameNum.value())){
+            while(accessUnitElementIt != m_pAccessUnitElements.rend() && 
+                ( (*accessUnitElementIt)->m_pAccessUnitModel->m_displayedFrameNum.has_value() && pAccessUnitElement->m_pAccessUnitModel->m_displayedFrameNum.has_value() &&
+                    (*accessUnitElementIt)->m_pAccessUnitModel->m_displayedFrameNum.value() > pAccessUnitElement->m_pAccessUnitModel->m_displayedFrameNum.value())
+            ){
                 --insertionIndex;
                 ++accessUnitElementIt;
             }

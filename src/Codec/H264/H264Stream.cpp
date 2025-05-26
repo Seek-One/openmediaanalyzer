@@ -222,7 +222,9 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 	switch (m_currentNAL.nal_unit_type) {
 		case H264NAL::UnitType_SPS: {
 			H264SPS* pSps = new H264SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
-			try { bitstreamReader.readSPS(*pSps);
+			try { 
+				bitstreamReader.readSPS(*pSps);
+				m_pActiveSPS = pSps;
 			} catch(const std::runtime_error& e) { 
 				pSps->majorErrors.push_back(std::string("[SPS] ").append(e.what()));
 				pSps->completelyParsed = false;
@@ -233,7 +235,6 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit = new H264AccessUnit();
 				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 			}
-			m_pActiveSPS = pSps;
 			H264SPS::SPSMap.insert_or_assign(pSps->seq_parameter_set_id, pSps);
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264SPS>(pSps));
 			break;
@@ -256,8 +257,8 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264PPS>(pPps));
 			break;
 		}
-		case H264NAL::UnitType_IDRFrame:
-		case H264NAL::UnitType_NonIDRFrame: {
+		case H264NAL::UnitType_NonIDRFrame: 
+		case H264NAL::UnitType_IDRFrame: {
 			H264Slice* pSlice = new H264Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, m_currentNAL.nal_unit_type, iNALLength, pNALData);
 			try { bitstreamReader.readSlice(*pSlice);
 			} catch(const std::runtime_error& e) { 
@@ -301,7 +302,9 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 		}
 		case H264NAL::UnitType_SEI: {
 			H264SEI* pSei = new H264SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
-			try { bitstreamReader.readSEI(*pSei, *m_pActiveSPS);
+			try { 
+				if(m_pActiveSPS) bitstreamReader.readSEI(*pSei, *m_pActiveSPS);
+				else pSei->majorErrors.push_back("[SEI] no valid SPS to reference");
 			} catch(const std::runtime_error& e) { 
 				pSei->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
 				pSei->completelyParsed = false;
@@ -570,7 +573,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		// no gaps
 		bool foundPrevFrame = false;
 		for(auto it = pAccessUnits.rbegin();it != pAccessUnits.rend();++it){ // most recent previous access unit that has a reference pic
-			if((*it)->hasReferencePicture()) {
+			if((*it)->hasReferencePicture() && (*it)->frameNumber().has_value()) {
 				pSlice->PrevRefFrameNum = (*it)->frameNumber().value();
 				foundPrevFrame = true;
 				break;

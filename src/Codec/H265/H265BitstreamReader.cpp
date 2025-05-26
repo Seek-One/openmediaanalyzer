@@ -308,12 +308,12 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 	h265Slice.IdrPicFlag = h265Slice.isIDR();
 	h265Slice.IRAPPicture = (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP) && (h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23);
 	h265Slice.NoRaslOutputFlag = h265Slice.NoRaslOutputFlag || 
-									h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL ||
-									h265Slice.nal_unit_type == H265NAL::UnitType_IDR_N_LP ||
-									h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_LP ||
-									h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_RADL ||
-									h265Slice.nal_unit_type == H265NAL::UnitType_BLA_N_LP;
-									
+		h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL ||
+		h265Slice.nal_unit_type == H265NAL::UnitType_IDR_N_LP ||
+		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_LP ||
+		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_RADL ||
+		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_N_LP;
+	
 	h265Slice.first_slice_segment_in_pic_flag = readBits(1);
 	if (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP && h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23) {
 		h265Slice.no_output_of_prior_pics_flag = readBits(1);
@@ -329,13 +329,13 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 		}
 
 		// if (h265SPS.chroma_format_idc != 1) {
-		// 	TkCore::Logger::debug("[H265::bitstream] Other format than YUV 4:2:0 aren't supported");
-		// }
-		// uint32_t PicWidthInSamplesC = h265SPS.pic_width_in_luma_samples / 2;
-		// uint32_t PicHeightInSamplesC = h265SPS.pic_height_in_luma_samples / 2;
-		H265SPS* h265SPS = h265Slice.getSPS();
-		if(!h265SPS) {
-			return;
+			// 	TkCore::Logger::debug("[H265::bitstream] Other format than YUV 4:2:0 aren't supported");
+			// }
+			// uint32_t PicWidthInSamplesC = h265SPS.pic_width_in_luma_samples / 2;
+			// uint32_t PicHeightInSamplesC = h265SPS.pic_height_in_luma_samples / 2;
+			H265SPS* h265SPS = h265Slice.getSPS();
+			if(!h265SPS) {
+				return;
 		}
 		h265Slice.slice_segment_address = readBits((uint8_t)ceil(log2(h265SPS->PicSizeInCtbsY)));
 	}
@@ -1460,6 +1460,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 	std::vector<H265AccessUnit*> RefPicListTemp0;
 	if(h265Slice.slice_type == H265Slice::SliceType_P || h265Slice.slice_type == H265Slice::SliceType_B) {
 		while (rIdx < NumRpsCurrTempList0) {
+			if(PocStCurrBefore.size() + PocStCurrAfter.size() + PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) break;
 			for (int i = 0; i < PocStCurrBefore.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
 				RefPicListTemp0.push_back(RefPicSetStCurrBefore[i]);
 			}
@@ -1474,7 +1475,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 				++rIdx;
 			}
 		}
-		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l0_active_minus1; rIdx++) {
+		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l0_active_minus1 && !RefPicListTemp0.empty(); rIdx++) {
 			H265AccessUnit* val = h265Slice.ref_pic_lists_modification.ref_pic_list_modification_flag_l0
 					  ? RefPicListTemp0[h265Slice.ref_pic_lists_modification.list_entry_l0[rIdx]] : RefPicListTemp0[rIdx];
 			h265Slice.RefPicList0.push_back(val);
@@ -1490,6 +1491,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 	if(h265Slice.slice_type == H265Slice::SliceType_B) {
 		rIdx = 0;
 		while (rIdx < NumRpsCurrTempList1) {
+			if(PocStCurrAfter.size() + PocStCurrBefore.size() + PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) break;
 			for (int i = 0; i < PocStCurrAfter.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
 				RefPicListTemp1.push_back(RefPicSetStCurrAfter[i]);
 			}
@@ -1504,7 +1506,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 				++rIdx;
 			}
 		}
-		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l1_active_minus1; rIdx++)
+		for (rIdx = 0; rIdx <= h265Slice.num_ref_idx_l1_active_minus1 && !RefPicListTemp1.empty(); rIdx++)
 		{
 			H265AccessUnit* val = h265Slice.ref_pic_lists_modification.ref_pic_list_modification_flag_l1 ? RefPicListTemp1[h265Slice.ref_pic_lists_modification.list_entry_l1[rIdx]] : RefPicListTemp1[rIdx];
 			h265Slice.RefPicList1.push_back(val);

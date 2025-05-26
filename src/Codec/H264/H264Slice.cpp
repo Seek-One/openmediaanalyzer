@@ -219,7 +219,7 @@ void H264Slice::validate(){
 		switch(slice_type){
 			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
 			default:
-				majorErrors.push_back(fmt::format("[Slice] slice_type value ({}) of IDR should be in {2, 4, 7, 9}", slice_type-1));
+				majorErrors.push_back(fmt::format("[Slice] slice_type value ({}) of IDR should be in [2, 4, 7, 9]", slice_type-1));
 				break;
 		}
 	}
@@ -230,7 +230,6 @@ void H264Slice::validate(){
 	}
 
 	if(nal_unit_type == H264NAL::UnitType_IDRFrame && frame_num != 0){
-		
 		minorErrors.push_back(fmt::format("[Slice] frame_num of an IDR picture ({}) should be 0", frame_num));
 	}
 

@@ -295,6 +295,8 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
             checkForNewGOP();
         }
         std::sort(pSortedAccessUnitModelsToDecode.begin(), pSortedAccessUnitModelsToDecode.end(), [](QSharedPointer<QAccessUnitModel> lhs, QSharedPointer<QAccessUnitModel> rhs){
+            if(!lhs->m_displayedFrameNum.has_value()) return true;
+            if(!rhs->m_displayedFrameNum.has_value()) return false;
             return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
         });
         for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);

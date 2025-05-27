@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 #include <unordered_set>
+#include <sstream>
 
 #include "H265AccessUnit.h"
 #include "H265Slice.h"
@@ -75,7 +76,7 @@ void H265GOP::validate(){
     uint16_t minFrameNumber = 0;
     if(accessUnits.front()->slice()) minFrameNumber = maxFrameNumber = accessUnits.front()->slice()->slice_pic_order_cnt_lsb;
     uint16_t lastNonBFrameNumber = 0;
-    std::unordered_set<uint16_t> seenFrameNumbers;
+    std::unordered_set<uint32_t> seenFrameNumbers;
     for(const std::unique_ptr<H265AccessUnit>& accessUnit : accessUnits){
         accessUnit->validate();
         if(accessUnit->empty() || !accessUnit->slice()) continue;
@@ -96,14 +97,26 @@ void H265GOP::validate(){
         prevFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         seenFrameNumbers.insert(pSlice->slice_pic_order_cnt_lsb);
     }
-    if(!noSPSorPPS){
-        bool frameSkipped = false;
-        for(uint16_t i = minFrameNumber+1;i < maxFrameNumber && !frameSkipped;++i){
-            if(seenFrameNumbers.find(i) == seenFrameNumbers.end()){
-                majorErrors.push_back("[GOP] Skipped frames detected");
-                frameSkipped = true;
-            } 
+    std::unordered_set<uint32_t> missingFrameNumbers;
+    for(const std::unique_ptr<H265AccessUnit>& accessUnit : accessUnits){
+        for(const H265Slice* pSlice : accessUnit->slices()){
+            for(uint32_t referencedFrameNumber : pSlice->PocStCurrBefore){
+                if(referencedFrameNumber < minFrameNumber || referencedFrameNumber > maxFrameNumber) continue;
+                if(seenFrameNumbers.find(referencedFrameNumber) == seenFrameNumbers.end()) missingFrameNumbers.insert(referencedFrameNumber);
+            }
+            for(uint32_t referencedFrameNumber : pSlice->PocStCurrAfter){
+                if(referencedFrameNumber < minFrameNumber || referencedFrameNumber > maxFrameNumber) continue;
+                if(seenFrameNumbers.find(referencedFrameNumber) == seenFrameNumbers.end()) missingFrameNumbers.insert(referencedFrameNumber);
+            }
         }
+    }
+    if(!missingFrameNumbers.empty()){
+        std::ostringstream skippedFramesStr = std::ostringstream() << "[GOP] Skipped frames detected : [" << (*missingFrameNumbers.begin());
+        auto skippedFramesIt = missingFrameNumbers.begin();
+        skippedFramesIt++;
+        for(;skippedFramesIt != missingFrameNumbers.end();skippedFramesIt++) skippedFramesStr << (*skippedFramesIt) << ", ";
+        skippedFramesStr << "]";
+        majorErrors.push_back(skippedFramesStr.str());
     } 
     if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
 }

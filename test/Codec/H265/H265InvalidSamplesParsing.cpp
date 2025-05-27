@@ -87,7 +87,7 @@ void H265InvalidSamplesParsing::test_h265SkippedFrameBitstream(){
 	stream.lastPacketParsed();
 	const uint16_t SKIPPED_FRAME_NUM = 12;
 	QVERIFY(!stream.majorErrors.empty());
-	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Skipped frames detected") != stream.majorErrors.end());
+	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Skipped frames detected : [12]") != stream.majorErrors.end());
 	for(H265AccessUnit* pAccessUnit : stream.getAccessUnits()) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
 }
 

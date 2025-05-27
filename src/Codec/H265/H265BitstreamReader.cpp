@@ -359,9 +359,13 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 
 			uint64_t iStartShortTermBitsCount = m_iRemainingBits;
 			if (!h265Slice.short_term_ref_pic_set_sps_flag) {
+				h265Slice.CurrRpsIdx = h265SPS->num_short_term_ref_pic_sets;
 				h265SPS->short_term_ref_pic_set[h265SPS->num_short_term_ref_pic_sets] = readShortTermRefPicSet(h265SPS->num_short_term_ref_pic_sets, *h265SPS);
 			} else if (h265SPS->num_short_term_ref_pic_sets > 1)  {
 				h265Slice.short_term_ref_pic_set_idx = readBits((uint8_t)ceil(log2(h265SPS->num_short_term_ref_pic_sets)));
+			}
+			if (h265Slice.short_term_ref_pic_set_sps_flag) {
+				h265Slice.CurrRpsIdx = h265Slice.short_term_ref_pic_set_idx;
 			}
 			h265Slice.NumShortTermPictureSliceHeaderBits = iStartShortTermBitsCount - m_iRemainingBits;
 
@@ -491,15 +495,7 @@ void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265Access
 			}
 		}
 	}
-
 	// Compute derived variables
-	if (h265Slice.short_term_ref_pic_set_sps_flag) {
-		h265Slice.CurrRpsIdx = h265Slice.short_term_ref_pic_set_idx;
-	} else {
-		H265SPS* h265SPS = h265Slice.getSPS();
-		if(!h265SPS) return;
-		h265Slice.CurrRpsIdx = h265SPS->num_short_term_ref_pic_sets;
-	}
 	h265Slice.DeltaPocMsbCycleLt.resize(h265Slice.NumLongTerm);
 	for (unsigned i = 0; i < h265Slice.NumLongTerm; ++i) {
 		uint32_t delta_poc_msb_cycle_lt = ((int)i < h265Slice.delta_poc_msb_cycle_lt.size()) ? h265Slice.delta_poc_msb_cycle_lt[i] : 0;
@@ -810,7 +806,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 		// 7-62 calculate NumPositivePics, DeltaPocS1 and UsedByCurrPicS1
 		i = 0;
 		for (int32_t j = (RefRps.NumNegativePics - 1); j >= 0; j--) {
-			uint32_t dPoc = RefRps.DeltaPocS0[j] + deltaRps;
+			int32_t dPoc = RefRps.DeltaPocS0[j] + deltaRps;
 			if (dPoc > 0 && shortTermRefPicSet.use_delta_flag[j]) {
 				shortTermRefPicSet.DeltaPocS1[i] = dPoc;
 				shortTermRefPicSet.UsedByCurrPicS1[i++] = shortTermRefPicSet.used_by_curr_pic_flag[j];
@@ -821,7 +817,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 			shortTermRefPicSet.UsedByCurrPicS1[i++] = shortTermRefPicSet.used_by_curr_pic_flag[RefRps.NumDeltaPocs];
 		}
 		for (uint32_t j = 0; j < RefRps.NumPositivePics; j++) {
-			uint32_t dPoc = RefRps.DeltaPocS1[j] + deltaRps;
+			int32_t dPoc = RefRps.DeltaPocS1[j] + deltaRps;
 			if (dPoc > 0 && shortTermRefPicSet.use_delta_flag[RefRps.NumNegativePics + j]) {
 				shortTermRefPicSet.DeltaPocS1[i] = dPoc;
 				shortTermRefPicSet.UsedByCurrPicS1[i++] =
@@ -890,7 +886,6 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 	}
 
 	shortTermRefPicSet.NumDeltaPocs = shortTermRefPicSet.NumPositivePics + shortTermRefPicSet.NumNegativePics; // 7-71
-
 	return shortTermRefPicSet;
 }
 
@@ -1338,25 +1333,19 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 			if((*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id) (*accessUnitIt)->status = H265AccessUnit::ReferenceStatus_Unused;
 		}
 	}
-	std::vector<int32_t> PocStCurrBefore;
-	std::vector<int32_t> PocStCurrAfter; 
-	std::vector<int32_t> PocStFoll; 
-	std::vector<int32_t> PocLtCurr; 
-	std::vector<int32_t> PocLtFoll; 
-	std::vector<uint8_t> CurrDeltaPocMsbPresentFlag;
-	std::vector<uint8_t> FollDeltaPocMsbPresentFlag;
+
 	if(!h265Slice.isIDR()){
 		if(!pCurrentSPS) {
 			return;
 		}
 		H265ShortTermRefPicSet currRPS = pCurrentSPS->short_term_ref_pic_set[h265Slice.CurrRpsIdx];
 		for(int i = 0;i < currRPS.NumNegativePics;++i){
-			if(currRPS.UsedByCurrPicS0[i]) PocStCurrBefore.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
-			else PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
+			if(currRPS.UsedByCurrPicS0[i]) h265Slice.PocStCurrBefore.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
+			else h265Slice.PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS0[i]);
 		}
 		for(int i = 0;i < currRPS.NumPositivePics;++i){
-			if(currRPS.UsedByCurrPicS1[i]) PocStCurrAfter.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
-			else PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
+			if(currRPS.UsedByCurrPicS1[i]) h265Slice.PocStCurrAfter.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
+			else h265Slice.PocStFoll.push_back(h265Slice.PicOrderCntVal + currRPS.DeltaPocS1[i]);
 		}
 		for(int i = 0;i < h265Slice.num_long_term_sps + h265Slice.num_long_term_pics;++i){
 			uint32_t pocLt = h265Slice.PocLsbLt[i];
@@ -1365,11 +1354,11 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 				(h265Slice.PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1));
 			}
 			if(h265Slice.UsedByCurrPicLt[i]){
-				PocLtCurr.push_back(pocLt);
-				CurrDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
+				h265Slice.PocLtCurr.push_back(pocLt);
+				h265Slice.CurrDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
 			} else {
-				PocLtFoll.push_back(pocLt);
-				FollDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
+				h265Slice.PocLtFoll.push_back(pocLt);
+				h265Slice.FollDeltaPocMsbPresentFlag.push_back(h265Slice.delta_poc_msb_present_flag[i]);
 			}
 		}
 	}
@@ -1379,12 +1368,12 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
     std::vector<H265AccessUnit*> RefPicSetLtCurr;
     std::vector<H265AccessUnit*> RefPicSetLtFoll;
 	// TODO: double check if all pictures in the DPB are eligible to be used as reference pictures
-	RefPicSetLtCurr.resize(PocLtCurr.size());
-	for(int i = 0;i < PocLtCurr.size();++i){
+	RefPicSetLtCurr.resize(h265Slice.PocLtCurr.size());
+	for(int i = 0;i < h265Slice.PocLtCurr.size();++i){
 		RefPicSetLtCurr[i] = nullptr;
-		if(!CurrDeltaPocMsbPresentFlag[i]){
+		if(!h265Slice.CurrDeltaPocMsbPresentFlag[i]){
 			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
-				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == PocLtCurr[i] &&
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == h265Slice.PocLtCurr[i] &&
 					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 					RefPicSetLtCurr[i] = *accessUnitIt;
 					RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
@@ -1392,7 +1381,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 			}
 		} else {
 			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtCurr[i];++accessUnitIt){
-				if((*accessUnitIt)->PicOrderCntVal == PocLtCurr[i] &&
+				if((*accessUnitIt)->PicOrderCntVal == h265Slice.PocLtCurr[i] &&
 					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 					RefPicSetLtCurr[i] = *accessUnitIt;
 					RefPicSetLtCurr[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
@@ -1400,12 +1389,12 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 			}
 		}
 	}
-	RefPicSetLtFoll.resize(PocLtFoll.size());
-	for(int i = 0;i < PocLtFoll.size();++i){
+	RefPicSetLtFoll.resize(h265Slice.PocLtFoll.size());
+	for(int i = 0;i < h265Slice.PocLtFoll.size();++i){
 		RefPicSetLtFoll[i] = nullptr;
-		if(!FollDeltaPocMsbPresentFlag[i]){
+		if(!h265Slice.FollDeltaPocMsbPresentFlag[i]){
 			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtFoll[i];++accessUnitIt){
-				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == PocLtFoll[i] &&
+				if(((*accessUnitIt)->PicOrderCntVal & (pCurrentSPS->MaxPicOrderCntLsb-1)) == h265Slice.PocLtFoll[i] &&
 					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 					RefPicSetLtFoll[i] = *accessUnitIt;
 					RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
@@ -1413,7 +1402,7 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 			}
 		} else {
 			for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetLtFoll[i];++accessUnitIt){
-				if((*accessUnitIt)->PicOrderCntVal == PocLtFoll[i] &&
+				if((*accessUnitIt)->PicOrderCntVal == h265Slice.PocLtFoll[i] &&
 					(*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 					RefPicSetLtFoll[i] = *accessUnitIt;
 					RefPicSetLtFoll[i]->status = H265AccessUnit::ReferenceStatus_LongTerm;
@@ -1422,31 +1411,31 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 		}
 	}
 
-	RefPicSetStCurrBefore.resize(PocStCurrBefore.size());
-	for(int i = 0;i < PocStCurrBefore.size();++i){
+	RefPicSetStCurrBefore.resize(h265Slice.PocStCurrBefore.size());
+	for(int i = 0;i < h265Slice.PocStCurrBefore.size();++i){
 		RefPicSetStCurrBefore[i] = nullptr;
 		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStCurrBefore[i];++accessUnitIt){
-			if((*accessUnitIt)->PicOrderCntVal == PocStCurrBefore[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+			if((*accessUnitIt)->PicOrderCntVal == h265Slice.PocStCurrBefore[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 				RefPicSetStCurrBefore[i] = *accessUnitIt;
 				RefPicSetStCurrBefore[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
 			}
 		}
 	}
-	RefPicSetStCurrAfter.resize(PocStCurrAfter.size());
-	for(int i = 0;i < PocStCurrAfter.size();++i){
+	RefPicSetStCurrAfter.resize(h265Slice.PocStCurrAfter.size());
+	for(int i = 0;i < h265Slice.PocStCurrAfter.size();++i){
 		RefPicSetStCurrAfter[i] = nullptr;
 		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStCurrAfter[i];++accessUnitIt){
-			if((*accessUnitIt)->PicOrderCntVal == PocStCurrAfter[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+			if((*accessUnitIt)->PicOrderCntVal == h265Slice.PocStCurrAfter[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 				RefPicSetStCurrAfter[i] = *accessUnitIt;
 				RefPicSetStCurrAfter[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
 			}
 		}
 	}
-	RefPicSetStFoll.resize(PocStFoll.size());
-	for(int i = 0;i < PocStFoll.size();++i){
+	RefPicSetStFoll.resize(h265Slice.PocStFoll.size());
+	for(int i = 0;i < h265Slice.PocStFoll.size();++i){
 		RefPicSetStFoll[i] = nullptr;
 		for(auto accessUnitIt = pAccessUnits.rbegin();accessUnitIt != pAccessUnits.rend() && !RefPicSetStFoll[i];++accessUnitIt){
-			if((*accessUnitIt)->PicOrderCntVal == PocStFoll[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
+			if((*accessUnitIt)->PicOrderCntVal == h265Slice.PocStFoll[i] && (*accessUnitIt)->slice()->nuh_layer_id == h265Slice.nuh_layer_id){
 				RefPicSetStFoll[i] = *accessUnitIt;
 				RefPicSetStFoll[i]->status = H265AccessUnit::ReferenceStatus_ShortTerm;
 			}
@@ -1460,14 +1449,16 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 	std::vector<H265AccessUnit*> RefPicListTemp0;
 	if(h265Slice.slice_type == H265Slice::SliceType_P || h265Slice.slice_type == H265Slice::SliceType_B) {
 		while (rIdx < NumRpsCurrTempList0) {
-			if(PocStCurrBefore.size() + PocStCurrAfter.size() + PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) break;
-			for (int i = 0; i < PocStCurrBefore.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+			if(h265Slice.PocStCurrBefore.size() + h265Slice.PocStCurrAfter.size() + h265Slice.PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) {
+				break;
+			}
+			for (int i = 0; i < h265Slice.PocStCurrBefore.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
 				RefPicListTemp0.push_back(RefPicSetStCurrBefore[i]);
 			}
-			for (int i = 0; i < PocStCurrAfter.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+			for (int i = 0; i < h265Slice.PocStCurrAfter.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
 				RefPicListTemp0.push_back(RefPicSetStCurrAfter[i]);
 			}
-			for (int i = 0; i < PocLtCurr.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
+			for (int i = 0; i < h265Slice.PocLtCurr.size() && rIdx < NumRpsCurrTempList0; rIdx++, i++) {
 				RefPicListTemp0.push_back(RefPicSetLtCurr[i]);
 			}
 			if (h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) {
@@ -1491,14 +1482,14 @@ void H265BitstreamReader::computeRPL(H265Slice& h265Slice, std::vector<H265Acces
 	if(h265Slice.slice_type == H265Slice::SliceType_B) {
 		rIdx = 0;
 		while (rIdx < NumRpsCurrTempList1) {
-			if(PocStCurrAfter.size() + PocStCurrBefore.size() + PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) break;
-			for (int i = 0; i < PocStCurrAfter.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+			if(h265Slice.PocStCurrAfter.size() + h265Slice.PocStCurrBefore.size() + h265Slice.PocLtCurr.size() == 0 && !h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) break;
+			for (int i = 0; i < h265Slice.PocStCurrAfter.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
 				RefPicListTemp1.push_back(RefPicSetStCurrAfter[i]);
 			}
-			for (int i = 0; i < PocStCurrBefore.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+			for (int i = 0; i < h265Slice.PocStCurrBefore.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
 				RefPicListTemp1.push_back(RefPicSetStCurrBefore[i]);
 			}
-			for (int i = 0; i < PocLtCurr.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
+			for (int i = 0; i < h265Slice.PocLtCurr.size() && rIdx < NumRpsCurrTempList1; rIdx++, i++) {
 				RefPicListTemp1.push_back(RefPicSetLtCurr[i]);
 			}
 			if (h265PPS->pps_scc_extension.pps_curr_pic_ref_enabled_flag) {

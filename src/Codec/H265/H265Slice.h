@@ -135,6 +135,14 @@ struct H265Slice : public H265NAL {
 	uint64_t NumLongTermPictureSliceHeaderBits;
 
 	// Reference picture lists
+	std::vector<int32_t> PocStCurrBefore;
+	std::vector<int32_t> PocStCurrAfter; 
+	std::vector<int32_t> PocStFoll; 
+	std::vector<int32_t> PocLtCurr; 
+	std::vector<int32_t> PocLtFoll; 
+	std::vector<uint8_t> CurrDeltaPocMsbPresentFlag;
+	std::vector<uint8_t> FollDeltaPocMsbPresentFlag;
+
 	std::vector<H265AccessUnit*> RefPicList0; // 8.3.4 (For P-slice)
 	std::vector<H265AccessUnit*> RefPicList1; // 8.3.4 (For B-slice)
 

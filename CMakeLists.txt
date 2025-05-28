@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt5 REQUIRED COMPONENTS Gui)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt5 REQUIRED COMPONENTS LinguistTools) 
+find_package(Qt5 REQUIRED COMPONENTS LinguistTools)  
 find_package(Qt5 REQUIRED COMPONENTS Test) 
+find_package(CURL REQUIRED)
 find_package(fmt REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -192,6 +193,7 @@ target_link_libraries(${APPLICATION_EXE_NAME}
     Qt5::Gui
     Qt5::Widgets
     PkgConfig::LIBAV
+    CURL::libcurl
     fmt::fmt
 )
 

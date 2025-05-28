@@ -1,4 +1,5 @@
 #include <QFileDialog>
+#include <QApplication>
 #include <QDebug>
 
 #include "../../lib/Threading/QWorkerThread.h"
@@ -46,6 +47,8 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel);
 
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
+    connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::openStreamClicked, this, &QWindowMainController::streamOpened);
     connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::folderOpened);
     connect(this, &QWindowMainController::openStream, m_pFolderViewController, &QFolderViewController::streamOpened);
@@ -63,23 +66,16 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pWindowMain, &QWindowMain::openPPSTab, m_pDecoderModel, &QDecoderModel::ppsTabOpened);
     connect(m_pDecoderModel, &QDecoderModel::updateErrorView, pWindowMain, &QWindowMain::errorViewToggled);
 
-    connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::stopRunning);
-    QWorkerThread::execWorker(m_pStreamModel, false);
+    connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::streamStopped);
 }
 
 void QWindowMainController::folderOpened(){
     QString selectedFolder = QFileDialog::getExistingDirectory(m_pWindowMain, "Choose a folder");
     if(!selectedFolder.isEmpty()) {
-        m_pStreamModel->stopProcessing();
         emit openFolder(selectedFolder);
     }
 }
 
 void QWindowMainController::streamOpened(){
-    QString selectedFolder = QFileDialog::getExistingDirectory(m_pWindowMain, "Choose a folder");
-    if(!selectedFolder.isEmpty()) {
-        m_pStreamModel->stopProcessing();
-        emit openStream(selectedFolder);
-    }
+    emit openStream();
 }
-

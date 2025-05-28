@@ -36,6 +36,7 @@ public slots:
 signals:
     void openFolderClicked();
     void openStreamClicked();
+    void stopStreamClicked();
     void openFramesTab();
     void openVPSTab();
     void openSPSTab();

@@ -16,11 +16,11 @@ public:
     
 public slots:
     void folderOpened(const QString& folderPath);
-    void streamOpened(const QString& folderPath);
+    void streamOpened();
 
 signals:
-    void openStream(const QString& folderPath);
     void openFolder(const QString& folderPath);
+    void openStream();
 
 private:
     QFolderView* m_pFolderView;

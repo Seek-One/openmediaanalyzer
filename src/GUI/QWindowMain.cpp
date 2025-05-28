@@ -54,13 +54,19 @@ QWindowMain::QWindowMain(QWidget* parent)
         connect(pOpenFolderAction, &QAction::triggered, [this]() {
             emit openFolderClicked();
         });
-        QAction* pOpenStreamAction = new QAction(tr("Open \"stream\"..."), this);
+        QAction* pOpenStreamAction = new QAction(tr("Open stream..."), this);
+        pOpenStreamAction->setShortcut(QKeySequence("Ctrl+R"));
         connect(pOpenStreamAction, &QAction::triggered, [this]() {
             emit openStreamClicked();
+        });
+        QAction* pStopStreamThread = new QAction(tr("Stop \"stream\"..."), this);
+        connect(pStopStreamThread, &QAction::triggered, [this]() {
+            emit stopStreamClicked();
         });
         
         pFileMenu->addAction(pOpenFolderAction);
         pFileMenu->addAction(pOpenStreamAction);
+        pFileMenu->addAction(pStopStreamThread);
     }
 
     pWidget->show();

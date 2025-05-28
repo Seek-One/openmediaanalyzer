@@ -34,6 +34,6 @@ void QFolderViewController::folderOpened(const QString& folderPath){
     emit openFolder(folderPath);
 }
 
-void QFolderViewController::streamOpened(const QString& folderPath){
-    emit openStream(folderPath);
+void QFolderViewController::streamOpened(){
+    emit openStream();
 }

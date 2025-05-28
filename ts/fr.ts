@@ -290,7 +290,15 @@
     </message>
     <message>
         <source>Open &quot;stream&quot;...</source>
-        <translation>Ouvrir un &quot;flux&quot;...</translation>
+        <translation type="vanished">Ouvrir un &quot;flux&quot;...</translation>
+    </message>
+    <message>
+        <source>Open stream...</source>
+        <translation>Ouvrir un flux...</translation>
+    </message>
+    <message>
+        <source>Stop &quot;stream&quot;...</source>
+        <translation>Fermer le flux...</translation>
     </message>
 </context>
 </TS>

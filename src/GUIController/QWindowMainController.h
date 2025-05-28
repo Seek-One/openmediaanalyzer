@@ -28,7 +28,7 @@ public slots:
 
 signals:
     void openFolder(const QString& folderPath);
-    void openStream(const QString& folderPath);
+    void openStream();
 
 private:
     QWindowMain* m_pWindowMain;

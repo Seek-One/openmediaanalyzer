@@ -18,7 +18,8 @@
 QDecoderModel::QDecoderModel():
     m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0), 
     m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
-    m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr)
+    m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
+    m_liveContent(false)
 {
     if(!m_pH264Codec) {
         qDebug() << "Couldn't find H264 decoder";
@@ -513,6 +514,10 @@ void QDecoderModel::frameDeleted(QUuid id){
     if(m_decodedFrames[id]) m_decodedFrames.remove(id);
 }
 
+void QDecoderModel::setLiveContent(bool val){
+    m_liveContent = val;
+}
+
 void QDecoderModel::folderLoaded(){
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
@@ -988,7 +993,9 @@ void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     while(receivedFrame == 0 && !m_requestedFrames.empty()){
         while(std::get<const H264AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
         m_decodedFrames[m_requestedFrames.front()->m_id] = QSharedPointer<QImage>(getQImageFromH264Frame(pFrame));
+        if(m_liveContent) emit updateVideoFrameView(m_decodedFrames[m_requestedFrames.front()->m_id] );
         m_requestedFrames.pop();
+        receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }
     av_frame_free(&pFrame); 
     avformat_network_deinit();
@@ -1014,6 +1021,7 @@ void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     while(receivedFrame == 0){
         while(std::get<const H265AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
         m_decodedFrames[m_requestedFrames.front()->m_id] = QSharedPointer<QImage>(getQImageFromH265Frame(pFrame));
+        if(m_liveContent) emit updateVideoFrameView(m_decodedFrames[m_requestedFrames.front()->m_id] );
         m_requestedFrames.pop();
         receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }

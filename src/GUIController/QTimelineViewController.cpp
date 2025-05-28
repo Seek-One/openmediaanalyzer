@@ -16,6 +16,8 @@ QTimelineViewController::QTimelineViewController(QTimelineView* pTimelineView, Q
 
     connect(this, &QTimelineViewController::selectFrame, m_pDecoderModel, &QDecoderModel::frameSelected);
     connect(m_pTimelineView, &QTimelineView::deleteFrame, m_pDecoderModel, &QDecoderModel::frameDeleted);
+
+    connect(this, &QTimelineViewController::setLiveContent, m_pTimelineView, &QTimelineView::liveContentSet);
 }
 
 QTimelineViewController::~QTimelineViewController(){
@@ -27,4 +29,8 @@ void QTimelineViewController::frameSelected(QSharedPointer<QAccessUnitModel> pAc
 
 void QTimelineViewController::timelineStarted(){
     emit startTimeline();
+}
+
+void QTimelineViewController::liveContentSet(bool val){
+    emit setLiveContent(val);
 }

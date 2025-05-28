@@ -259,6 +259,10 @@
         <source>Stream status : Non-conforming</source>
         <translation>État du flux : non conforme</translation>
     </message>
+    <message>
+        <source>Live content</source>
+        <translation>Contenu en direct</translation>
+    </message>
 </context>
 <context>
     <name>QTimelineView</name>

@@ -4,6 +4,7 @@
 
 #include "../GUI/QWindowMain.h"
 #include "../GUI/QNALUInfoView.h"
+#include "../GUI/QStatusView.h"
 #include "../GUIModel/QFolderModel.h"
 #include "../GUIModel/QStreamModel.h"
 #include "../GUIModel/QDecoderModel.h"
@@ -53,6 +54,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(this, &QWindowMainController::openStream, m_pFolderViewController, &QFolderViewController::streamOpened);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::timelineStarted);
     connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::timelineStarted);
+    connect(m_pWindowMain->getStatusView(), &QStatusView::setLiveContent, m_pTimelineViewController, &QTimelineViewController::liveContentSet);
     
     
     connect(m_pDecoderModel, &QDecoderModel::updateVPSInfoView, m_pWindowMain->getVPSInfoView(), &QNALUInfoView::viewUpdated);
@@ -66,6 +68,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pDecoderModel, &QDecoderModel::updateErrorView, pWindowMain, &QWindowMain::errorViewToggled);
 
     connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::streamStopped);
+
 }
 
 void QWindowMainController::folderOpened(){

@@ -24,6 +24,7 @@ public slots:
     void accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitss);
     void accessUnitsRemoved(uint count);
     void accessUnitSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
+    void liveContentSet(bool val);
 
 signals:
     void selectAccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnits);
@@ -34,4 +35,6 @@ private:
     QHBoxLayout* m_pCounterHBoxLayout;
     std::list<QSharedPointer<QAccessUnitElement>> m_pAccessUnitElements;
     QScrollArea* m_pScrollArea;
+
+    bool m_liveContent;
 };

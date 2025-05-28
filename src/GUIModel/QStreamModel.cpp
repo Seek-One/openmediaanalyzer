@@ -91,7 +91,7 @@ void QStreamWorker::process(){
         qDebug() << "Couldn't initialize curl easy handle";
         return;
     }
-    QString videoPath = "vms.seek-one.fr/stream/video?id=12&supported_video_format=H265";
+    QString videoPath = "vms.seek-one.fr/stream/video?id=10&supported_video_format=H265";
     QString url = QString("https://%1:%2@%3").arg(getenv("VMS_USER"), getenv("VMS_PW"), videoPath);
     curl_easy_setopt(curlE, CURLOPT_URL, url.toStdString().c_str());
     curl_easy_setopt(curlE, CURLOPT_WRITEFUNCTION, receiveResponse);

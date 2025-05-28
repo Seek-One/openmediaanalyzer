@@ -67,6 +67,7 @@ public slots:
     void spsTabOpened();
     void ppsTabOpened();
     void frameDeleted(QUuid id);
+    void setLiveContent(bool val);
 
 private:
     void emitStreamErrors();
@@ -111,4 +112,6 @@ private:
     int m_frameWidth;
     int m_frameHeight; 
     int m_pixelFormat;
+
+    bool m_liveContent;
 };

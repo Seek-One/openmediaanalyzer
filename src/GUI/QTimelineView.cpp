@@ -9,7 +9,7 @@
 #include "QTimelineView.h"
 
 QTimelineView::QTimelineView(QWidget* parent)
-    : QGroupBox(tr("Video timeline"), parent)
+    : QGroupBox(tr("Video timeline"), parent), m_liveContent(false)
 {
     const uint16_t HEIGHT = 180;
     setFixedHeight(HEIGHT);
@@ -92,7 +92,8 @@ void QTimelineView::accessUnitsUpdated(){
 void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels){
     QScrollBar* hScrollBar = m_pScrollArea->horizontalScrollBar();
     int prevHScrollBarMax = hScrollBar->maximum();
-    bool clampScrollRight = hScrollBar->value() >= SCROLL_CLAMP_RIGHT_THRESHOLD * hScrollBar->maximum();
+    // bool clampScrollRight = hScrollBar->value() >= SCROLL_CLAMP_RIGHT_THRESHOLD * hScrollBar->maximum();
+
     // check for new max size first
     // existing access units may have been updated
     for(QSharedPointer<QAccessUnitElement> pAccessUnitElement : m_pAccessUnitElements){
@@ -133,7 +134,8 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
         uint16_t accessUnitCount = m_pAccessUnitElements.size();
         m_pCounterHBoxLayout->insertWidget(m_pCounterHBoxLayout->count()-1, new QTimelineCounterElement(accessUnitCount, this));
     }
-    if(clampScrollRight) hScrollBar->setValue(hScrollBar->maximum());
+
+    if(m_liveContent) hScrollBar->setValue(hScrollBar->maximum());
     else hScrollBar->setValue(hScrollBar->value() - (hScrollBar->maximum() - prevHScrollBarMax));
 }
 
@@ -161,4 +163,8 @@ void QTimelineView::accessUnitSelected(QSharedPointer<QAccessUnitModel> pAccessU
         pAccessUnitElement->update();
     }
     emit selectAccessUnit(pAccessUnitModel);
+}
+
+void QTimelineView::liveContentSet(bool val){
+    m_liveContent = val;
 }

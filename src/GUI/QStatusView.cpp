@@ -4,18 +4,24 @@
 #include "QStatusView.h"
 
 QStatusView::QStatusView(QWidget* parent)
-    : QWidget(parent), m_pStreamSize(new QLabel(this)), m_pFrameValidity(new QLabel(this)), m_pStreamStatus(new QLabel(this))
+    : QWidget(parent), m_pStreamSize(new QLabel(this)), m_pFrameValidity(new QLabel(this)), m_pStreamStatus(new QLabel(this)), m_pLiveContentCheckbox(new QCheckBox(this))
 {
     QGridLayout* pGridLayout = new QGridLayout(this);
     setLayout(pGridLayout);
     pGridLayout->addWidget(m_pStreamStatus, 0, 0);
     pGridLayout->addWidget(m_pFrameValidity, 0, 1);
     pGridLayout->addWidget(m_pStreamSize, 0, 2);
+    pGridLayout->addWidget(m_pLiveContentCheckbox, 0, 3);
 
     m_pStreamSize->setText(tr("Current stream size : 0B"));
     m_pFrameValidity->setText(tr("Valid frames : 0/0 (100%)"));
     m_pStreamStatus->setText(tr(""));
+    m_pLiveContentCheckbox->setText(tr("Live content"));
     show();
+
+    connect(m_pLiveContentCheckbox, &QCheckBox::clicked, this, [this](){
+        emit setLiveContent(m_pLiveContentCheckbox->isChecked());
+    });
 }
 
 QStatusView::~QStatusView(){

@@ -277,6 +277,10 @@
         <source>Video preview</source>
         <translation>Aperçu de la vidéo</translation>
     </message>
+    <message>
+        <source>No decoded picture for the selected access unit</source>
+        <translation>Pas d&apos;image décodée pour l&apos;unité d&apos;accès sélectionnée</translation>
+    </message>
 </context>
 <context>
     <name>QWindowMain</name>

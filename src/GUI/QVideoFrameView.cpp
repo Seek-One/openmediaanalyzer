@@ -15,6 +15,7 @@ QVideoFrameView::~QVideoFrameView(){
 void QVideoFrameView::paintEvent(QPaintEvent* pEvent){
     QPainter painter(this);
     if(m_pImage) painter.drawImage(rect(), *m_pImage);
+    else painter.drawText(width()/4, height()/2, tr("No decoded picture for the selected access unit"));
 }
 
 void QVideoFrameView::frameLoaded(QSharedPointer<QImage> pFrameImage){

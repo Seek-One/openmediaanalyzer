@@ -480,7 +480,7 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
     if(pAccessUnitModel) {
         modelFromAccessUnit(model, pAccessUnitModel->m_pAccessUnit);
         if(m_tabIndex == 0) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit), majorErrorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit));
-        if(m_decodedFrames[pAccessUnitModel->m_id]) emit updateVideoFrameView(m_decodedFrames[pAccessUnitModel->m_id]);
+        emit updateVideoFrameView(m_decodedFrames[pAccessUnitModel->m_id]);
     } else if(m_tabIndex == 0){
         emit updateErrorView(tr("Stream errors"), m_minorStreamErrors, m_majorStreamErrors);
     }

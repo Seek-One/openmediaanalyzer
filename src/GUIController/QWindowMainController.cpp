@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <QDebug>
 
-#include "../../lib/Threading/QWorkerThread.h"
 #include "../GUI/QWindowMain.h"
 #include "../GUI/QNALUInfoView.h"
 #include "../GUIModel/QFolderModel.h"

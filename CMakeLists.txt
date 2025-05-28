@@ -146,12 +146,6 @@ set(CODEC_SOURCES
 )
 
 set(LIBRARIES
-    lib/Threading/QWorkerObject.cpp
-    lib/Threading/QWorkerObject.h
-    lib/Threading/QWorkerObjectWithStatus.cpp
-    lib/Threading/QWorkerObjectWithStatus.h
-    lib/Threading/QWorkerThread.cpp
-    lib/Threading/QWorkerThread.h
 )
 
 set (I18N_FILES

@@ -59,6 +59,7 @@ void H264GOP::validate(){
         const H264Slice* pSlice = accessUnit->slice();
         if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
         if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
+        if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
         noSPSorPPS = false;
         if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
         if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {

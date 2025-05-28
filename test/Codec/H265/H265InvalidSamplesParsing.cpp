@@ -38,6 +38,11 @@ void H265InvalidSamplesParsing::test_h265MissingIFrameBitstream(){
 	stream.lastPacketParsed();
 	QVERIFY(!stream.majorErrors.empty());
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] No I-frame detected") != stream.majorErrors.end());
+	std::vector<H265AccessUnit*> firstGOPUnits = stream.getGOPs().front()->getAccessUnits();
+	for(const H265AccessUnit* pAccessUnit : firstGOPUnits){
+		QVERIFY(!pAccessUnit->majorErrors.empty());
+		QVERIFY(std::find(pAccessUnit->majorErrors.begin(), pAccessUnit->majorErrors.end(), "No reference I-frame") != pAccessUnit->majorErrors.end());
+	}
 }
 
 void H265InvalidSamplesParsing::test_h265MissingPPSBitstream(){

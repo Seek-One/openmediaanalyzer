@@ -1,5 +1,6 @@
 #include "Codec/H26X/H26XBitstreamReader.h"
 #include "Codec/H264/H264SEI.h"
+#include "Codec/H264/H264GOP.h"
 
 #include "H264InvalidSamplesParsing.h"
 
@@ -120,6 +121,11 @@ void H264InvalidSamplesParsing::test_h264MissingIFrameBitstream(){
 	stream.lastPacketParsed();
 	QVERIFY(!stream.majorErrors.empty());
 	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] No I-frame detected") != stream.majorErrors.end());
+	std::vector<H264AccessUnit*> firstGOPUnits = stream.getGOPs().front()->getAccessUnits();
+	for(const H264AccessUnit* pAccessUnit : firstGOPUnits){
+		QVERIFY(!pAccessUnit->majorErrors.empty());
+		QVERIFY(std::find(pAccessUnit->majorErrors.begin(), pAccessUnit->majorErrors.end(), "No reference I-frame") != pAccessUnit->majorErrors.end());
+	}
 }
 
 void H264InvalidSamplesParsing::test_h264MissingPPSBitstream(){

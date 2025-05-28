@@ -86,6 +86,7 @@ void H265GOP::validate(){
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_pic_order_cnt_lsb < minFrameNumber) minFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
+        if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
         if(pSlice->slice_type == H265Slice::SliceType_B){
             if(pSlice->slice_pic_order_cnt_lsb > lastNonBFrameNumber) majorErrors.push_back("[GOP] Out of order frames detected");
         } else {

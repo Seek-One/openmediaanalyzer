@@ -1,6 +1,8 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <unordered_set>
+#include <sstream>
 
 #include "H265BitstreamReader.h"
 #include "H265AccessUnit.h"
@@ -241,10 +243,27 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pCurrentAccessUnit->PicOrderCntVal = pSlice->PicOrderCntVal;
 				m_pCurrentAccessUnit->PicOrderCntMsb = pSlice->PicOrderCntMsb;
 			}
+			checkPrevRefPicList(m_pCurrentAccessUnit, pSlice);
 			firstPicture = false; endOfSequenceFlag = false;
 			m_GOPs.back()->hasSlice = true;
 			break;
 		}
 	}
 	return true;
+}
+
+void H265Stream::checkPrevRefPicList(H265AccessUnit* pCurrentAccessUnit, H265Slice* pSlice){
+	std::unordered_set<int32_t> seenPOC, missingPOC;
+	for(H265AccessUnit* pAccessUnit : m_GOPs.back()->getAccessUnits()) seenPOC.insert(pAccessUnit->PicOrderCntVal);
+	for(int32_t previousShortTermRefFramePOC : pSlice->PocStCurrBefore){
+		if(seenPOC.find(previousShortTermRefFramePOC) == seenPOC.end()) missingPOC.insert(previousShortTermRefFramePOC);
+	}
+	if(!missingPOC.empty()){
+        std::ostringstream missingPOCStr = std::ostringstream() << "[Slice] Missing reference frames : [" << (*missingPOC.begin());
+        auto missingPOCIt = missingPOC.begin();
+        missingPOCIt++;
+        for(;missingPOCIt != missingPOC.end();missingPOCIt++) missingPOCStr << (*missingPOCIt) << ", ";
+        missingPOCStr << "]";
+        pSlice->majorErrors.push_back(missingPOCStr.str());
+    } 
 }

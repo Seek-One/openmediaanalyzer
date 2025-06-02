@@ -101,10 +101,6 @@ void H265GOP::validate(){
     std::unordered_set<uint32_t> missingFrameNumbers;
     for(const std::unique_ptr<H265AccessUnit>& accessUnit : accessUnits){
         for(const H265Slice* pSlice : accessUnit->slices()){
-            for(uint32_t referencedFrameNumber : pSlice->PocStCurrBefore){
-                if(referencedFrameNumber < minFrameNumber || referencedFrameNumber > maxFrameNumber) continue;
-                if(seenFrameNumbers.find(referencedFrameNumber) == seenFrameNumbers.end()) missingFrameNumbers.insert(referencedFrameNumber);
-            }
             for(uint32_t referencedFrameNumber : pSlice->PocStCurrAfter){
                 if(referencedFrameNumber < minFrameNumber || referencedFrameNumber > maxFrameNumber) continue;
                 if(seenFrameNumbers.find(referencedFrameNumber) == seenFrameNumbers.end()) missingFrameNumbers.insert(referencedFrameNumber);

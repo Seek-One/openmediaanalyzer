@@ -59,6 +59,8 @@ private:
 	std::deque<std::unique_ptr<H265GOP>> m_GOPs;
 	H265AccessUnit* m_pCurrentAccessUnit;
 	H265AccessUnit* m_pNextAccessUnit;
+
+	void checkPrevRefPicList(H265AccessUnit* pAccessUnit, H265Slice* pSlice);
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_STREAM_H_

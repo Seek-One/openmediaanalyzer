@@ -91,9 +91,12 @@ void H265InvalidSamplesParsing::test_h265SkippedFrameBitstream(){
 	loadStream("h265-skipped-frame", stream, true);
 	stream.lastPacketParsed();
 	const uint16_t SKIPPED_FRAME_NUM = 12;
-	QVERIFY(!stream.majorErrors.empty());
-	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Skipped frames detected : [12]") != stream.majorErrors.end());
-	for(H265AccessUnit* pAccessUnit : stream.getAccessUnits()) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
+	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
+	for(H265AccessUnit* pAccessUnit : pAccessUnits) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
+	H265Slice* postSkippedFrameSlice = pAccessUnits[SKIPPED_FRAME_NUM]->slice(); // POC #13
+	QVERIFY(postSkippedFrameSlice != nullptr);
+	QVERIFY(!postSkippedFrameSlice->majorErrors.empty());
+	QVERIFY(std::find(postSkippedFrameSlice->majorErrors.begin(), postSkippedFrameSlice->majorErrors.end(), "[Slice] Missing reference frames : [12]") != postSkippedFrameSlice->majorErrors.end());
 }
 
 void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()

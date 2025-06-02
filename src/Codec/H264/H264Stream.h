@@ -72,6 +72,8 @@ private:
 	inline PictureOrderCount computePOCType2();
 
 	void validateFrameNum(H264Slice* pSlice);
+	void newAccessUnit();
+	void computeCurrentAccessUnitRPL();
 
 private:
 	H264NAL m_currentNAL;

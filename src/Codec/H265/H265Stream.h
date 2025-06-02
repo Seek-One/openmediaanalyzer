@@ -61,6 +61,7 @@ private:
 	H265AccessUnit* m_pNextAccessUnit;
 
 	void checkPrevRefPicList(H265AccessUnit* pAccessUnit, H265Slice* pSlice);
+	void newAccessUnit();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_STREAM_H_

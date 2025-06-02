@@ -137,12 +137,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what()));
 				m_pActiveVPS->completelyParsed = false;
 			}
-			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
-				m_GOPs.back()->setAccessUnitDecodability();
-				m_pCurrentAccessUnit = m_pNextAccessUnit;
-				m_pNextAccessUnit = new H265AccessUnit();
-				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
-			}
+			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265VPS>(m_pActiveVPS));
 			H265VPS::VPSMap.insert_or_assign(m_pActiveVPS->vps_video_parameter_set_id, m_pActiveVPS);
 			break;
@@ -154,12 +149,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); 
 				m_pActiveSPS->completelyParsed = false;
 			}
-			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
-				m_GOPs.back()->setAccessUnitDecodability();
-				m_pCurrentAccessUnit = m_pNextAccessUnit;
-				m_pNextAccessUnit = new H265AccessUnit();
-				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
-			}
+			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SPS>(m_pActiveSPS));
 			H265SPS::SPSMap.insert_or_assign(m_pActiveSPS->sps_seq_parameter_set_id, m_pActiveSPS);
 			break;
@@ -171,12 +161,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				m_pActivePPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); 
 				m_pActivePPS->completelyParsed = false;
 			}
-			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
-				m_GOPs.back()->setAccessUnitDecodability();
-				m_pCurrentAccessUnit = m_pNextAccessUnit;
-				m_pNextAccessUnit = new H265AccessUnit();
-				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
-			}
+			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265PPS>(m_pActivePPS));
 			H265PPS::PPSMap.insert_or_assign(m_pActivePPS->pps_pic_parameter_set_id, m_pActivePPS);
 			break;
@@ -189,12 +174,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
 				pSEI->completelyParsed = false;
 			}
-			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice){
-				m_GOPs.back()->setAccessUnitDecodability();
-				m_pCurrentAccessUnit = m_pNextAccessUnit;
-				m_pNextAccessUnit = new H265AccessUnit();
-				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
-			}
+			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SEI>(pSEI));
 			break;
 		}
@@ -210,12 +190,7 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
 				pSlice->completelyParsed = false;
 			}
-			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
-				m_GOPs.back()->setAccessUnitDecodability();
-				m_pCurrentAccessUnit = m_pNextAccessUnit;
-				m_pNextAccessUnit = new H265AccessUnit();
-				m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
-			}
+			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()) newAccessUnit();
 			if(pSlice->slice_type == H265Slice::SliceType_I && pSlice->first_slice_segment_in_pic_flag){ // I-frame marks new GOP
 				// move access unit inserted in the previous GOP to a new one,
 				// unless it's the very first access unit of the GOP (access units can start with
@@ -266,4 +241,11 @@ void H265Stream::checkPrevRefPicList(H265AccessUnit* pCurrentAccessUnit, H265Sli
         missingPOCStr << "]";
         pSlice->majorErrors.push_back(missingPOCStr.str());
     } 
+}
+
+void H265Stream::newAccessUnit(){
+	m_GOPs.back()->setAccessUnitDecodability();
+	m_pCurrentAccessUnit = m_pNextAccessUnit;
+	m_pNextAccessUnit = new H265AccessUnit();
+	m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H265AccessUnit>(m_pCurrentAccessUnit));
 }

@@ -86,30 +86,6 @@ std::vector<H264AccessUnit*> H264Stream::getAccessUnits() const
 	return pAccessUnits;
 }
 
-
-PictureOrderCount H264Stream::computePOC() {
-	if (m_GOPs.back()->accessUnits.size() == 0) {
-		std::cerr << "[H264::Stream] No slices found to compute POC\n";
-		return PictureOrderCount(0, 0);
-	}
-
-	switch (m_pActiveSPS->pic_order_cnt_type) {
-	case 0:
-		return computePOCType0();
-
-	case 1:
-		return computePOCType1();
-
-	case 2:
-		return computePOCType2();
-
-	default:
-		std::cerr << "[H264::Stream] Invalid POC type: " << m_pActiveSPS->pic_order_cnt_type << "\n";
-	}
-
-	return PictureOrderCount(0, 0);
-}
-
 const Size& H264Stream::getMbsPictureSize() const
 {
 	return m_sizeInMb;
@@ -673,9 +649,6 @@ void H264Stream::computeRPLInit(){
 		pCurrentSlice->RefPicList0.resize(pCurrentSlice->num_ref_idx_l0_active_minus1+1);
 		pCurrentSlice->RefPicList1.resize(pCurrentSlice->num_ref_idx_l1_active_minus1+1);
 	}
-	std::cout << "Frame #" << pCurrentSlice->frame_num << "\n";
-	for(uint16_t refPOC : pCurrentSlice->RefPicList0) std::cout << " - " << refPOC << " (0)\n";
-	for(uint16_t refPOC : pCurrentSlice->RefPicList1) std::cout << " - " << refPOC << " (1)\n";
 }
 	
 std::vector<uint16_t> H264Stream::computeRPLFieldInit(std::vector<H264AccessUnit*> refFrameListXShortTerm, std::vector<H264AccessUnit*> refFrameListLongTerm){

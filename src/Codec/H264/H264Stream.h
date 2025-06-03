@@ -39,8 +39,6 @@ public:
 	std::list<H264AccessUnit*> getLastAccessUnits(uint32_t count) const;
 	std::vector<H264AccessUnit*> getAccessUnits() const;
 
-	PictureOrderCount computePOC();
-
 	// Size in macroblocks
 	const Size& getMbsPictureSize() const;
 	// Size without cropping
@@ -66,10 +64,6 @@ private:
 	inline int computeSubHeightC() const;
 
 	void computeSizes();
-
-	inline PictureOrderCount computePOCType0();
-	inline PictureOrderCount computePOCType1();
-	inline PictureOrderCount computePOCType2();
 
 	void validateFrameNum(H264Slice* pSlice);
 	void newAccessUnit();

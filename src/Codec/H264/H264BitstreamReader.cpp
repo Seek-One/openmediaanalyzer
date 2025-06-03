@@ -695,7 +695,7 @@ void H264BitstreamReader::readAUD(H264AUD& h264AUD){
 	h264AUD.primary_pic_type = readBits(3);
 }
 
-void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
+void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS* activeSPS){
 	do {
 		uint64_t payloadType = 0;
 		uint8_t last_payload_type_byte = readBits(8);
@@ -717,7 +717,8 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 				readSEIBufferingPeriod(h264SEI);
 				break;
 			case SEI_PIC_TIMING:
-				readSEIPicTiming(h264SEI, activeSPS);
+				if(activeSPS) readSEIPicTiming(h264SEI, *activeSPS);
+				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
 				break;
 			case SEI_FILLER_PAYLOAD:
 				readSEIFillerPayload(h264SEI, payloadSize);
@@ -726,13 +727,15 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS& activeSPS){
 				readSEIUserDataUnregistered(h264SEI, payloadSize);
 				break;
 			case SEI_RECOVERY_POINT:
-				readSEIRecoveryPoint(h264SEI, activeSPS);
+				if(activeSPS) readSEIRecoveryPoint(h264SEI, *activeSPS);
+				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
 				break;
 			case SEI_FULL_FRAME_FREEZE:
 				readSEIFullFrameFreeze(h264SEI);
 				break;
 			case SEI_MVCD_VIEW_SCALABILITY_INFO:
-				readSEIMvcdViewScalabilityInfo(h264SEI, activeSPS);
+				if(activeSPS) readSEIMvcdViewScalabilityInfo(h264SEI, *activeSPS);
+				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
 				break;
 			default:
 				std::cerr << "Unsupported SEI type : " << payloadType << "\n";

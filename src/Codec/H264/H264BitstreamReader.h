@@ -23,7 +23,7 @@ public:
 	void readPPS(H264PPS& h264PPS);
 	void readSlice(H264Slice& h264Slice);
 	void readAUD(H264AUD& h264AUD);
-	void readSEI(H264SEI& h264SEI, const H264SPS& activeSPS);
+	void readSEI(H264SEI& h264SEI, const H264SPS* activeSPS);
 
 private:
 	void readScalingList(uint8_t* pScalingList, uint8_t iScalingListSize, bool bUseDefaultScalingList);

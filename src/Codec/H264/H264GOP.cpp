@@ -62,7 +62,7 @@ void H264GOP::validate(){
         if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
         noSPSorPPS = false;
         if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
-        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
+        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->MaxFrameNumber != pSlice->frame_num) {
             majorErrors.push_back("[GOP] Out of order frames detected");
         }
         prevFrameNumber = pSlice->frame_num;

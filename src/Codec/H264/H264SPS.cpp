@@ -67,8 +67,10 @@ H264SPS::H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 	PicWidthInMbs = 0;  
 	PicSizeInMapUnits = 0;  
 	MaxPicOrderCntLsb = 0;  
+	MaxFrameNumber = 16;
 	MaxDpbFrames = 0;  
 	ChromaArrayType = 0;
+	ExpectedDeltaPerPicOrderCntCycle = 0;
 	CropUnitX = 0;
 	CropUnitY = 0;
 	frame_cropping_flag = 0;
@@ -369,12 +371,5 @@ uint8_t H264SPS::level_limit_index(){
 		case 62: return 19;
 	}
 	return 0;
-}
-
-uint16_t H264SPS::computeMaxFrameNumber(){
-	if(log2_max_frame_num_minus4 == 12){ // overflow
-		return UINT16_MAX; 
-	}
-	return 1 << (log2_max_frame_num_minus4+4);
 }
 

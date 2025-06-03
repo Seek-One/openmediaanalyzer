@@ -73,7 +73,12 @@ private:
 
 	void validateFrameNum(H264Slice* pSlice);
 	void newAccessUnit();
+	void computeCurrentAccessUnitPOC();
 	void computeCurrentAccessUnitRPL();
+	void computeRPLPictureNumbers();
+	void computeRPLInit();
+	std::vector<uint16_t> computeRPLFieldInit(std::vector<H264AccessUnit*> refFrameListXShortTerm, std::vector<H264AccessUnit*> refFrameListLongTerm);
+	void markDecodedReferencePictures();
 
 private:
 	H264NAL m_currentNAL;
@@ -87,13 +92,6 @@ private:
 	Size m_sizeInMb; // Size in macro blocks
 	Size m_sizeUncropped; // Uncropped size
 	Size m_sizeCropped; // Real size (with crop)
-
-	// Picture Order Count
-	uint32_t m_prevPicOrderCntMsb;
-	uint32_t m_prevPicOrderCntLsb;
-	uint32_t m_prevFrameNumOffset;
-	uint32_t m_prevFrameNum;
-	uint32_t m_iPrevMMCO;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264_STREAM_H_

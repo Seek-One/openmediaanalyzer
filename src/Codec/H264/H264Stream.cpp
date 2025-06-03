@@ -24,12 +24,6 @@ H264Stream::H264Stream():
 	m_sizeInMb(Size(-1, -1)), m_sizeUncropped(Size(-1, -1)), m_sizeCropped(Size(-1, -1)), m_pCurrentAccessUnit(nullptr)
 {
 	MbaffFrameFlag = 0;
-
-	m_prevPicOrderCntMsb = 0;
-	m_prevPicOrderCntLsb = 0;
-	m_prevFrameNumOffset = 0;
-	m_prevFrameNum = 0;
-	m_iPrevMMCO = 0;
 }
 
 H264Stream::~H264Stream(){
@@ -361,169 +355,6 @@ void H264Stream::computeSizes() {
 	return;
 }
 
-PictureOrderCount H264Stream::computePOCType0() {
-	// Compute POC in according section 8.2.1.1 of H264 reference
-
-	// IDR case
-	int prevPicOrderCntMsb = 0;
-	int prevPicOrderCntLsb = 0;
-
-	// No IDR case
-	if (m_currentNAL.nal_unit_type != H264NAL::UnitType_IDRFrame) {
-		if (m_iPrevMMCO == 5) {
-			std::cerr << "[H264::Stream] Memory management control operation for POC computation not handled\n";
-		} else {
-			prevPicOrderCntMsb = m_prevPicOrderCntMsb;
-			prevPicOrderCntLsb = m_prevPicOrderCntLsb;
-		}
-	}
-
-	// h264 reference equation 8-3
-	H264Slice* pLastSlice = m_GOPs.back()->accessUnits.back()->slice();
-	int iPicOrderCntMsb = 0;
-	int iMaxPicOrderCntLsb = 1 << (m_pActiveSPS->log2_max_pic_order_cnt_lsb_minus4 + 4);
-	if ((pLastSlice->pic_order_cnt_lsb < prevPicOrderCntLsb) &&
-		((prevPicOrderCntLsb - pLastSlice->pic_order_cnt_lsb) >= (iMaxPicOrderCntLsb / 2)))
-	{
-		iPicOrderCntMsb = prevPicOrderCntMsb + iMaxPicOrderCntLsb;
-	} else if ((pLastSlice->pic_order_cnt_lsb > prevPicOrderCntLsb) &&
-		((pLastSlice->pic_order_cnt_lsb - prevPicOrderCntLsb) > (iMaxPicOrderCntLsb / 2))) {
-		iPicOrderCntMsb = prevPicOrderCntMsb - iMaxPicOrderCntLsb;
-	} else {
-		iPicOrderCntMsb = prevPicOrderCntMsb;
-	}
-
-	int iTopFieldOrderCnt = iPicOrderCntMsb + pLastSlice->pic_order_cnt_lsb; // Equation 8-4
-	int iBottomFieldOrderCnt = iTopFieldOrderCnt;
-
-	// If it's a frame
-	if (!pLastSlice->field_pic_flag) {
-		iBottomFieldOrderCnt += iTopFieldOrderCnt + pLastSlice->delta_pic_order_cnt_bottom;
-	}
-
-	// Update previous reference infos for next computation
-	if (m_currentNAL.nal_ref_idc) {
-		m_prevPicOrderCntMsb = iPicOrderCntMsb;
-		m_prevPicOrderCntLsb = pLastSlice->pic_order_cnt_lsb;
-		m_iPrevMMCO = pLastSlice->drpm.memory_management_control_operation[0];
-	}
-
-	return PictureOrderCount(iTopFieldOrderCnt, iBottomFieldOrderCnt);
-}
-
-PictureOrderCount H264Stream::computePOCType1() {
-	// Compute POC in according section 8.2.1.2 of H264 reference
-
-	// IDR case
-	
-	int iFrameNumOffset = 0;
-	H264Slice* pLastSlice = m_GOPs.back()->accessUnits.back()->slice();
-
-	// No IDR case
-	if (m_currentNAL.nal_unit_type != H264NAL::UnitType_IDRFrame) {
-		int prevFrameNumOffset = 0;
-		// Set prevFrameNumOffset value
-		if (m_iPrevMMCO != 5) {
-			prevFrameNumOffset = m_prevFrameNumOffset;
-		}
-
-		// Set FrameNumOffset value
-		int iMaxFrameNum = 1 << (m_pActiveSPS->log2_max_frame_num_minus4 + 4);
-		iFrameNumOffset = prevFrameNumOffset;
-		if (m_prevFrameNum > pLastSlice->frame_num) {
-			iFrameNumOffset += iMaxFrameNum;
-		}
-	}
-
-	int absFrameNum = 0;
-	if (!m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle) {
-		absFrameNum = iFrameNumOffset + pLastSlice->frame_num;
-	}
-
-	if (!m_currentNAL.nal_ref_idc && absFrameNum > 0) {
-		--absFrameNum;
-	}
-
-	int expectedPicOrderCnt = 0;
-	if (absFrameNum > 0) {
-		int iExpectedDeltaPerPicOrderCntCycle = 0;
-		for (uint32_t i = 0; i < m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle; ++i) {
-			iExpectedDeltaPerPicOrderCntCycle += m_pActiveSPS->offset_for_ref_frame[i];
-		}
-
-		int picOrderCntCycleCnt = (absFrameNum - 1) / m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle;
-		int frameNumInPicOrderCntCycle = (absFrameNum - 1) % m_pActiveSPS->num_ref_frames_in_pic_order_cnt_cycle;
-
-		expectedPicOrderCnt = picOrderCntCycleCnt * iExpectedDeltaPerPicOrderCntCycle;
-		for (int i = 0; i <= frameNumInPicOrderCntCycle; ++i) {
-			expectedPicOrderCnt += m_pActiveSPS->offset_for_ref_frame[i];
-		}
-
-		if (!m_currentNAL.nal_ref_idc) {
-			expectedPicOrderCnt += m_pActiveSPS->offset_for_non_ref_pic;
-		}
-	}
-
-	int iTopFieldOrderCnt = expectedPicOrderCnt + pLastSlice->delta_pic_order_cnt[0];
-	int iBottomFieldOrderCnt = iTopFieldOrderCnt + m_pActiveSPS->offset_for_top_to_bottom_field;
-	if (pLastSlice->bottom_field_flag) {
-		iBottomFieldOrderCnt += pLastSlice->delta_pic_order_cnt[0];
-	} else {
-		iBottomFieldOrderCnt += pLastSlice->delta_pic_order_cnt[1];
-	}
-
-	// Update previous reference infos for next computation
-	if (m_currentNAL.nal_ref_idc) {
-		m_prevFrameNumOffset = iFrameNumOffset;
-		m_prevFrameNum = pLastSlice->frame_num;
-		m_iPrevMMCO = pLastSlice->drpm.memory_management_control_operation[0];
-	}
-
-	return PictureOrderCount(iTopFieldOrderCnt, iBottomFieldOrderCnt);
-}
-
-PictureOrderCount H264Stream::computePOCType2() {
-	// Compute POC in according section 8.2.1.3 of H264 reference
-
-	// IDR case
-	int iFrameNumOffset = 0;
-	int tempPicOrderCnt = 0;
-	H264Slice* pLastSlice = m_GOPs.back()->accessUnits.back()->slice();
-
-	// No IDR case
-	if (m_currentNAL.nal_unit_type != H264NAL::UnitType_IDRFrame) {
-		int prevFrameNumOffset = 0;
-		// Set prevFrameNumOffset value
-		if (m_iPrevMMCO != 5) {
-			prevFrameNumOffset = m_prevFrameNumOffset;
-		}
-
-		// Set FrameNumOffset value
-		int iMaxFrameNum = (1 << (m_pActiveSPS->log2_max_frame_num_minus4 + 4));
-		iFrameNumOffset = prevFrameNumOffset;
-		if (m_prevFrameNum > pLastSlice->frame_num) {
-			iFrameNumOffset += iMaxFrameNum;
-		}
-
-		// Set tempPicOrderCnt value
-		tempPicOrderCnt = 2 * (iFrameNumOffset + pLastSlice->frame_num);
-		if (!m_currentNAL.nal_ref_idc) {
-			--tempPicOrderCnt;
-		}
-	}
-
-	int iTopFieldOrderCnt = tempPicOrderCnt;
-	int iBottomFieldOrderCnt = tempPicOrderCnt;
-
-	// Update previous reference infos for next computation
-	if (m_currentNAL.nal_ref_idc) {
-		m_prevFrameNumOffset = iFrameNumOffset;
-		m_iPrevMMCO = pLastSlice->drpm.memory_management_control_operation[0];
-	}
-
-	return PictureOrderCount(iTopFieldOrderCnt, iBottomFieldOrderCnt);
-}
-
 void H264Stream::validateFrameNum(H264Slice* pSlice){
 	if(!pSlice->getSPS() || !pSlice->majorErrors.empty()) return;
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
@@ -590,7 +421,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 	} else {
 		std::vector<uint16_t> UnusedShortTermFrameNums;
-		uint16_t MaxFrameNum = pSlice->getSPS()->computeMaxFrameNumber();
+		uint16_t MaxFrameNum = pSlice->getSPS()->MaxFrameNumber;
 		for(uint16_t i = (pSlice->PrevRefFrameNum+1)%MaxFrameNum;i < pSlice->frame_num;++i){
 			UnusedShortTermFrameNums.push_back(i);
 		}
@@ -619,11 +450,367 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 void H264Stream::newAccessUnit(){
 	m_GOPs.back()->hasSlice = true;
 	if(!m_pCurrentAccessUnit->hasMajorErrors()) m_pCurrentAccessUnit->decodable = true;
-	computeCurrentAccessUnitRPL();
+	m_pCurrentAccessUnit->FrameNum = m_pCurrentAccessUnit->slice()->frame_num;
+	// computeCurrentAccessUnitPOC();
+	// computeCurrentAccessUnitRPL();
+	// markDecodedReferencePictures();
 	m_pCurrentAccessUnit = new H264AccessUnit();
 	m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 }
 
-void H264Stream::computeCurrentAccessUnitRPL(){
+void H264Stream::computeCurrentAccessUnitPOC(){
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
 
+	H264AccessUnit* pPrevAccessUnit = getLastAccessUnits(1).front();
+	H264Slice* pPrevSlice = pPrevAccessUnit->slice();
+	uint8_t i = 0;
+	bool memOp5Found = false;
+
+	while(pPrevSlice->drpm.memory_management_control_operation[i] != 0 && !memOp5Found){
+		memOp5Found = pPrevSlice->drpm.memory_management_control_operation[i++] == 5;
+	}
+	uint16_t prevFrameNumOffset = memOp5Found ? 0 : pPrevAccessUnit->FrameNumOffset;
+	if(pCurrentSlice->IdrPicFlag) m_pCurrentAccessUnit->FrameNumOffset = 0;
+	else if(pPrevSlice->frame_num > pCurrentSlice->frame_num) m_pCurrentAccessUnit->FrameNumOffset = prevFrameNumOffset + pCurrentSPS->MaxFrameNumber;
+	else m_pCurrentAccessUnit->FrameNumOffset = prevFrameNumOffset;
+	
+	switch(pCurrentSPS->pic_order_cnt_type){
+		case 0:{
+			uint16_t prevPicOrderCntMsb = 0;
+			uint16_t prevPicOrderCntLsb = 0;
+			if(pCurrentSlice->nal_unit_type != H264NAL::UnitType_IDRFrame){
+				if(memOp5Found) {
+					if(!pPrevSlice->bottom_field_flag) prevPicOrderCntLsb = pPrevAccessUnit->TopFieldOrderCnt;
+				} else {
+					prevPicOrderCntMsb = pPrevAccessUnit->PicOrderCntMsb;
+					prevPicOrderCntLsb = pPrevSlice->pic_order_cnt_lsb;
+				}
+			}
+			if((pCurrentSlice->pic_order_cnt_lsb < prevPicOrderCntLsb) && ((prevPicOrderCntLsb - pCurrentSlice->pic_order_cnt_lsb) >= (pCurrentSPS->MaxPicOrderCntLsb/2))){
+				m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb + pCurrentSPS->MaxPicOrderCntLsb;
+			} else if ((pCurrentSlice->pic_order_cnt_lsb > prevPicOrderCntLsb) && ((pCurrentSlice->pic_order_cnt_lsb - prevPicOrderCntLsb) > (pCurrentSPS->MaxPicOrderCntLsb/2))){
+				m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb - pCurrentSPS->MaxPicOrderCntLsb;
+			} else m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb;
+			if(!pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->TopFieldOrderCnt = m_pCurrentAccessUnit->PicOrderCntMsb + pCurrentSlice->pic_order_cnt_lsb;
+			if(!pCurrentSlice->field_pic_flag) m_pCurrentAccessUnit->BottomFieldOrderCnt = m_pCurrentAccessUnit->TopFieldOrderCnt + pCurrentSlice->delta_pic_order_cnt_bottom;
+			else m_pCurrentAccessUnit->BottomFieldOrderCnt = m_pCurrentAccessUnit->PicOrderCntMsb + pCurrentSlice->pic_order_cnt_lsb;
+			break;
+		}
+		case 1:{
+			uint16_t absFrameNum = pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle != 0 ? m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num : 0;
+			if(pCurrentSlice->nal_ref_idc == 0 && absFrameNum > 0) --absFrameNum;
+			uint16_t expectedPicOrderCnt = 0;
+			if(absFrameNum > 0){
+				uint16_t picOrderCntCycleCnt = (absFrameNum-1)/pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle;
+				uint16_t frameNumInPicOrderCntCycle = (absFrameNum-1)%pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle;
+				expectedPicOrderCnt = picOrderCntCycleCnt*pCurrentSPS->ExpectedDeltaPerPicOrderCntCycle;
+				for(int i = 0;i <= frameNumInPicOrderCntCycle;++i) expectedPicOrderCnt *= pCurrentSPS->offset_for_ref_frame[i];
+			}
+			if(pCurrentSlice->nal_ref_idc == 0) expectedPicOrderCnt += pCurrentSPS->offset_for_non_ref_pic;
+			if(!pCurrentSlice->field_pic_flag){
+				m_pCurrentAccessUnit->TopFieldOrderCnt = expectedPicOrderCnt + pCurrentSlice->delta_pic_order_cnt[0];
+				m_pCurrentAccessUnit->BottomFieldOrderCnt = m_pCurrentAccessUnit->TopFieldOrderCnt + pCurrentSPS->offset_for_top_to_bottom_field + pCurrentSlice->delta_pic_order_cnt[1];	
+			} else if(!pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->TopFieldOrderCnt = expectedPicOrderCnt + pCurrentSlice->delta_pic_order_cnt[0];
+			else m_pCurrentAccessUnit->BottomFieldOrderCnt = expectedPicOrderCnt + pCurrentSPS->offset_for_top_to_bottom_field + pCurrentSlice->delta_pic_order_cnt[0];
+			break;
+		}
+		case 2:{
+			uint16_t tempPicOrderCnt;
+			if(pCurrentSlice->IdrPicFlag) tempPicOrderCnt = 0;
+			else if(pCurrentSlice->nal_ref_idc == 0) tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
+			else tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
+
+			if(!pCurrentSlice->field_pic_flag){
+				m_pCurrentAccessUnit->TopFieldOrderCnt = tempPicOrderCnt;
+				m_pCurrentAccessUnit->BottomFieldOrderCnt = tempPicOrderCnt;
+			} else if(pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->BottomFieldOrderCnt = tempPicOrderCnt;
+			else m_pCurrentAccessUnit->TopFieldOrderCnt = tempPicOrderCnt;
+			break;
+		}
+	}
+	if(!pCurrentSlice->field_pic_flag) m_pCurrentAccessUnit->PicOrderCnt = std::min(m_pCurrentAccessUnit->TopFieldOrderCnt, m_pCurrentAccessUnit->BottomFieldOrderCnt);
+	else if(!pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->PicOrderCnt = m_pCurrentAccessUnit->TopFieldOrderCnt;
+	else m_pCurrentAccessUnit->PicOrderCnt = m_pCurrentAccessUnit->BottomFieldOrderCnt;
+}
+
+void H264Stream::computeCurrentAccessUnitRPL(){
+	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
+
+	computeRPLPictureNumbers();
+	computeRPLInit();	
+}
+
+void H264Stream::computeRPLPictureNumbers(){
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
+
+	for(H264AccessUnit* pAccessUnit : getAccessUnits()){
+		if(pAccessUnit->rpm == RPM_Unused) continue;
+		if(pAccessUnit->rpm == RPM_ShortTermReference){
+			if(pAccessUnit->FrameNum > pCurrentSlice->frame_num) pAccessUnit->FrameNumWrap = pAccessUnit->FrameNum - pCurrentSPS->MaxFrameNumber;
+			else pAccessUnit->FrameNumWrap = pAccessUnit->FrameNum;
+			if(pCurrentSlice->field_pic_flag) pAccessUnit->PicNum = 2 * pAccessUnit->FrameNumWrap + (pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0;
+			else pAccessUnit->PicNum = pAccessUnit->FrameNumWrap;
+		} else { // Long-term reference
+			if(pCurrentSlice->field_pic_flag) pAccessUnit->LongTermPicNum = 2 * pAccessUnit->LongTermFrameIdx + (pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0;
+			else pAccessUnit->LongTermPicNum = pAccessUnit->LongTermFrameIdx;
+		}
+	}
+}
+
+void H264Stream::computeRPLInit(){
+	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	std::vector<H264AccessUnit*> tempRefPicList0, tempLongTermRefs;
+
+	if(pCurrentSlice->slice_type == H264Slice::SliceType_P || pCurrentSlice->slice_type == H264Slice::SliceType_SP){
+		if(pCurrentSlice->field_pic_flag){
+			std::vector<H264AccessUnit*> refFrameList0ShortTerm, refFrameList0LongTerm;
+			for(H264AccessUnit* pAccessUnit : pAccessUnits) if(pAccessUnit->rpm == RPM_ShortTermReference) refFrameList0ShortTerm.push_back(pAccessUnit);
+			std::sort(refFrameList0ShortTerm.begin(), refFrameList0ShortTerm.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->FrameNumWrap > rhs->FrameNumWrap;
+			});
+			for(H264AccessUnit* pAccessUnit : pAccessUnits) if(pAccessUnit->rpm == RPM_ShortTermReference) refFrameList0LongTerm.push_back(pAccessUnit);
+			std::sort(refFrameList0LongTerm.begin(),refFrameList0LongTerm.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->LongTermFrameIdx < rhs->LongTermFrameIdx;
+			});
+			pCurrentSlice->RefPicList0 = computeRPLFieldInit(refFrameList0ShortTerm, refFrameList0LongTerm);
+		} else {
+			for(H264AccessUnit* pAccessUnit : pAccessUnits) {
+				if(pAccessUnit->rpm == RPM_ShortTermReference) tempRefPicList0.push_back(pAccessUnit);
+				else if(pAccessUnit->rpm == RPM_LongTermReference) tempLongTermRefs.push_back(pAccessUnit);
+			}
+			std::sort(tempRefPicList0.begin(), tempRefPicList0.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->PicNum > rhs->PicNum;
+			});
+			std::sort(tempLongTermRefs.begin(), tempLongTermRefs.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->LongTermPicNum < rhs->LongTermPicNum;
+			});
+			tempRefPicList0.insert(tempRefPicList0.end(), tempLongTermRefs.begin(), tempLongTermRefs.end());
+			std::transform(tempRefPicList0.begin(), tempRefPicList0.end(), std::back_inserter(pCurrentSlice->RefPicList0), [](H264AccessUnit* pAccessUnit){
+				return pAccessUnit->PicOrderCnt;
+			});
+		}
+		pCurrentSlice->RefPicList0.resize(pCurrentSlice->num_ref_idx_l0_active_minus1+1);
+	} else if(pCurrentSlice->slice_type == H264Slice::SliceType_B){
+		if(pCurrentSlice->field_pic_flag){
+			std::vector<H264AccessUnit*> refFrameList0ShortTerm, refFrameList1ShortTerm, refFrameListLongTerm;
+			std::vector<H264AccessUnit*> GT_POCs, LTE_POCs;
+
+			for(H264AccessUnit* pAccessUnit : pAccessUnits){
+				if(pAccessUnit->rpm == RPM_ShortTermReference){
+					if(pAccessUnit->PicOrderCnt <= m_pCurrentAccessUnit->PicOrderCnt) refFrameList0ShortTerm.push_back(pAccessUnit);
+					else GT_POCs.push_back(pAccessUnit);
+				} else if(pAccessUnit->rpm == RPM_LongTermReference) refFrameListLongTerm.push_back(pAccessUnit);
+			}
+			std::sort(refFrameList0ShortTerm.begin(), refFrameList0ShortTerm.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->PicOrderCnt > rhs->PicOrderCnt;
+			});
+			std::sort(GT_POCs.begin(), GT_POCs.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->PicOrderCnt < rhs->PicOrderCnt;
+			});
+			refFrameList0ShortTerm.insert(refFrameList0ShortTerm.end(), GT_POCs.begin(), GT_POCs.end());
+
+			for(H264AccessUnit* pAccessUnit : pAccessUnits){
+				if(pAccessUnit->rpm == RPM_ShortTermReference){
+					if(pAccessUnit->PicOrderCnt > m_pCurrentAccessUnit->PicOrderCnt) refFrameList1ShortTerm.push_back(pAccessUnit);
+					else LTE_POCs.push_back(pAccessUnit);
+				}
+			}
+			std::sort(refFrameList1ShortTerm.begin(), refFrameList1ShortTerm.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->PicOrderCnt < rhs->PicOrderCnt;
+			});
+			std::sort(LTE_POCs.begin(), LTE_POCs.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->PicOrderCnt > rhs->PicOrderCnt;
+			});
+			refFrameList1ShortTerm.insert(refFrameList1ShortTerm.end(), LTE_POCs.begin(), LTE_POCs.end());
+			std::sort(refFrameListLongTerm.begin(), refFrameListLongTerm.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->LongTermFrameIdx < rhs->LongTermFrameIdx;
+			});
+
+			pCurrentSlice->RefPicList0 = computeRPLFieldInit(refFrameList0ShortTerm, refFrameListLongTerm);
+			pCurrentSlice->RefPicList1 = computeRPLFieldInit(refFrameList1ShortTerm, refFrameListLongTerm);
+		} else {
+			std::vector<uint16_t> GTE_POCs, LTE_POCs;
+			std::vector<H264AccessUnit*> longTermRefs;
+			for(H264AccessUnit* pAccessUnit : pAccessUnits){
+				if(pAccessUnit->rpm == RPM_ShortTermReference){
+					if(pAccessUnit->PicOrderCnt < m_pCurrentAccessUnit->PicOrderCnt) pCurrentSlice->RefPicList0.push_back(pAccessUnit->PicOrderCnt);
+					else GTE_POCs.push_back(pAccessUnit->PicOrderCnt);
+				} else if(pAccessUnit->rpm == RPM_LongTermReference) longTermRefs.push_back(pAccessUnit);
+			}
+			std::sort(pCurrentSlice->RefPicList0.begin(), pCurrentSlice->RefPicList0.end(), [](uint16_t lhs, uint16_t rhs){
+				return lhs > rhs;
+			});
+			std::sort(GTE_POCs.begin(), GTE_POCs.end());
+			std::sort(longTermRefs.begin(), longTermRefs.end(), [](H264AccessUnit* lhs, H264AccessUnit* rhs){
+				return lhs->LongTermPicNum < rhs->LongTermPicNum;
+			});
+			pCurrentSlice->RefPicList0.insert(pCurrentSlice->RefPicList0.end(), GTE_POCs.begin(), GTE_POCs.end());
+			std::transform(longTermRefs.begin(), longTermRefs.end(), std::back_inserter(pCurrentSlice->RefPicList0), [](H264AccessUnit* pAccessUnit){
+				return pAccessUnit->PicOrderCnt;
+			});
+
+			for(H264AccessUnit* pAccessUnit : pAccessUnits){
+				if(pAccessUnit->rpm == RPM_ShortTermReference){
+					if(pAccessUnit->PicOrderCnt > m_pCurrentAccessUnit->PicOrderCnt) pCurrentSlice->RefPicList0.push_back(pAccessUnit->PicOrderCnt);
+					else LTE_POCs.push_back(pAccessUnit->PicOrderCnt);
+				}
+			}
+			std::sort(pCurrentSlice->RefPicList1.begin(), pCurrentSlice->RefPicList1.end());
+			std::sort(LTE_POCs.begin(), LTE_POCs.end(), [](uint16_t lhs, uint16_t rhs){
+				return lhs > rhs;
+			});
+			pCurrentSlice->RefPicList1.insert(pCurrentSlice->RefPicList1.end(), LTE_POCs.begin(), LTE_POCs.end());
+			std::transform(longTermRefs.begin(), longTermRefs.end(), std::back_inserter(pCurrentSlice->RefPicList1), [](H264AccessUnit* pAccessUnit){
+				return pAccessUnit->PicOrderCnt;
+			});			
+			if(pCurrentSlice->RefPicList1.size() > 1 && pCurrentSlice->RefPicList0 == pCurrentSlice->RefPicList1) std::swap(pCurrentSlice->RefPicList1[0], pCurrentSlice->RefPicList1[1]);
+		}
+		pCurrentSlice->RefPicList0.resize(pCurrentSlice->num_ref_idx_l0_active_minus1+1);
+		pCurrentSlice->RefPicList1.resize(pCurrentSlice->num_ref_idx_l1_active_minus1+1);
+	}
+	std::cout << "Frame #" << pCurrentSlice->frame_num << "\n";
+	for(uint16_t refPOC : pCurrentSlice->RefPicList0) std::cout << " - " << refPOC << " (0)\n";
+	for(uint16_t refPOC : pCurrentSlice->RefPicList1) std::cout << " - " << refPOC << " (1)\n";
+}
+	
+std::vector<uint16_t> H264Stream::computeRPLFieldInit(std::vector<H264AccessUnit*> refFrameListXShortTerm, std::vector<H264AccessUnit*> refFrameListLongTerm){
+	std::vector<uint16_t> RefPicListX;
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	for(std::vector<H264AccessUnit*> refFrameList : {refFrameListXShortTerm, refFrameListLongTerm}){
+		std::deque<H264AccessUnit*> bottomField, topField;
+		for(H264AccessUnit* pAccessUnit : refFrameList){
+			if(pAccessUnit->slice()->bottom_field_flag) bottomField.push_back(pAccessUnit);
+			else topField.push_back(pAccessUnit);
+		}
+		bool bottomParity = pCurrentSlice->bottom_field_flag;
+		while(!bottomField.empty() && !topField.empty()){
+			if(bottomParity) {
+				RefPicListX.push_back(bottomField.front()->PicOrderCnt);
+				bottomField.pop_front();
+			} else {
+				RefPicListX.push_back(topField.front()->PicOrderCnt);
+				topField.pop_front();
+			}
+			bottomParity = !bottomParity;
+		}
+		if(!bottomField.empty()) std::transform(bottomField.begin(), bottomField.end(), std::back_inserter(RefPicListX), [](H264AccessUnit* pAccessUnit){
+			return pAccessUnit->PicOrderCnt;
+		});
+		else if(!topField.empty()) std::transform(topField.begin(), topField.end(), std::back_inserter(RefPicListX), [](H264AccessUnit* pAccessUnit){
+			return pAccessUnit->PicOrderCnt;
+		});
+	}
+
+	return RefPicListX;
+}
+
+void H264Stream::markDecodedReferencePictures(){
+	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
+	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
+	if(pCurrentSlice->nal_ref_idc == 0) return;
+	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
+
+	if(pCurrentSlice->nal_unit_type == H264NAL::UnitType_IDRFrame){
+		for(H264AccessUnit* pAccessUnit : pAccessUnits) pAccessUnit->rpm = RPM_Unused;
+		if(pCurrentSlice->drpm.long_term_reference_flag){
+			m_pCurrentAccessUnit->rpm = RPM_LongTermReference;
+			m_pCurrentAccessUnit->LongTermFrameIdx = 0;
+		} else m_pCurrentAccessUnit->rpm = RPM_ShortTermReference;
+	} else {
+		bool memOp6 = false;
+		if(pCurrentSlice->drpm.adaptive_ref_pic_marking_mode_flag){
+			uint8_t i = 0;
+			while(pCurrentSlice->drpm.memory_management_control_operation[i] != 0){
+				switch(pCurrentSlice->drpm.memory_management_control_operation[i]){
+					case 1:{
+						uint16_t picNumX = pCurrentSlice->CurrPicNum - (pCurrentSlice->drpm.difference_of_pic_nums_minus1[i]+1);
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							if((*pAccessUnitIt)->slice() && (*pAccessUnitIt)->slice()->CurrPicNum == picNumX) {
+								(*pAccessUnitIt)->rpm = RPM_Unused;
+								break;
+							}
+						}
+						break;
+					}
+					case 2:{
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							if((*pAccessUnitIt)->slice() && (*pAccessUnitIt)->LongTermPicNum == pCurrentSlice->drpm.long_term_pic_num[i]){
+								(*pAccessUnitIt)->rpm = RPM_Unused;
+								break;
+							} 
+						}
+						break;
+					}
+					case 3:{
+						break;
+						uint16_t picNumX = pCurrentSlice->CurrPicNum - (pCurrentSlice->drpm.difference_of_pic_nums_minus1[i]+1);
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							if((*pAccessUnitIt)->slice() && (*pAccessUnitIt)->slice()->CurrPicNum == picNumX) {
+								(*pAccessUnitIt)->rpm = RPM_LongTermReference;
+								(*pAccessUnitIt)->LongTermFrameIdx = pCurrentSlice->drpm.long_term_frame_idx[i];
+								break;
+							}
+						}
+					}
+					case 4:{
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							if((*pAccessUnitIt)->LongTermFrameIdx > pCurrentSlice->drpm.max_long_term_frame_idx_plus1[i]-1 && (*pAccessUnitIt)->rpm == RPM_LongTermReference) {
+								(*pAccessUnitIt)->rpm = RPM_Unused;
+							}
+						}
+						break;
+					}
+					case 5:{
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							(*pAccessUnitIt)->rpm = RPM_Unused;
+						}
+						break;
+					}
+					case 6:{
+						memOp6 = true;
+						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
+							if((*pAccessUnitIt)->LongTermFrameIdx == pCurrentSlice->drpm.long_term_frame_idx[i] && (*pAccessUnitIt)->rpm == RPM_LongTermReference) {
+								(*pAccessUnitIt)->rpm = RPM_Unused;
+								break;
+							}
+						}
+						m_pCurrentAccessUnit->rpm = RPM_LongTermReference;
+						m_pCurrentAccessUnit->LongTermFrameIdx = pCurrentSlice->drpm.long_term_frame_idx[i];
+						break;
+					}
+				}
+				++i;
+			}
+		} else {
+			if(pCurrentSlice->field_pic_flag && pCurrentSlice->bottom_field_flag && pAccessUnits.back()->rpm == RPM_ShortTermReference) m_pCurrentAccessUnit->rpm = RPM_ShortTermReference;
+			else {
+				uint16_t numShortTerm = 0;
+				uint16_t numLongTerm = 0;
+				std::vector<H264AccessUnit*> shortTermRefPictures;
+				for(H264AccessUnit* pAccessUnit : pAccessUnits){
+					if(pAccessUnit->rpm == RPM_ShortTermReference){
+						++numShortTerm;
+						shortTermRefPictures.push_back(pAccessUnit);
+					} else if(pAccessUnit->rpm == RPM_LongTermReference) ++numLongTerm;
+				}
+				if(m_pCurrentAccessUnit->rpm == RPM_ShortTermReference){
+					++numShortTerm;
+					shortTermRefPictures.push_back(m_pCurrentAccessUnit);
+				} else if(m_pCurrentAccessUnit->rpm == RPM_LongTermReference) ++numLongTerm;
+				if(numShortTerm + numLongTerm == std::max(pCurrentSPS->max_num_ref_frames, 1u) && !shortTermRefPictures.empty()){
+					H264AccessUnit* smallestFrameNumWrapAccessUnit = shortTermRefPictures.front();
+					for(H264AccessUnit* shortTermRefPicture : shortTermRefPictures){
+						if(shortTermRefPicture->FrameNumWrap < smallestFrameNumWrapAccessUnit->FrameNumWrap) smallestFrameNumWrapAccessUnit = shortTermRefPicture;
+					}
+					smallestFrameNumWrapAccessUnit->rpm = RPM_Unused;
+				}
+			}
+		}
+		if(m_pCurrentAccessUnit->rpm == RPM_LongTermReference && memOp6) m_pCurrentAccessUnit->rpm = RPM_ShortTermReference;
+	}
 }

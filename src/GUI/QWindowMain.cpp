@@ -59,7 +59,7 @@ QWindowMain::QWindowMain(QWidget* parent)
         connect(pOpenStreamAction, &QAction::triggered, [this]() {
             emit openStreamClicked();
         });
-        QAction* pStopStreamThread = new QAction(tr("Stop \"stream\"..."), this);
+        QAction* pStopStreamThread = new QAction(tr("Stop stream..."), this);
         pStopStreamThread->setShortcut(QKeySequence("Ctrl+C"));
         connect(pStopStreamThread, &QAction::triggered, [this]() {
             emit stopStreamClicked();

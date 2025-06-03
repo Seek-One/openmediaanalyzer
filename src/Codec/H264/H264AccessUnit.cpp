@@ -13,7 +13,9 @@
 #include "H264AccessUnit.h"
 
 H264AccessUnit::H264AccessUnit():
-    decodable(false), hasFrameGaps(false)
+    decodable(false), hasFrameGaps(false), rpm(RPM_Unused),
+    TopFieldOrderCnt(0), BottomFieldOrderCnt(0), PicOrderCntMsb(0), PicOrderCntLsb(0), PicOrderCnt(0),
+    FrameNum(0), FrameNumWrap(0), PicNum(0), LongTermFrameIdx(0), LongTermPicNum(0)
 {
 }
 

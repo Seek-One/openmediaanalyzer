@@ -9,6 +9,12 @@
 struct H264NAL;
 struct H264Slice;
 
+enum ReferencePictureMarking {
+    RPM_Unused,
+    RPM_ShortTermReference,
+    RPM_LongTermReference
+};
+
 struct H264AccessUnit {
     H264AccessUnit();
     ~H264AccessUnit();
@@ -18,6 +24,22 @@ struct H264AccessUnit {
     std::vector<std::string> minorErrors;
     std::vector<std::string> majorErrors;
     bool hasFrameGaps;
+    ReferencePictureMarking rpm;
+
+    // picture order count (8.2.1)
+    uint16_t TopFieldOrderCnt;
+    uint16_t BottomFieldOrderCnt;
+    uint16_t PicOrderCntMsb;
+    uint16_t PicOrderCntLsb;
+    uint16_t FrameNumOffset;
+    uint16_t PicOrderCnt;
+
+    // picture numbers (8.2.4.1)
+    uint16_t FrameNum;
+    uint16_t FrameNumWrap;
+    uint16_t PicNum;
+    uint16_t LongTermFrameIdx;
+    uint16_t LongTermPicNum;
 
     bool empty() const;
     std::vector<H264NAL*> getNALUnits() const;

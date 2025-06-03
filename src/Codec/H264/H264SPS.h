@@ -63,11 +63,13 @@ struct H264SPS : public H264NAL {
 	uint32_t FrameHeightInMbs;
 	uint32_t PicWidthInMbs;
 	uint32_t PicSizeInMapUnits;
+	uint32_t MaxFrameNumber;
 	uint32_t MaxPicOrderCntLsb;
 	uint8_t MaxDpbFrames;
 	uint8_t ChromaArrayType;
 	uint8_t CropUnitX;
 	uint8_t CropUnitY;
+	uint32_t ExpectedDeltaPerPicOrderCntCycle;
 
 	uint8_t frame_cropping_flag;
 	uint32_t frame_crop_left_offset;
@@ -177,8 +179,6 @@ struct H264SPS : public H264NAL {
 	};
 
 	uint8_t level_limit_index();
-
-	uint16_t computeMaxFrameNumber();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264SPS_H_

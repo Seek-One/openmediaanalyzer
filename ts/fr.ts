@@ -305,7 +305,7 @@
         <translation>Ouvrir un flux...</translation>
     </message>
     <message>
-        <source>Stop &quot;stream&quot;...</source>
+        <source>Stop stream...</source>
         <translation>Fermer le flux...</translation>
     </message>
 </context>

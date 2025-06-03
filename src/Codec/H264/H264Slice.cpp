@@ -93,6 +93,8 @@ H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUn
 	memset(drpm.long_term_pic_num, 0, 64 * sizeof(uint32_t));
 	memset(drpm.long_term_frame_idx, 0, 64 * sizeof(uint32_t));
 	memset(drpm.max_long_term_frame_idx_plus1, 0, 64 * sizeof(uint32_t));
+
+	CurrPicNum = frame_num;
 }
 
 bool H264Slice::isSlice(H264NAL* NALUnit){

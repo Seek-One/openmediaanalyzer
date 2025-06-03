@@ -101,6 +101,10 @@ struct H264Slice : public H264NAL {
 
 	uint8_t IdrPicFlag;
 	uint16_t PrevRefFrameNum;
+	uint16_t CurrPicNum;
+
+	std::vector<uint16_t> RefPicList0;
+	std::vector<uint16_t> RefPicList1;
 
 	std::vector<std::string> dump_fields() override;
 	void validate() override;

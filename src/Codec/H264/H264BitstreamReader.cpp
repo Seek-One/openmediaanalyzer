@@ -150,6 +150,7 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 	h264SPS.QpBdOffsetY = 6*h264SPS.bit_depth_luma_minus8;
 
 	h264SPS.log2_max_frame_num_minus4 = readGolombUE();
+	h264SPS.MaxFrameNumber = 1 << (h264SPS.log2_max_frame_num_minus4+4);
 	h264SPS.pic_order_cnt_type = readGolombUE();
 	if (h264SPS.pic_order_cnt_type == 0) {
 		h264SPS.log2_max_pic_order_cnt_lsb_minus4 = readGolombUE();
@@ -161,6 +162,7 @@ void H264BitstreamReader::readSPS(H264SPS& h264SPS)
 		h264SPS.num_ref_frames_in_pic_order_cnt_cycle = readGolombUE();
 		for (uint32_t i=0; i < h264SPS.num_ref_frames_in_pic_order_cnt_cycle; i++) {
 			h264SPS.offset_for_ref_frame[i] = readGolombSE();
+			h264SPS.ExpectedDeltaPerPicOrderCntCycle += h264SPS.offset_for_ref_frame[i];
 		}
 	}
 	h264SPS.max_num_ref_frames = readGolombUE();
@@ -444,6 +446,7 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 			h264Slice.bottom_field_flag = readBits(1);
 		}
 	}
+	h264Slice.CurrPicNum = h264Slice.field_pic_flag ? 2 * h264Slice.frame_num + 1 : h264Slice.frame_num;
 	if (h264Slice.IdrPicFlag)
 	{
 		h264Slice.idr_pic_id = readGolombUE();

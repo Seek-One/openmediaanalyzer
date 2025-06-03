@@ -736,7 +736,7 @@ void QDecoderModel::validateH264GOPFrames(){
             pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_IFRAME_MISSING;
             continue;
         }
-        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->frame_num) {
+        if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->MaxFrameNumber != pSlice->frame_num) {
             pAccessUnitModel->m_status = QAccessUnitModel::Status_OUT_OF_ORDER;
         }
         prevFrameNumber = pSlice->frame_num;

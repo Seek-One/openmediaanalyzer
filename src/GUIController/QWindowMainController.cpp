@@ -49,12 +49,11 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
-    connect(m_pWindowMain, &QWindowMain::openStreamClicked, this, &QWindowMainController::streamOpened);
-    connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::folderOpened);
-    connect(this, &QWindowMainController::openStream, m_pFolderViewController, &QFolderViewController::streamOpened);
-    connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::timelineStarted);
-    connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::timelineStarted);
-    connect(m_pWindowMain->getStatusView(), &QStatusView::setLiveContent, m_pTimelineViewController, &QTimelineViewController::liveContentSet);
+    connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pFolderViewController, &QFolderViewController::openStream);
+    connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::openFolder);
+    connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
+    connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
+    connect(m_pWindowMain->getStatusView(), &QStatusView::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
     
     
     connect(m_pDecoderModel, &QDecoderModel::updateVPSInfoView, m_pWindowMain->getVPSInfoView(), &QNALUInfoView::viewUpdated);
@@ -76,8 +75,4 @@ void QWindowMainController::folderOpened(){
     if(!selectedFolder.isEmpty()) {
         emit openFolder(selectedFolder);
     }
-}
-
-void QWindowMainController::streamOpened(){
-    emit openStream();
 }

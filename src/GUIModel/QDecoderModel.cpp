@@ -514,7 +514,7 @@ void QDecoderModel::frameDeleted(QUuid id){
     if(m_decodedFrames[id]) m_decodedFrames.remove(id);
 }
 
-void QDecoderModel::setLiveContent(bool val){
+void QDecoderModel::liveContentSet(bool val){
     m_liveContent = val;
 }
 

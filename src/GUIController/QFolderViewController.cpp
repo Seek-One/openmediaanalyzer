@@ -29,11 +29,3 @@ QFolderViewController::QFolderViewController(QFolderView* pFolderView, QFolderMo
 
 QFolderViewController::~QFolderViewController(){
 }
-
-void QFolderViewController::folderOpened(const QString& folderPath){
-    emit openFolder(folderPath);
-}
-
-void QFolderViewController::streamOpened(){
-    emit openStream();
-}

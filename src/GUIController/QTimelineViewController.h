@@ -13,13 +13,7 @@ public:
 
     virtual ~QTimelineViewController();
 
-public slots:
-    void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
-    void timelineStarted();
-    void liveContentSet(bool val);
-
 signals:
-    void selectFrame(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void startTimeline();
     void setLiveContent(bool val);
 

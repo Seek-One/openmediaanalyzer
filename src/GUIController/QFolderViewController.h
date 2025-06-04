@@ -13,11 +13,6 @@ public:
 
     virtual ~QFolderViewController();
 
-    
-public slots:
-    void folderOpened(const QString& folderPath);
-    void streamOpened();
-
 signals:
     void openFolder(const QString& folderPath);
     void openStream();

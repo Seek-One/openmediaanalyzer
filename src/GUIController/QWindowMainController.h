@@ -24,7 +24,6 @@ public:
 
 public slots:
     void folderOpened();
-    void streamOpened();
 
 signals:
     void openFolder(const QString& folderPath);

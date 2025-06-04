@@ -8,6 +8,12 @@
 class QFolderView;
 class QStreamWorker;
 
+enum Codec {
+    Codec_Unspecified,
+    Codec_H264,
+    Codec_H265
+};
+
 class QStreamModel : public QObject
 {
     Q_OBJECT
@@ -39,6 +45,7 @@ public:
     ~QStreamWorker();
     
     QVector<uint8_t> m_buffer;
+    Codec m_codec;
 public slots:
     void process();
     void streamStopped();
@@ -46,7 +53,7 @@ signals:
     void loadH264File(uint8_t* fileContent, quint32 fileSize);
     void loadH265File(uint8_t* fileContent, quint32 fileSize);
     void finished();
-    void error();
+    void error(const QString& errMsg);
 private:
     bool m_running;
     const QString& m_URL;

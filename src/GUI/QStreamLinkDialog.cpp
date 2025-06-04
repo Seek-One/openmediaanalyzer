@@ -37,7 +37,7 @@ QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
     pInputLayout->addWidget(m_pPasswordInput, 2, 1);
 
     QPushButton* pAccessStreamButton = new QPushButton(pButtonsWidget);
-    pAccessStreamButton->setText("Access stream");
+    pAccessStreamButton->setText(tr("Access stream"));
     pButtonsLayout->addWidget(pAccessStreamButton);
     connect(pAccessStreamButton, &QPushButton::clicked, this, [this](){
         emit accessStream(m_pURLInput->text(), m_pUsernameInput->text(), m_pPasswordInput->text());

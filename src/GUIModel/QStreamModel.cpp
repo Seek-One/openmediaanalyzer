@@ -27,12 +27,12 @@ size_t receiveHeader(char* contents, size_t size, size_t nmemb, QStreamWorker* i
     QRegularExpressionMatch responseMatch = responseRegEx.match(responseStr);
     if(!responseMatch.hasMatch()) return totalSize;
     if(responseMatch.lastCapturedIndex() != 2) {
-        emit inputData->error(inputData->tr("Incomplete header response"));
+        emit inputData->error(QStreamWorker::tr("Incomplete header response"));
         return 0;
     }
     int responseCode = responseMatch.captured(2).toInt();
     if(responseCode != 200){
-        emit inputData->error(inputData->tr("Server replied with the following : ") + responseMatch.captured(1));
+        emit inputData->error(QStreamWorker::tr("Server replied with the following : ") + responseMatch.captured(1));
         return 0;
     }
     return totalSize;
@@ -53,7 +53,7 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
             else if (contentType == "video/H265") inputData->m_codec = Codec_H265;
         }
         if(inputData->m_codec == Codec_Unspecified){
-            emit inputData->error(inputData->tr("Unsupported video codec"));
+            emit inputData->error(QStreamWorker::tr("Unsupported video codec"));
             return 0;
         }
     }
@@ -84,7 +84,7 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
                     emit inputData->loadH265File(allocatedStream, inputData->m_buffer.size());
                     break;
                 default:
-                    emit inputData->error(inputData->tr("Unable to decode video content : unspecified video codec"));
+                    emit inputData->error(QStreamWorker::tr("Unable to decode video content : unspecified video codec"));
                     return 0;
             }
             inputData->m_buffer.clear();

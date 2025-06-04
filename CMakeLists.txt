@@ -155,10 +155,12 @@ set (I18N_FILES
 	src/GUI/QErrorView.cpp
 	src/GUI/QFolderView.cpp
 	src/GUI/QStatusView.cpp
+	src/GUI/QStreamLinkDialog.cpp
 	src/GUI/QTimelineView.cpp
 	src/GUI/QVideoFrameView.cpp
 	src/GUI/QWindowMain.cpp
     src/GUIModel/QDecoderModel.cpp
+    src/GUIModel/QStreamModel.cpp
 )
 
 set(TS_FILES

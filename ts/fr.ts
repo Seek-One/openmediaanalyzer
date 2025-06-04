@@ -265,6 +265,51 @@
     </message>
 </context>
 <context>
+    <name>QStreamLinkDialog</name>
+    <message>
+        <source>Stream URL</source>
+        <translation>URL du flux</translation>
+    </message>
+    <message>
+        <source>Username</source>
+        <translation>Identifiant</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Mot de passe</translation>
+    </message>
+    <message>
+        <source>Access stream</source>
+        <translation>Accéder au flux</translation>
+    </message>
+</context>
+<context>
+    <name>QStreamModel</name>
+    <message>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+</context>
+<context>
+    <name>QStreamWorker</name>
+    <message>
+        <source>Unable to decode video content : unspecified video codec</source>
+        <translation>Impossible de décoder le contenu vidéo : codec vidéo non spécifié</translation>
+    </message>
+    <message>
+        <source>Incomplete header response</source>
+        <translation>En-tête de réponse incomplet</translation>
+    </message>
+    <message>
+        <source>Server replied with the following : </source>
+        <translation>Le serveur a répondu avec le message suivant : </translation>
+    </message>
+    <message>
+        <source>Unsupported video codec</source>
+        <translation>Codec vidéo non supporté</translation>
+    </message>
+</context>
+<context>
     <name>QTimelineView</name>
     <message>
         <source>Video timeline</source>

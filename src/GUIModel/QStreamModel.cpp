@@ -65,12 +65,8 @@ void QStreamModel::streamLoaded(){
     connect(m_pWorker, &QStreamWorker::finished, m_pThread, &QThread::quit);
     connect(m_pWorker, &QStreamWorker::finished, m_pWorker, &QStreamWorker::deleteLater);
     connect(m_pThread, &QThread::finished, m_pThread, &QThread::deleteLater);
-    connect(m_pWorker, &QStreamWorker::loadH264File, this, [this](uint8_t* fileContent, quint32 fileSize){
-        emit loadH264File(fileContent, fileSize);
-    });
-    connect(m_pWorker, &QStreamWorker::loadH265File, this, [this](uint8_t* fileContent, quint32 fileSize){
-        emit loadH265File(fileContent, fileSize);
-    });
+    connect(m_pWorker, &QStreamWorker::loadH264File, this, &QStreamModel::loadH264File);
+    connect(m_pWorker, &QStreamWorker::loadH265File, this, &QStreamModel::loadH265File);
     connect(this, &QStreamModel::stopProcessing, m_pWorker, &QStreamWorker::streamStopped);
     m_pThread->start();
 }

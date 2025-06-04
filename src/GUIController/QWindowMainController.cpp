@@ -5,6 +5,7 @@
 #include "../GUI/QWindowMain.h"
 #include "../GUI/QNALUInfoView.h"
 #include "../GUI/QStatusView.h"
+#include "../GUI/QStreamLinkDialog.h"
 #include "../GUIModel/QFolderModel.h"
 #include "../GUIModel/QStreamModel.h"
 #include "../GUIModel/QDecoderModel.h"
@@ -49,10 +50,10 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
-    connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pFolderViewController, &QFolderViewController::openStream);
+    connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pFolderViewController, &QFolderViewController::openStream);
     connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::openFolder);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
-    connect(m_pStreamModel, &QStreamModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
+    connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
     connect(m_pWindowMain->getStatusView(), &QStatusView::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
     
     

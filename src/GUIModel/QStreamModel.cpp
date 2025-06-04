@@ -55,11 +55,11 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
     return byteSize;
 }
 
-void QStreamModel::streamLoaded(){
+void QStreamModel::streamLoaded(const QString& URL, const QString& username, const QString& password){
     emit stopProcessing();
-    emit loadFolderStart();
+    emit loadStreamStart();
     m_pThread = new QThread();
-    m_pWorker = new QStreamWorker();
+    m_pWorker = new QStreamWorker(URL, username, password);
     m_pWorker->moveToThread(m_pThread);
     connect(m_pThread, &QThread::started, m_pWorker, &QStreamWorker::process);
     connect(m_pWorker, &QStreamWorker::finished, m_pThread, &QThread::quit);
@@ -75,8 +75,8 @@ void QStreamModel::streamStopped(){
     emit stopProcessing();
 }
 
-QStreamWorker::QStreamWorker():
-    m_running(true)
+QStreamWorker::QStreamWorker(const QString& URL, const QString& username, const QString& password):
+    m_running(true), m_URL(URL), m_username(username), m_password(password)
 {}
 
 QStreamWorker::~QStreamWorker(){}
@@ -87,9 +87,12 @@ void QStreamWorker::process(){
         qDebug() << "Couldn't initialize curl easy handle";
         return;
     }
-    QString videoPath = "vms.seek-one.fr/stream/video?id=10&supported_video_format=H265";
-    QString url = QString("https://%1:%2@%3").arg(getenv("VMS_USER"), getenv("VMS_PW"), videoPath);
-    curl_easy_setopt(curlE, CURLOPT_URL, url.toStdString().c_str());
+    QString URL = m_URL;
+    QString httpsPrefix = "https://";
+    if(m_URL.startsWith(httpsPrefix)) URL.remove(0, httpsPrefix.size());
+    QString fullURL = QString("https://%1:%2@%3").arg(m_username, m_password, URL);
+    qDebug() << fullURL;
+    curl_easy_setopt(curlE, CURLOPT_URL, fullURL.toStdString().c_str());
     curl_easy_setopt(curlE, CURLOPT_WRITEFUNCTION, receiveResponse);
     curl_easy_setopt(curlE, CURLOPT_WRITEDATA, this);
     curl_easy_setopt(curlE, CURLOPT_SSL_VERIFYPEER, 0L);

@@ -33,6 +33,8 @@ set(APPLICATION_SOURCES
     src/GUI/QNALUInfoView.h
     src/GUI/QStatusView.cpp
     src/GUI/QStatusView.h
+    src/GUI/QStreamLinkDialog.cpp
+    src/GUI/QStreamLinkDialog.h
     src/GUI/QTimelineCounterElement.cpp
     src/GUI/QTimelineCounterElement.h
     src/GUI/QTimelineView.cpp

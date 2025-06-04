@@ -10,6 +10,7 @@ class QTimelineView;
 class QNALUInfoView;
 class QErrorView;
 class QStatusView;
+class QStreamLinkDialog;
 
 class QWindowMain : public QMainWindow
 {
@@ -29,6 +30,7 @@ public:
     QErrorView* getErrorView();
     QStatusView* getStatusView();
     QVideoFrameView* getVideoFrameView();
+    QStreamLinkDialog* getStreamLinkDialog();
 
 public slots:
     void errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors);
@@ -57,4 +59,5 @@ private:
     QNALUInfoView* m_pPPSInfoView;
     QErrorView* m_pErrorView;
     QStatusView* m_pStatusView;
+    QStreamLinkDialog* m_pStreamLinkDialog;
 };

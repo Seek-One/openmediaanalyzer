@@ -10,6 +10,7 @@
 #include "QNALUInfoView.h"
 #include "QErrorView.h"
 #include "QStatusView.h"
+#include "QStreamLinkDialog.h"
 
 #include "QWindowMain.h"
 
@@ -30,6 +31,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pTimelineView = new QTimelineView(pWidget);
     m_pErrorView = new QErrorView(pWidget);
     m_pStatusView = new QStatusView(pWidget);
+    m_pStreamLinkDialog = new QStreamLinkDialog(pWidget);
 
     setCentralWidget(pWidget);
     
@@ -57,7 +59,7 @@ QWindowMain::QWindowMain(QWidget* parent)
         QAction* pOpenStreamAction = new QAction(tr("Open stream..."), this);
         pOpenStreamAction->setShortcut(QKeySequence("Ctrl+R"));
         connect(pOpenStreamAction, &QAction::triggered, [this]() {
-            emit openStreamClicked();
+            m_pStreamLinkDialog->show();
         });
         QAction* pStopStreamThread = new QAction(tr("Stop stream..."), this);
         pStopStreamThread->setShortcut(QKeySequence("Ctrl+C"));
@@ -132,6 +134,10 @@ QStatusView* QWindowMain::getStatusView(){
 
 QVideoFrameView* QWindowMain::getVideoFrameView(){
     return m_pVideoFrameView;
+}
+
+QStreamLinkDialog* QWindowMain::getStreamLinkDialog(){
+    return m_pStreamLinkDialog;
 }
 
 void QWindowMain::errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors){

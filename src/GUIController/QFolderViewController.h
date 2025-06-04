@@ -15,7 +15,7 @@ public:
 
 signals:
     void openFolder(const QString& folderPath);
-    void openStream();
+    void openStream(const QString& URL, const QString& username, const QString& password);
 
 private:
     QFolderView* m_pFolderView;

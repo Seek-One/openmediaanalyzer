@@ -38,6 +38,7 @@ public slots:
 signals:
     void openFolderClicked();
     void openStreamClicked();
+    void setLiveContent(bool val);
     void stopStreamClicked();
     void openFramesTab();
     void openVPSTab();

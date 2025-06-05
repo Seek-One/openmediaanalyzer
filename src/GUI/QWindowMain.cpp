@@ -59,7 +59,22 @@ QWindowMain::QWindowMain(QWidget* parent)
         QAction* pOpenStreamAction = new QAction(tr("Open stream..."), this);
         pOpenStreamAction->setShortcut(QKeySequence("Ctrl+R"));
         connect(pOpenStreamAction, &QAction::triggered, [this]() {
+            emit openStreamClicked();
             m_pStreamLinkDialog->show();
+        });
+        
+        pFileMenu->addAction(pOpenFolderAction);
+        pFileMenu->addAction(pOpenStreamAction);
+    }
+
+    QMenu *pStreamMenu = menuBar()->addMenu(tr("Stream"));
+    {
+        QAction* pToggleLiveContent = new QAction(tr("Live content"), this);
+        pToggleLiveContent->setShortcut(QKeySequence("Ctrl+L"));
+        pToggleLiveContent->setCheckable(true);
+        pToggleLiveContent->setChecked(true);
+        connect(pToggleLiveContent, &QAction::toggled, [this, pToggleLiveContent]() {
+            emit setLiveContent(pToggleLiveContent->isChecked());
         });
         QAction* pStopStreamThread = new QAction(tr("Stop stream..."), this);
         pStopStreamThread->setShortcut(QKeySequence("Ctrl+C"));
@@ -67,32 +82,32 @@ QWindowMain::QWindowMain(QWidget* parent)
             emit stopStreamClicked();
         });
         
-        pFileMenu->addAction(pOpenFolderAction);
-        pFileMenu->addAction(pOpenStreamAction);
-        pFileMenu->addAction(pStopStreamThread);
+        pStreamMenu->addAction(pToggleLiveContent);
+        pStreamMenu->addAction(pStopStreamThread);
     }
-
+    
+    
     pWidget->show();
-
+    
     connect(m_pTabWidget, &QTabWidget::currentChanged, this, [this](int index){
         switch(index){
             default:
             case -1: return;
             case 0:
-                emit openFramesTab();
-                break;
+            emit openFramesTab();
+            break;
             case 1:
-                emit openVPSTab();
-                break;
+            emit openVPSTab();
+            break;
             case 2:
-                emit openSPSTab();
-                break;
+            emit openSPSTab();
+            break;
             case 3:
-                emit openPPSTab();
-                break;
+            emit openPPSTab();
+            break;
         }
     });
-
+    
     statusBar()->addPermanentWidget(m_pStatusView, 1);
 }
 

@@ -12,6 +12,8 @@ public:
 
 public slots:
     void frameLoaded(QSharedPointer<QImage> pFrameImage);
+    void textWritten(const QString& text);
+    void unsupportedVideoCodecDetected();
 
 protected:
     void paintEvent(QPaintEvent* pEvent) override;
@@ -19,4 +21,5 @@ protected:
 private:
     QWidget* m_pWidget;
     QSharedPointer<QImage> m_pImage;
+    QString m_text;
 };

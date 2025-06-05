@@ -2,7 +2,6 @@
 
 #include <QStandardItemModel>
 #include <QLabel>
-#include <QCheckBox>
 
 #include "../GUIModel/QDecoderModel.h"
 
@@ -16,14 +15,15 @@ public:
 public slots:
     void sizeUpdated(uint64_t size);
     void frameValidityUpdated(uint32_t valid, uint32_t total);
-    void streamStatusUpdated(QDecoderModel::StreamStatus status);
-
-signals:
-    void setLiveContent(bool val);
+    void videoStatusUpdated(QDecoderModel::StreamStatus status);
+    void bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitrate, uint64_t otherBitrate);
 
 private:
-    QLabel* m_pStreamSize;
+    QLabel* m_pVideoSize;
     QLabel* m_pFrameValidity;
-    QLabel* m_pStreamStatus;
-    QCheckBox* m_pLiveContentCheckbox;
+    QLabel* m_pVideoStatus;
+
+    QLabel* m_pVideoContentBitrate;
+    QLabel* m_pAudioContentBitrate;
+    QLabel* m_pGlobalContentBitrate;
 };

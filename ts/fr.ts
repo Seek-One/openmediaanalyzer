@@ -217,7 +217,7 @@
     <name>QStatusView</name>
     <message>
         <source>Current stream size : 0B</source>
-        <translation>Taille actuelle du flux : 0o</translation>
+        <translation type="vanished">Taille actuelle du flux : 0o</translation>
     </message>
     <message>
         <source>Valid frames : 0/0 (100%)</source>
@@ -225,7 +225,7 @@
     </message>
     <message>
         <source>Current stream size : </source>
-        <translation>Taille actuelle du flux : </translation>
+        <translation type="vanished">Taille actuelle du flux : </translation>
     </message>
     <message>
         <source>GB</source>
@@ -244,24 +244,44 @@
         <translation>Images valides : </translation>
     </message>
     <message>
-        <source>Stream status : OK</source>
-        <translation>État du flux : OK</translation>
+        <source>MB/s</source>
+        <translation>Mo/s</translation>
     </message>
     <message>
-        <source>Stream status : Non conformant</source>
-        <translation type="vanished">État du flux : Non conforme</translation>
+        <source>KB/s</source>
+        <translation>Ko/s</translation>
     </message>
     <message>
-        <source>Stream status : Damaged</source>
-        <translation>État du flux : Endommagé</translation>
+        <source>Video bitrate : </source>
+        <translation>Débit vidéo : </translation>
     </message>
     <message>
-        <source>Stream status : Non-conforming</source>
-        <translation>État du flux : non conforme</translation>
+        <source>Audio bitrate : </source>
+        <translation>Débit audio : </translation>
     </message>
     <message>
-        <source>Live content</source>
-        <translation>Contenu en direct</translation>
+        <source>Global bitrate : </source>
+        <translation>Débit global : </translation>
+    </message>
+    <message>
+        <source>Current video size : 0B</source>
+        <translation>Taille actuelle de la vidéo : 0o</translation>
+    </message>
+    <message>
+        <source>Current video size : </source>
+        <translation>Taille actuelle de la vidéo : </translation>
+    </message>
+    <message>
+        <source>Video status : OK</source>
+        <translation>État de la vidéo : OK</translation>
+    </message>
+    <message>
+        <source>Video status : Non-conforming</source>
+        <translation>État de la vidéo : Non conforme</translation>
+    </message>
+    <message>
+        <source>Video status : Damaged</source>
+        <translation>État de la vidéo : Endommagée</translation>
     </message>
 </context>
 <context>
@@ -293,10 +313,6 @@
 <context>
     <name>QStreamWorker</name>
     <message>
-        <source>Unable to decode video content : unspecified video codec</source>
-        <translation>Impossible de décoder le contenu vidéo : codec vidéo non spécifié</translation>
-    </message>
-    <message>
         <source>Incomplete header response</source>
         <translation>En-tête de réponse incomplet</translation>
     </message>
@@ -305,8 +321,8 @@
         <translation>Le serveur a répondu avec le message suivant : </translation>
     </message>
     <message>
-        <source>Unsupported video codec</source>
-        <translation>Codec vidéo non supporté</translation>
+        <source>Multipart stream expected</source>
+        <translation>Flux multi-parties attendu</translation>
     </message>
 </context>
 <context>
@@ -326,6 +342,10 @@
         <source>No decoded picture for the selected access unit</source>
         <translation>Pas d&apos;image décodée pour l&apos;unité d&apos;accès sélectionnée</translation>
     </message>
+    <message>
+        <source>Stream video format/codec not supported</source>
+        <translation>Format/codec vidéo du flux non supporté</translation>
+    </message>
 </context>
 <context>
     <name>QWindowMain</name>
@@ -342,16 +362,20 @@
         <translation>Ouvrir un dossier...</translation>
     </message>
     <message>
-        <source>Open &quot;stream&quot;...</source>
-        <translation type="vanished">Ouvrir un &quot;flux&quot;...</translation>
-    </message>
-    <message>
         <source>Open stream...</source>
         <translation>Ouvrir un flux...</translation>
     </message>
     <message>
         <source>Stop stream...</source>
         <translation>Fermer le flux...</translation>
+    </message>
+    <message>
+        <source>Stream</source>
+        <translation>Flux</translation>
+    </message>
+    <message>
+        <source>Live content</source>
+        <translation>Contenu en direct</translation>
     </message>
 </context>
 </TS>

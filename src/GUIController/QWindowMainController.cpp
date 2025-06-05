@@ -44,19 +44,20 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pFolderViewController = new QFolderViewController(pWindowMain->getFolderView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
     m_pErrorViewController = new QErrorViewController(pWindowMain->getErrorView(), m_pDecoderModel);
-    m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel);
-    m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel);
+    m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel, m_pStreamModel);
+    m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel, m_pStreamModel);
 
-    connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
+    connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pFolderViewController, &QFolderViewController::openStream);
     connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::openFolder);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
     connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
-    connect(m_pWindowMain->getStatusView(), &QStatusView::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
-    
-    
+    connect(m_pWindowMain, &QWindowMain::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
+    connect(m_pWindowMain, &QWindowMain::setLiveContent, m_pDecoderModel, &QDecoderModel::liveContentSet);
+
     connect(m_pDecoderModel, &QDecoderModel::updateVPSInfoView, m_pWindowMain->getVPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updateSPSInfoView, m_pWindowMain->getSPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updatePPSInfoView, m_pWindowMain->getPPSInfoView(), &QNALUInfoView::viewUpdated);
@@ -69,6 +70,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
 
     connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::streamStopped);
 
+    qRegisterMetaType<uint64_t>("uint64_t");
 }
 
 void QWindowMainController::folderOpened(){

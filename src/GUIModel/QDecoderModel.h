@@ -54,7 +54,8 @@ signals:
     void updateSize(uint64_t size);
     void updateValidity(uint32_t valid, uint32_t total);
     void updateStatus(StreamStatus status);
-    void updateVideoFrameView(QSharedPointer<QImage> pImage);
+    void updateVideoFrameViewImage(QSharedPointer<QImage> pImage);
+    void updateVideoFrameViewText(const QString& text);
 
 public slots:
     void reset();

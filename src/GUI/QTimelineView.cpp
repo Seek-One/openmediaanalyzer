@@ -9,7 +9,7 @@
 #include "QTimelineView.h"
 
 QTimelineView::QTimelineView(QWidget* parent)
-    : QGroupBox(tr("Video timeline"), parent), m_liveContent(false)
+    : QGroupBox(tr("Video timeline"), parent), m_liveContent(true)
 {
     const uint16_t HEIGHT = 180;
     setFixedHeight(HEIGHT);

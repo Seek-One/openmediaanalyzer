@@ -6,7 +6,7 @@
 #include <fstream>
 
 #include "../Codec/H26X/H26XUtils.h"
-#include "../GUI/QFolderView.h"
+#include "../GUI/QVideoInputView.h"
 
 #include "QStreamModel.h"
 

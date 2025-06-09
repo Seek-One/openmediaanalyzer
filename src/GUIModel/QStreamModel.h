@@ -6,7 +6,7 @@
 
 #include "QAccessUnitModel.h"
 
-class QFolderView;
+class QVideoInputView;
 class QStreamWorker;
 
 enum ContentType {
@@ -32,7 +32,6 @@ public:
     virtual ~QStreamModel();
     
 signals:
-    void updateFolderView(QFileSystemModel* model);
     void loadH264File(uint8_t* fileContent, quint32 fileSize);
     void loadH265File(uint8_t* fileContent, quint32 fileSize);
     void loadStreamStart();

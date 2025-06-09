@@ -4,7 +4,7 @@
 #include <QTabWidget>
 
 
-class QFolderView;
+class QVideoInputView;
 class QVideoFrameView;
 class QTimelineView;
 class QNALUInfoView;
@@ -21,7 +21,7 @@ public:
 
     virtual ~QWindowMain();
 
-    QFolderView* getFolderView();
+    QVideoInputView* getVideoInputView();
     QTimelineView* getTimelineView();
     QNALUInfoView* getVPSInfoView();
     QNALUInfoView* getSPSInfoView();
@@ -50,7 +50,7 @@ protected:
     void closeEvent(QCloseEvent* event);
 
 private:
-    QFolderView* m_pFolderView;
+    QVideoInputView* m_pVideoInputView;
     QVideoFrameView* m_pVideoFrameView;
     QTimelineView* m_pTimelineView;
     QTabWidget* m_pTabWidget;

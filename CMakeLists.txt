@@ -27,8 +27,6 @@ set(APPLICATION_SOURCES
     src/GUI/QAccessUnitElement.h
     src/GUI/QErrorView.cpp
     src/GUI/QErrorView.h
-    src/GUI/QFolderView.cpp
-    src/GUI/QFolderView.h
     src/GUI/QNALUInfoView.cpp
     src/GUI/QNALUInfoView.h
     src/GUI/QStatusView.cpp
@@ -41,12 +39,14 @@ set(APPLICATION_SOURCES
     src/GUI/QTimelineView.h
     src/GUI/QVideoFrameView.cpp
     src/GUI/QVideoFrameView.h
+    src/GUI/QVideoInputView.cpp
+    src/GUI/QVideoInputView.h
     src/GUI/QWindowMain.cpp
     src/GUI/QWindowMain.h
     src/GUIController/QErrorViewController.cpp
     src/GUIController/QErrorViewController.h
-    src/GUIController/QFolderViewController.cpp
-    src/GUIController/QFolderViewController.h
+    src/GUIController/QVideoInputViewController.cpp
+    src/GUIController/QVideoInputViewController.h
     src/GUIController/QStatusViewController.cpp
     src/GUIController/QStatusViewController.h
     src/GUIController/QTimelineViewController.cpp
@@ -153,7 +153,7 @@ set(LIBRARIES
 set (I18N_FILES
 	src/GUI/QAccessUnitElement.cpp
 	src/GUI/QErrorView.cpp
-	src/GUI/QFolderView.cpp
+	src/GUI/QVideoInputView.cpp
 	src/GUI/QStatusView.cpp
 	src/GUI/QStreamLinkDialog.cpp
 	src/GUI/QTimelineView.cpp

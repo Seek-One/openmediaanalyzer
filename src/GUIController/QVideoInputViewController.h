@@ -1,24 +1,26 @@
 #pragma once
 
-class QFolderView;
+#include <QObject>
+
+class QVideoInputView;
 class QFolderModel;
 class QStreamModel;
 class QDecoderModel;
 
-class QFolderViewController : public QObject
+class QVideoInputViewController : public QObject
 {
     Q_OBJECT
 public:
-    QFolderViewController(QFolderView* pFolderView, QFolderModel* pFolderModel, QStreamModel* pStreamModel, QDecoderModel* pDecoderModel);
+    QVideoInputViewController(QVideoInputView* pVideoInputView, QFolderModel* pFolderModel, QStreamModel* pStreamModel, QDecoderModel* pDecoderModel);
 
-    virtual ~QFolderViewController();
+    virtual ~QVideoInputViewController();
 
 signals:
     void openFolder(const QString& folderPath);
     void openStream(const QString& URL, const QString& username, const QString& password);
 
 private:
-    QFolderView* m_pFolderView;
+    QVideoInputView* m_pVideoInputView;
     QFolderModel* m_pFolderModel;
     QStreamModel* m_pStreamModel;
     QDecoderModel* m_pDecoderModel;

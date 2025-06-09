@@ -2,7 +2,7 @@
 #include <fstream>
 #include <unistd.h>
 
-#include "../GUI/QFolderView.h"
+#include "../GUI/QVideoInputView.h"
 
 #include "QFolderModel.h"
 
@@ -20,7 +20,7 @@ QFolderModel::~QFolderModel(){
 void QFolderModel::folderLoaded(const QString& folderPath){
     m_pModel->setRootPath(folderPath);
     m_loadedFolderPath = folderPath;
-    emit updateFolderView(m_pModel);
+    emit updateVideoInputView(m_pModel);
     processDirectory(folderPath);
 }
 

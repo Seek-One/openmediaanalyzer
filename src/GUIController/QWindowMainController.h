@@ -6,7 +6,7 @@ class QWindowMain;
 class QFolderModel;
 class QStreamModel;
 class QDecoderModel;
-class QFolderViewController;
+class QVideoInputViewController;
 class QTimelineViewController;
 class QErrorViewController;
 class QStatusViewController;
@@ -34,7 +34,7 @@ private:
     QFolderModel* m_pFolderModel;
     QStreamModel* m_pStreamModel;
     QDecoderModel* m_pDecoderModel;
-    QFolderViewController* m_pFolderViewController;
+    QVideoInputViewController* m_pVideoInputViewController;
     QTimelineViewController* m_pTimelineViewController;
     QErrorViewController* m_pErrorViewController;
     QStatusViewController* m_pStatusViewController;

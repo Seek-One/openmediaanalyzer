@@ -4,7 +4,7 @@
 #include <set>
 #include <algorithm>
 
-#include "../GUI/QFolderView.h"
+#include "../GUI/QVideoInputView.h"
 #include "../Codec/H264/H264Stream.h"
 #include "../Codec/H264/H264GOP.h"
 #include "../Codec/H264/H264Slice.h"

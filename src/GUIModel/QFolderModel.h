@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QFileSystemModel>
 
-class QFolderView;
+class QVideoInputView;
 
 class QFolderModel : public QObject
 {
@@ -14,7 +14,7 @@ public:
     virtual ~QFolderModel();
     
 signals:
-    void updateFolderView(QFileSystemModel* model);
+    void updateVideoInputView(QFileSystemModel* model);
     void loadH264File(uint8_t* fileContent, quint32 fileSize);
     void loadH265File(uint8_t* fileContent, quint32 fileSize);
     void loadFolderStart();

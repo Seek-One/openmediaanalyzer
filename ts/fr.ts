@@ -203,17 +203,6 @@
     </message>
 </context>
 <context>
-    <name>QFolderView</name>
-    <message>
-        <source>Loaded folder : None</source>
-        <translation>Dossier chargé : Aucun</translation>
-    </message>
-    <message>
-        <source>Loaded folder : </source>
-        <translation>Dossier chargé : </translation>
-    </message>
-</context>
-<context>
     <name>QStatusView</name>
     <message>
         <source>Current stream size : 0B</source>
@@ -349,6 +338,21 @@
     <message>
         <source>Stream video format/codec not supported</source>
         <translation>Format/codec vidéo du flux non supporté</translation>
+    </message>
+</context>
+<context>
+    <name>QVideoInputView</name>
+    <message>
+        <source>No video data</source>
+        <translation>Aucune données vidéo</translation>
+    </message>
+    <message>
+        <source>Loaded folder : </source>
+        <translation>Dossier chargé : </translation>
+    </message>
+    <message>
+        <source>Reading stream : </source>
+        <translation>Lecture du flux : </translation>
     </message>
 </context>
 <context>

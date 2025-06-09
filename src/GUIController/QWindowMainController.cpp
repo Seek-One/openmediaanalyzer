@@ -9,7 +9,7 @@
 #include "../GUIModel/QFolderModel.h"
 #include "../GUIModel/QStreamModel.h"
 #include "../GUIModel/QDecoderModel.h"
-#include "QFolderViewController.h"
+#include "QVideoInputViewController.h"
 #include "QTimelineViewController.h"
 #include "QErrorViewController.h"
 #include "QStatusViewController.h"
@@ -22,7 +22,7 @@ QWindowMainController::QWindowMainController(){
     m_pStreamModel = new QStreamModel();
     m_pDecoderModel = new QDecoderModel();
     m_pWindowMain = nullptr;
-    m_pFolderViewController = nullptr;
+    m_pVideoInputViewController = nullptr;
     m_pTimelineViewController = nullptr;
     m_pErrorViewController = nullptr;
     m_pStatusViewController = nullptr;
@@ -32,7 +32,7 @@ QWindowMainController::QWindowMainController(){
 QWindowMainController::~QWindowMainController(){
     if(m_pFolderModel) delete m_pFolderModel;
     if(m_pStreamModel) delete m_pStreamModel;
-    if(m_pFolderViewController) delete m_pFolderViewController;
+    if(m_pVideoInputViewController) delete m_pVideoInputViewController;
     if(m_pTimelineViewController) delete m_pTimelineViewController;
     if(m_pErrorViewController) delete m_pErrorViewController;
     if(m_pStatusViewController) delete m_pStatusViewController;
@@ -41,7 +41,7 @@ QWindowMainController::~QWindowMainController(){
 
 void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pWindowMain = pWindowMain;
-    m_pFolderViewController = new QFolderViewController(pWindowMain->getFolderView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
+    m_pVideoInputViewController = new QVideoInputViewController(pWindowMain->getVideoInputView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
     m_pErrorViewController = new QErrorViewController(pWindowMain->getErrorView(), m_pDecoderModel);
     m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel, m_pStreamModel);
@@ -51,8 +51,8 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
-    connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pFolderViewController, &QFolderViewController::openStream);
-    connect(this, &QWindowMainController::openFolder, m_pFolderViewController, &QFolderViewController::openFolder);
+    connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pVideoInputViewController, &QVideoInputViewController::openStream);
+    connect(this, &QWindowMainController::openFolder, m_pVideoInputViewController, &QVideoInputViewController::openFolder);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
     connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
     connect(m_pWindowMain, &QWindowMain::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);

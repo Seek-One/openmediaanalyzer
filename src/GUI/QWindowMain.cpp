@@ -4,7 +4,7 @@
 #include <QAction>
 #include <QStatusBar>
 
-#include "QFolderView.h"
+#include "QVideoInputView.h"
 #include "QVideoFrameView.h"
 #include "QTimelineView.h"
 #include "QNALUInfoView.h"
@@ -21,7 +21,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     setGeometry(200, 200, 1500, 750);
     QWidget* pWidget = new QWidget(parent);
     QGridLayout* pGridLayout = new QGridLayout(pWidget);
-    m_pFolderView = new QFolderView(pWidget);
+    m_pVideoInputView = new QVideoInputView(pWidget);
     m_pVideoFrameView = new QVideoFrameView(pWidget);
     m_pTabWidget = new QTabWidget(pWidget);
     m_pVPSInfoView = new QNALUInfoView(pWidget);
@@ -36,7 +36,7 @@ QWindowMain::QWindowMain(QWidget* parent)
     setCentralWidget(pWidget);
     
     pWidget->setLayout(pGridLayout);
-    pGridLayout->addWidget(m_pFolderView, 0, 0, 3, 1);
+    pGridLayout->addWidget(m_pVideoInputView, 0, 0, 3, 1);
     pGridLayout->addWidget(m_pVideoFrameView, 0, 1, 2, 2);
     m_pTabWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     pGridLayout->addWidget(m_pTabWidget, 0, 3, m_pErrorView->isVisibleTo(this) ? 2 : 3, 1);
@@ -115,8 +115,8 @@ QWindowMain::~QWindowMain()
 {
 }
 
-QFolderView* QWindowMain::getFolderView(){
-    return m_pFolderView;
+QVideoInputView* QWindowMain::getVideoInputView(){
+    return m_pVideoInputView;
 }
 
 QTimelineView* QWindowMain::getTimelineView(){

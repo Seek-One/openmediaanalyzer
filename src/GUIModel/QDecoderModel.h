@@ -19,7 +19,7 @@ extern "C" {
 
 #define GOP_LIMIT 15
 
-class QFolderView;
+class QVideoInputView;
 class H264Stream;
 class H265Stream;
 

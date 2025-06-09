@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QSettings>
 #include <QTranslator>
 
 #include "GUI/QWindowMain.h"
@@ -6,7 +7,9 @@
 
 int main(int argc, char *argv[]){
     QApplication app(argc, argv);
-    app.setApplicationName("Open Media Analyzer");
+    app.setOrganizationName("seekone");
+    app.setApplicationName("OpenMediaAnalyzer");
+    QSettings::setDefaultFormat(QSettings::IniFormat);
     // QTranslator translator;
     // if (translator.load(QLocale("fr"), "", "", "ts")) app.installTranslator(&translator);
     QWindowMain* pWindowMain = new QWindowMain();

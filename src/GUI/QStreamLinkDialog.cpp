@@ -3,12 +3,17 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSettings>
+#include <QMetaType>
+#include <QDebug>
 
 #include "QStreamLinkDialog.h"
 
 QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
-    QDialog(parent), m_pURLInput(new QLineEdit(this)), m_pUsernameInput(new QLineEdit(this)), m_pPasswordInput(new QLineEdit(this))
+    QDialog(parent), m_pURLInput(new QComboBox(this)), m_pUsernameInput(new QLineEdit(this)), m_pPasswordInput(new QLineEdit(this))
 {
+    qRegisterMetaTypeStreamOperators<QSet<QString>>();
+
     resize(700, 100);
 
     QVBoxLayout* pFormLayout = new QVBoxLayout(this);
@@ -40,11 +45,28 @@ QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
     pAccessStreamButton->setText(tr("Access stream"));
     pButtonsLayout->addWidget(pAccessStreamButton);
     connect(pAccessStreamButton, &QPushButton::clicked, this, [this](){
-        emit accessStream(m_pURLInput->text(), m_pUsernameInput->text(), m_pPasswordInput->text());
+        emit accessStream(m_URL, m_pUsernameInput->text(), m_pPasswordInput->text());
         hide();
     });
 
     m_pPasswordInput->setEchoMode(QLineEdit::Password);
+    QSettings settings;
+    QSet<QString> registeredLinks = settings.value("validLinks").value<QSet<QString>>();
+    for(QString link : registeredLinks) m_pURLInput->addItem(link);
+    m_pURLInput->setEditable(true);
+
+    connect(m_pURLInput, &QComboBox::editTextChanged, this, [this](const QString& text){
+        m_URL = text;
+    });
+
+    connect(m_pURLInput, QOverload<int>::of(&QComboBox::activated), this, [this](int index){
+        m_URL = m_pURLInput->itemText(index);
+    });
+    m_URL = m_pURLInput->itemText(0);
 }
 
 QStreamLinkDialog::~QStreamLinkDialog(){}
+
+void QStreamLinkDialog::validURLsUpdated(const QString& URL){
+    m_pURLInput->addItem(URL);
+}

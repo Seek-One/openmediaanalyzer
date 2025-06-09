@@ -2,6 +2,8 @@
 #include <QCoreApplication>
 #include <QThread>
 #include <QMessageBox>
+#include <QSettings>
+#include <QMetaType>
 #include <curl/curl.h>
 #include <fstream>
 
@@ -15,6 +17,7 @@ QStreamModel::QStreamModel():
     m_pTimer(nullptr), m_videoBytes(0), m_audioBytes(0), m_globalBytes(0)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
+    qRegisterMetaTypeStreamOperators<QSet<QString>>();
 }
 
 QStreamModel::~QStreamModel(){
@@ -157,6 +160,7 @@ void QStreamModel::streamLoaded(const QString& URL, const QString& username, con
     m_pThread = new QThread();
     m_pWorker = new QStreamWorker(URL, username, password);
     m_pWorker->moveToThread(m_pThread);
+
     connect(m_pThread, &QThread::started, m_pWorker, &QStreamWorker::process);
     connect(m_pWorker, &QStreamWorker::finished, m_pThread, &QThread::quit);
     connect(m_pWorker, &QStreamWorker::finished, m_pWorker, &QStreamWorker::deleteLater);
@@ -171,6 +175,8 @@ void QStreamModel::streamLoaded(const QString& URL, const QString& username, con
     });
     connect(m_pWorker, &QStreamWorker::receiveBytes, this, &QStreamModel::bytesReceived);
     connect(m_pWorker, &QStreamWorker::updateContentType, this, &QStreamModel::updateContentType);
+    connect(m_pWorker, &QStreamWorker::updateValidURLs, this, &QStreamModel::updateValidURLs);
+
     m_pThread->start();
 
     m_videoBytes = 0;
@@ -250,6 +256,15 @@ void QStreamWorker::process(){
         QCoreApplication::processEvents();
     }
     if(handleHasData == 0) emit error(tr("No stream data found"));
+    else if(receivingData == 1 && handleHasData == 1){
+        QSettings settings;
+        QSet<QString> registeredLinks = settings.value("validLinks").value<QSet<QString>>();
+        if(!registeredLinks.contains(URL)) {
+            registeredLinks.insert(URL);
+            settings.setValue("validLinks", QVariant::fromValue(registeredLinks));
+            emit updateValidURLs(URL);
+        }
+    }
     curl_multi_cleanup(curlM);
     curl_easy_cleanup(curlE);
     curl_global_cleanup();

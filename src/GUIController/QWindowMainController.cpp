@@ -52,6 +52,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pVideoInputViewController, &QVideoInputViewController::openStream);
+    connect(m_pStreamModel, &QStreamModel::updateValidURLs, m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::validURLsUpdated);
     connect(this, &QWindowMainController::openFolder, m_pVideoInputViewController, &QVideoInputViewController::openFolder);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
     connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);

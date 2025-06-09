@@ -28,7 +28,7 @@ QTimelineView::QTimelineView(QWidget* parent)
     barContainerWidget->setLayout(m_pBarHBoxLayout);
 
     containerContainerWidget->setFixedHeight(HEIGHT-20);
-    barContainerWidget->setFixedHeight(containerContainerWidget->height()*0.8);
+    barContainerWidget->setFixedHeight(containerContainerWidget->height()*0.7);
     counterContainerWidget->setFixedHeight(containerContainerWidget->height()-barContainerWidget->height());
     barContainerWidget->setContentsMargins(0, 0, 0, 0);
     counterContainerWidget->setContentsMargins(0, 0, 0, 0);

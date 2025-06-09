@@ -5,31 +5,18 @@
 
 QStatusView::QStatusView(QWidget* parent):
     QWidget(parent), 
-    m_pVideoSize(new QLabel(this)), m_pFrameValidity(new QLabel(this)), m_pVideoStatus(new QLabel(this)),
-    m_pVideoContentBitrate(new QLabel(this)), m_pAudioContentBitrate(new QLabel(this)), m_pGlobalContentBitrate(new QLabel(this))
+    m_pVideoSize(new QLabel(this)), m_pFrameValidity(new QLabel(this)), m_pVideoStatus(new QLabel(this))
 {
     QGridLayout* pGridLayout = new QGridLayout(this);
     setLayout(pGridLayout);
-    pGridLayout->addWidget(m_pVideoStatus, 0, 0);
-    pGridLayout->addWidget(m_pFrameValidity, 0, 1);
-    pGridLayout->addWidget(m_pVideoSize, 0, 2);
-    pGridLayout->addWidget(m_pVideoContentBitrate, 0, 3);
-    pGridLayout->addWidget(m_pAudioContentBitrate, 0, 4);
-    pGridLayout->addWidget(m_pGlobalContentBitrate, 0, 5);
+    pGridLayout->addWidget(m_pVideoStatus, 0, 0, Qt::AlignCenter);
+    pGridLayout->addWidget(m_pFrameValidity, 0, 1, Qt::AlignCenter);
+    pGridLayout->addWidget(m_pVideoSize, 0, 2, Qt::AlignCenter);
 
-    m_pVideoSize->setText(tr("Current video size : 0B"));
-    m_pFrameValidity->setText(tr("Valid frames : 0/0 (100%)"));
-    m_pVideoStatus->setText("");
-    m_pVideoContentBitrate->setText("");
-    m_pAudioContentBitrate->setText("");
-    m_pGlobalContentBitrate->setText("");
+    sizeUpdated(0);
+    frameValidityUpdated(0, 0);
+    videoStatusUpdated(QDecoderModel::StreamStatus_NoStream);
 
-    pGridLayout->setAlignment(m_pVideoStatus, Qt::AlignCenter);
-    pGridLayout->setAlignment(m_pFrameValidity, Qt::AlignCenter);
-    pGridLayout->setAlignment(m_pVideoSize, Qt::AlignCenter);
-    pGridLayout->setAlignment(m_pVideoContentBitrate, Qt::AlignCenter);
-    pGridLayout->setAlignment(m_pAudioContentBitrate, Qt::AlignCenter);
-    pGridLayout->setAlignment(m_pGlobalContentBitrate, Qt::AlignCenter);
     show();
 }
 
@@ -72,17 +59,5 @@ void QStatusView::videoStatusUpdated(QDecoderModel::StreamStatus status){
             m_pVideoStatus->setText(tr(""));
             m_pVideoStatus->setStyleSheet("QLabel { color : black; }");
             break;
-    }
-}
-
-void QStatusView::bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitrate, uint64_t globalBitrate){
-    QVector<QLabel*> pLabels = {m_pVideoContentBitrate, m_pAudioContentBitrate, m_pGlobalContentBitrate};
-    QVector<QString> labelTexts = {tr("Video bitrate : "), tr("Audio bitrate : "), tr("Global bitrate : ")};
-    QVector<uint64_t> bitrates = {videoBitrate, audioBitrate, globalBitrate};
-    for(int i = 0;i < pLabels.size();++i){
-        float bitrateMB = bitrates[i]/(float)1e6;
-        float bitrateKB = bitrates[i]/(float)1e3;
-        if(bitrateMB > 10) pLabels[i]->setText(labelTexts[i] + QString::number(bitrateMB) + tr("MB/s"));
-        else pLabels[i]->setText(labelTexts[i] + QString::number(bitrateKB) + tr("KB/s"));
     }
 }

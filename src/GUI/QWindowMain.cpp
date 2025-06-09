@@ -18,7 +18,10 @@
 QWindowMain::QWindowMain(QWidget* parent)
     : QMainWindow(parent)
 {
-    setGeometry(200, 200, 1500, 750);
+    const quint16 WINDOW_WIDTH = 1500;
+    const quint16 WINDOW_HEIGHT = 750;
+    setGeometry(200, 200, WINDOW_WIDTH, WINDOW_HEIGHT);
+    setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     QWidget* pWidget = new QWidget(parent);
     QGridLayout* pGridLayout = new QGridLayout(pWidget);
     m_pVideoInputView = new QVideoInputView(pWidget);
@@ -47,6 +50,10 @@ QWindowMain::QWindowMain(QWidget* parent)
 
     pGridLayout->addWidget(m_pTimelineView, 2, 1, 1, 2);
     pGridLayout->addWidget(m_pErrorView, 2, 3, 1, 1);
+
+    m_pVideoInputView->setMinimumSize(WINDOW_WIDTH/5, WINDOW_HEIGHT);
+    m_pVideoFrameView->setMinimumWidth(3*WINDOW_WIDTH/5);
+    m_pTabWidget->setMinimumWidth(WINDOW_WIDTH/5);
 
 
     QMenu *pFileMenu = menuBar()->addMenu(tr("File"));

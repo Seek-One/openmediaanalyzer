@@ -44,7 +44,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pVideoInputViewController = new QVideoInputViewController(pWindowMain->getVideoInputView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
     m_pErrorViewController = new QErrorViewController(pWindowMain->getErrorView(), m_pDecoderModel);
-    m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel, m_pStreamModel);
+    m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel);
     m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel, m_pStreamModel);
 
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);

@@ -205,16 +205,8 @@
 <context>
     <name>QStatusView</name>
     <message>
-        <source>Current stream size : 0B</source>
-        <translation type="vanished">Taille actuelle du flux : 0o</translation>
-    </message>
-    <message>
         <source>Valid frames : 0/0 (100%)</source>
         <translation>Images valides : 0/0 (100%)</translation>
-    </message>
-    <message>
-        <source>Current stream size : </source>
-        <translation type="vanished">Taille actuelle du flux : </translation>
     </message>
     <message>
         <source>GB</source>
@@ -231,30 +223,6 @@
     <message>
         <source>Valid frames : </source>
         <translation>Images valides : </translation>
-    </message>
-    <message>
-        <source>MB/s</source>
-        <translation>Mo/s</translation>
-    </message>
-    <message>
-        <source>KB/s</source>
-        <translation>Ko/s</translation>
-    </message>
-    <message>
-        <source>Video bitrate : </source>
-        <translation>Débit vidéo : </translation>
-    </message>
-    <message>
-        <source>Audio bitrate : </source>
-        <translation>Débit audio : </translation>
-    </message>
-    <message>
-        <source>Global bitrate : </source>
-        <translation>Débit global : </translation>
-    </message>
-    <message>
-        <source>Current video size : 0B</source>
-        <translation>Taille actuelle de la vidéo : 0o</translation>
     </message>
     <message>
         <source>Current video size : </source>
@@ -353,6 +321,34 @@
     <message>
         <source>Reading stream : </source>
         <translation>Lecture du flux : </translation>
+    </message>
+    <message>
+        <source>Video bitrate : </source>
+        <translation>Débit vidéo : </translation>
+    </message>
+    <message>
+        <source>Audio bitrate : </source>
+        <translation>Débit audio : </translation>
+    </message>
+    <message>
+        <source>Global bitrate : </source>
+        <translation>Débit global : </translation>
+    </message>
+    <message>
+        <source>MB/s</source>
+        <translation>Mo/s</translation>
+    </message>
+    <message>
+        <source>KB/s</source>
+        <translation>Ko/s</translation>
+    </message>
+    <message>
+        <source>Last packet data type : </source>
+        <translation>Type de donnée du dernier paquet : </translation>
+    </message>
+    <message>
+        <source>GOV length : </source>
+        <translation>Longueur GOV : </translation>
     </message>
 </context>
 <context>

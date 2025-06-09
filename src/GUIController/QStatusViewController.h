@@ -4,13 +4,12 @@
 
 class QStatusView;
 class QDecoderModel;
-class QStreamModel;
 
 class QStatusViewController : public QObject
 {
     Q_OBJECT
 public:
-    QStatusViewController(QStatusView* pStatusView, QDecoderModel* pDecoderModel, QStreamModel* pStreamModel);
+    QStatusViewController(QStatusView* pStatusView, QDecoderModel* pDecoderModel);
 
     virtual ~QStatusViewController();
 
@@ -18,5 +17,4 @@ public:
 private:
     QStatusView* m_pStatusView;
     QDecoderModel* m_pDecoderModel;
-    QStreamModel* m_pStreamModel;
 };

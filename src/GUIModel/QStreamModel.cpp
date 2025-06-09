@@ -63,6 +63,7 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
     QRegularExpression contentTypeRegEx = QRegularExpression("Content-type: (\\w+)/([\\w\\-\\+\\.]+)");
     QRegularExpressionMatch contentTypeMatch = contentTypeRegEx.match(responseStr);
     if(contentTypeMatch.hasMatch()){
+        emit inputData->updateContentType(contentTypeMatch.captured(1) + "/" + contentTypeMatch.captured(2));
         switch(inputData->m_contentType){
             case ContentType_Video:
             case ContentType_Image:
@@ -169,6 +170,7 @@ void QStreamModel::streamLoaded(const QString& URL, const QString& username, con
         QMessageBox::critical(nullptr, tr("Error"), errMsg);
     });
     connect(m_pWorker, &QStreamWorker::receiveBytes, this, &QStreamModel::bytesReceived);
+    connect(m_pWorker, &QStreamWorker::updateContentType, this, &QStreamModel::updateContentType);
     m_pThread->start();
 
     m_videoBytes = 0;

@@ -675,6 +675,7 @@ void QDecoderModel::checkForNewGOP(){
             }
         }
         m_currentGOPModel.pop_back();
+        emit updateGOVLength(m_currentGOPModel.size());
         validateCurrentGOP();
         m_currentGOPModel.clear();
         m_currentGOPModel.push_back(pAccessUnitModel);

@@ -16,7 +16,7 @@ public slots:
     void folderSet(QFileSystemModel* pModel);
     void streamSet(const QString& URL);
     void bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitrate, uint64_t otherBitrate);
-    void dataTypeUpdated(const QString& dataType);
+    void contentTypeUpdated(const QString& contentType);
     void GOVLengthUpdated(uint32_t GOVLength);
     
 private:
@@ -27,6 +27,6 @@ private:
     QLabel* m_pAudioContentBitrate;
     QLabel* m_pGlobalContentBitrate;
 
-    QLabel* m_pDataType;
+    QLabel* m_pContentType;
     QLabel* m_pGOVLength;
 };

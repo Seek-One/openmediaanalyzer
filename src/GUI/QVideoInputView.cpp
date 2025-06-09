@@ -7,7 +7,7 @@
 QVideoInputView::QVideoInputView(QWidget* parent)
     : QGroupBox(tr("No video data"), parent), m_pTreeView(new QTreeView(this)), m_pStreamInfoView(new QWidget(this)),
     m_pVideoContentBitrate(new QLabel(m_pStreamInfoView)), m_pAudioContentBitrate(new QLabel(m_pStreamInfoView)), m_pGlobalContentBitrate(new QLabel(m_pStreamInfoView)),
-    m_pGOVLength(new QLabel(m_pStreamInfoView)), m_pDataType(new QLabel(m_pStreamInfoView))
+    m_pGOVLength(new QLabel(m_pStreamInfoView)), m_pContentType(new QLabel(m_pStreamInfoView))
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
@@ -23,11 +23,11 @@ QVideoInputView::QVideoInputView(QWidget* parent)
     pGridLayout->addWidget(m_pVideoContentBitrate);
     pGridLayout->addWidget(m_pAudioContentBitrate);
     pGridLayout->addWidget(m_pGlobalContentBitrate);
-    pGridLayout->addWidget(m_pDataType);
+    pGridLayout->addWidget(m_pContentType);
     pGridLayout->addWidget(m_pGOVLength);
     
     bitratesUpdated(0, 0, 0);
-    dataTypeUpdated("");
+    contentTypeUpdated("");
     GOVLengthUpdated(0);
     m_pStreamInfoView->hide();
     show();
@@ -75,8 +75,8 @@ void QVideoInputView::bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitra
     }
 }
 
-void QVideoInputView::dataTypeUpdated(const QString& dataType){
-    m_pDataType->setText(tr("Last packet data type : ") + dataType);
+void QVideoInputView::contentTypeUpdated(const QString& contentType){
+    m_pContentType->setText(tr("Last packet data type : ") + contentType);
 }
 
 void QVideoInputView::GOVLengthUpdated(uint32_t GOVLength){

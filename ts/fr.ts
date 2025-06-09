@@ -324,6 +324,10 @@
         <source>Multipart stream expected</source>
         <translation>Flux multi-parties attendu</translation>
     </message>
+    <message>
+        <source>No stream data found</source>
+        <translation>Aucun flux de données trouvé</translation>
+    </message>
 </context>
 <context>
     <name>QTimelineView</name>

@@ -25,10 +25,11 @@ QStreamModel::~QStreamModel(){
 size_t receiveHeader(char* contents, size_t size, size_t nmemb, QStreamWorker* inputData){
     size_t totalSize = size*nmemb;
     QString responseStr = QString((char*)contents);
+    // qDebug() << responseStr;
     QRegularExpression responseRegEx = QRegularExpression("HTTP/\\d\\.\\d ((\\d+) [\\S ]+)");
     QRegularExpressionMatch responseMatch = responseRegEx.match(responseStr);
 
-    QRegularExpression multipartRegEx = QRegularExpression("Content-Type: multipart");
+    QRegularExpression multipartRegEx = QRegularExpression("[Cc]ontent-[Tt]ype: (\\w+)");
     QRegularExpressionMatch multipartMatch = multipartRegEx.match(responseStr);
     if(!responseMatch.hasMatch() && !multipartMatch.hasMatch()) return totalSize;
     if(responseMatch.hasMatch()){
@@ -42,7 +43,7 @@ size_t receiveHeader(char* contents, size_t size, size_t nmemb, QStreamWorker* i
             return 0;
         }
     } else if(multipartMatch.hasMatch()){
-        if(responseStr.contains("Content-Type:") && !multipartRegEx.match(responseStr).hasMatch()){
+        if(multipartMatch.captured(1) != "multipart"){
             emit inputData->error(QStreamWorker::tr("Multipart stream expected"));
             return 0;
         }
@@ -58,6 +59,7 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
     uint64_t audioBytes = 0;
     
     QString responseStr = QString((char*)contents);
+    // qDebug() << responseStr;
     QRegularExpression contentTypeRegEx = QRegularExpression("Content-type: (\\w+)/([\\w\\-\\+\\.]+)");
     QRegularExpressionMatch contentTypeMatch = contentTypeRegEx.match(responseStr);
     if(contentTypeMatch.hasMatch()){
@@ -221,7 +223,6 @@ void QStreamWorker::process(){
     curl_easy_setopt(curlE, CURLOPT_HEADERDATA, this);
     curl_easy_setopt(curlE, CURLOPT_WRITEFUNCTION, receiveResponse);
     curl_easy_setopt(curlE, CURLOPT_WRITEDATA, this);
-    curl_easy_setopt(curlE, CURLOPT_CONNECTTIMEOUT, 10);
     curl_easy_setopt(curlE, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curlE, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -232,17 +233,21 @@ void QStreamWorker::process(){
     }
     curl_multi_add_handle(curlM, curlE);
     int receivingData = 0;
-    curl_multi_perform(curlM, &receivingData);
-    while(receivingData && m_running){
-        CURLMcode pollStatus = curl_multi_poll(curlM, nullptr, 0, 10*1000, nullptr);
+    int handleHasData = 1;
+    CURLMcode curlMStatus = curl_multi_perform(curlM, &receivingData);
+    if(curlMStatus != CURLM_OK) qDebug() << curl_multi_strerror(curlMStatus);
+    while((receivingData || handleHasData) && m_running){
+        CURLMcode pollStatus = curl_multi_poll(curlM, nullptr, 0, 3000, &handleHasData);
         if(pollStatus != CURLM_OK){
             qDebug() << "Error while polling for activity on handles :" << curl_multi_strerror(pollStatus);
             break;
         }
-        curl_multi_perform(curlM, &receivingData);
+
+        curlMStatus = curl_multi_perform(curlM, &receivingData);
+        if(curlMStatus != CURLM_OK) qDebug() << curl_multi_strerror(curlMStatus);
         QCoreApplication::processEvents();
     }
-
+    if(handleHasData == 0) emit error(tr("No stream data found"));
     curl_multi_cleanup(curlM);
     curl_easy_cleanup(curlE);
     curl_global_cleanup();

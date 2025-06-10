@@ -1,5 +1,4 @@
 #include <QVBoxLayout>
-#include <QGridLayout>
 #include <QDebug>
 
 #include "QVideoInputView.h"
@@ -17,14 +16,22 @@ QVideoInputView::QVideoInputView(QWidget* parent)
 
     m_pTreeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     
-    QGridLayout* pGridLayout = new QGridLayout(m_pStreamInfoView);
-    m_pStreamInfoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    m_pStreamInfoView->setLayout(pGridLayout);
-    pGridLayout->addWidget(m_pVideoContentBitrate);
-    pGridLayout->addWidget(m_pAudioContentBitrate);
-    pGridLayout->addWidget(m_pGlobalContentBitrate);
-    pGridLayout->addWidget(m_pContentType);
-    pGridLayout->addWidget(m_pGOVLength);
+    QVBoxLayout* pMetricsLayout = new QVBoxLayout(m_pStreamInfoView);
+    m_pStreamInfoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_pStreamInfoView->setLayout(pMetricsLayout);
+    m_pStreamInfoView->setStyleSheet("QWidget { background-color: white;}");
+    pMetricsLayout->setAlignment(Qt::AlignTop);
+    pMetricsLayout->addWidget(m_pVideoContentBitrate);
+    pMetricsLayout->addWidget(m_pAudioContentBitrate);
+    pMetricsLayout->addWidget(m_pGlobalContentBitrate);
+    pMetricsLayout->addWidget(m_pContentType);
+    pMetricsLayout->addWidget(m_pGOVLength);
+
+    m_pVideoContentBitrate->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_pAudioContentBitrate->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_pGlobalContentBitrate->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_pContentType->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_pGOVLength->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     bitratesUpdated(0, 0, 0);
     contentTypeUpdated("");
@@ -45,7 +52,6 @@ void QVideoInputView::folderSet(QFileSystemModel* pModel){
     setTitle(tr("Loaded folder : ") + path.split('/').last());
     m_pTreeView->show();
     m_pStreamInfoView->hide();
-    if(layout()->count() > 2) layout()->takeAt(2);
 }
 
 void QVideoInputView::streamSet(const QString& URL){
@@ -60,7 +66,6 @@ void QVideoInputView::streamSet(const QString& URL){
     m_pStreamInfoView->show();
     m_pTreeView->hide();
     m_pTreeView->setModel(nullptr);
-    if(layout()->count() == 2) ((QVBoxLayout*)layout())->addStretch(1);
 }
 
 void QVideoInputView::bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitrate, uint64_t globalBitrate){

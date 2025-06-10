@@ -323,18 +323,6 @@
         <translation>Lecture du flux : </translation>
     </message>
     <message>
-        <source>Video bitrate : </source>
-        <translation>Débit vidéo : </translation>
-    </message>
-    <message>
-        <source>Audio bitrate : </source>
-        <translation>Débit audio : </translation>
-    </message>
-    <message>
-        <source>Global bitrate : </source>
-        <translation>Débit global : </translation>
-    </message>
-    <message>
         <source>MB/s</source>
         <translation>Mo/s</translation>
     </message>
@@ -343,12 +331,32 @@
         <translation>Ko/s</translation>
     </message>
     <message>
-        <source>Last packet data type : </source>
-        <translation>Type de donnée du dernier paquet : </translation>
+        <source>Video bitrate</source>
+        <translation>Débit vidéo</translation>
     </message>
     <message>
-        <source>GOV length : </source>
-        <translation>Longueur GOV : </translation>
+        <source>Audio bitrate</source>
+        <translation>Débit audio</translation>
+    </message>
+    <message>
+        <source>Global bitrate</source>
+        <translation>Débit global</translation>
+    </message>
+    <message>
+        <source>Last packet data type</source>
+        <translation>Type de donnée du dernier paquet</translation>
+    </message>
+    <message>
+        <source>GOV length</source>
+        <translation>Longueur GOV</translation>
+    </message>
+    <message>
+        <source>Stream metric</source>
+        <translation>Métrique de flux</translation>
+    </message>
+    <message>
+        <source>value</source>
+        <translation>valeur</translation>
     </message>
 </context>
 <context>

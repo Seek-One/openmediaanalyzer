@@ -3,6 +3,8 @@
 #include <QGroupBox>
 #include <QFileSystemModel>
 #include <QTreeView>
+#include <QTableView>
+#include <QStandardItem>
 #include <QLabel>
 
 class QVideoInputView : public QGroupBox
@@ -20,13 +22,13 @@ public slots:
     void GOVLengthUpdated(uint32_t GOVLength);
     
 private:
-    QTreeView* m_pTreeView;
-    QWidget* m_pStreamInfoView;
+    QTreeView* m_pFolderView;
+    QTableView* m_pStreamInfoView;
 
-    QLabel* m_pVideoContentBitrate;
-    QLabel* m_pAudioContentBitrate;
-    QLabel* m_pGlobalContentBitrate;
+    QStandardItem* m_pVideoContentBitrate;
+    QStandardItem* m_pAudioContentBitrate;
+    QStandardItem* m_pGlobalContentBitrate;
 
-    QLabel* m_pContentType;
-    QLabel* m_pGOVLength;
+    QStandardItem* m_pContentType;
+    QStandardItem* m_pGOVLength;
 };

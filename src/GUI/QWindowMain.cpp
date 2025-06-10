@@ -52,7 +52,6 @@ QWindowMain::QWindowMain(QWidget* parent)
     pGridLayout->addWidget(m_pErrorView, 2, 3, 1, 1);
 
     m_pVideoInputView->setMinimumSize(WINDOW_WIDTH/5, WINDOW_HEIGHT);
-    m_pVideoFrameView->setMinimumWidth(3*WINDOW_WIDTH/5);
     m_pTabWidget->setMinimumWidth(WINDOW_WIDTH/5);
 
 

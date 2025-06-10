@@ -133,10 +133,10 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
             memcpy(allocatedStream, inputData->m_buffer.data(), inputData->m_buffer.size());
             switch(inputData->m_codec){
                 case Codec_H264:
-                    emit inputData->loadH264File(allocatedStream, inputData->m_buffer.size());
+                    emit inputData->loadH264Packet(allocatedStream, inputData->m_buffer.size());
                     break;
                 case Codec_H265:
-                    emit inputData->loadH265File(allocatedStream, inputData->m_buffer.size());
+                    emit inputData->loadH265Packet(allocatedStream, inputData->m_buffer.size());
                     break;
                 default:
                     emit inputData->detectUnsupportedVideoCodec();
@@ -165,8 +165,8 @@ void QStreamModel::streamLoaded(const QString& URL, const QString& username, con
     connect(m_pWorker, &QStreamWorker::finished, m_pThread, &QThread::quit);
     connect(m_pWorker, &QStreamWorker::finished, m_pWorker, &QStreamWorker::deleteLater);
     connect(m_pThread, &QThread::finished, m_pThread, &QThread::deleteLater);
-    connect(m_pWorker, &QStreamWorker::loadH264File, this, &QStreamModel::loadH264File);
-    connect(m_pWorker, &QStreamWorker::loadH265File, this, &QStreamModel::loadH265File);
+    connect(m_pWorker, &QStreamWorker::loadH264Packet, this, &QStreamModel::loadH264Packet);
+    connect(m_pWorker, &QStreamWorker::loadH265Packet, this, &QStreamModel::loadH265Packet);
     connect(m_pWorker, &QStreamWorker::detectUnsupportedVideoCodec, this, &QStreamModel::detectUnsupportedVideoCodec);
     connect(this, &QStreamModel::stopProcessing, m_pWorker, &QStreamWorker::streamStopped);
     connect(m_pWorker, &QStreamWorker::error, this, &QStreamModel::stopProcessing);

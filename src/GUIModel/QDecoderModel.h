@@ -61,7 +61,9 @@ signals:
 public slots:
     void reset();
     void h264FileLoaded(uint8_t* fileContent, quint32 fileSize);
+    void h264PacketLoaded(uint8_t* fileContent, quint32 fileSize);
     void h265FileLoaded(uint8_t* fileContent, quint32 fileSize);
+    void h265PacketLoaded(uint8_t* fileContent, quint32 fileSize);
     void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void folderLoaded();
     void framesTabOpened();

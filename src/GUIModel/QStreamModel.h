@@ -34,8 +34,8 @@ public:
     virtual ~QStreamModel();
     
 signals:
-    void loadH264File(uint8_t* fileContent, quint32 fileSize);
-    void loadH265File(uint8_t* fileContent, quint32 fileSize);
+    void loadH264Packet(uint8_t* fileContent, quint32 fileSize);
+    void loadH265Packet(uint8_t* fileContent, quint32 fileSize);
     void loadStreamStart();
     void stopProcessing();
     void updateStatusBitrates(uint64_t videoBytesLastSecond, uint64_t audioBytesLastSecond, uint64_t globalBytesLastSecond);
@@ -72,8 +72,8 @@ public slots:
     void process();
     void streamStopped();
 signals:
-    void loadH264File(uint8_t* fileContent, quint32 fileSize);
-    void loadH265File(uint8_t* fileContent, quint32 fileSize);
+    void loadH264Packet(uint8_t* fileContent, quint32 fileSize);
+    void loadH265Packet(uint8_t* fileContent, quint32 fileSize);
     void detectUnsupportedVideoCodec();
     void receiveBytes(uint64_t videoBytes, uint64_t audioBytes, uint64_t globalBytes);
     void finished();

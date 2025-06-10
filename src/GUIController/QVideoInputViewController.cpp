@@ -21,8 +21,8 @@ QVideoInputViewController::QVideoInputViewController(QVideoInputView* pVideoInpu
     connect(m_pFolderModel, &QFolderModel::loadH265File, m_pDecoderModel, &QDecoderModel::h265FileLoaded);
     
     connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pDecoderModel, &QDecoderModel::reset);
-    connect(m_pStreamModel, &QStreamModel::loadH264File, m_pDecoderModel, &QDecoderModel::h264FileLoaded);
-    connect(m_pStreamModel, &QStreamModel::loadH265File, m_pDecoderModel, &QDecoderModel::h265FileLoaded);
+    connect(m_pStreamModel, &QStreamModel::loadH264Packet, m_pDecoderModel, &QDecoderModel::h264PacketLoaded);
+    connect(m_pStreamModel, &QStreamModel::loadH265Packet, m_pDecoderModel, &QDecoderModel::h265PacketLoaded);
 
     connect(m_pStreamModel, &QStreamModel::updateStatusBitrates, m_pVideoInputView, &QVideoInputView::bitratesUpdated);
     connect(m_pStreamModel, &QStreamModel::updateContentType, m_pVideoInputView, &QVideoInputView::contentTypeUpdated);

@@ -192,6 +192,49 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
+    checkForNewGOP();
+    if(accessUnitCountDiff == 0) emit updateTimelineUnits();
+    else {
+        QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
+        std::list<H264AccessUnit*> pAccessUnits = m_pH264Stream->getLastAccessUnits(accessUnitCountDiff);
+        for(auto itAccessUnit = pAccessUnits.begin();itAccessUnit != pAccessUnits.end();++itAccessUnit){
+            QUuid id = QUuid::createUuid();
+            QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(*itAccessUnit, id));
+            if((*itAccessUnit)->decodable) decodeH264Slice(pAccessUnitModel);
+            pAccessUnitModels.push_back(pAccessUnitModel);
+            m_currentGOPModel.push_back(pAccessUnitModel);
+            checkForNewGOP();
+        }        
+        emit addTimelineUnits(pAccessUnitModels);
+    }
+
+    if(H264PPS::PPSMap.size() != PPSUnitsBefore) buildH264PPSView(this);
+    if(H264SPS::SPSMap.size() != SPSUnitsBefore) buildH264SPSView(this);
+    switch(m_tabIndex){
+        case 0:
+            emitStreamErrors();
+            break;
+        case 1:
+            // No VPS units in H264
+            break;
+        case 2:
+            emitH264SPSErrors();
+            break;
+        case 3:
+            emitH264PPSErrors();
+            break;
+    }
+}
+
+void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
+    uint32_t accessUnitCountBefore = m_pH264Stream->accessUnitCount();
+    uint8_t PPSUnitsBefore = H264PPS::PPSMap.size();
+    uint8_t SPSUnitsBefore = H264SPS::SPSMap.size();
+    m_pH264Stream->parsePacket(fileContent, fileSize);
+    decodeCurrentH264GOP();
+    delete[] fileContent;
+    uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
+    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
     if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
         // try to remove GOPs preceding the first GOP with an IDR first
         bool foundIDR = false;
@@ -259,7 +302,61 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
-    while(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
+    checkForNewGOP();
+    if(accessUnitCountDiff == 0) emit updateTimelineUnits();
+    else {
+        QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
+        std::list<H265AccessUnit*> pAccessUnits = m_pH265Stream->getLastAccessUnits(accessUnitCountDiff);
+        QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels, pSortedAccessUnitModelsToDecode;
+        for(H265AccessUnit* pAccessUnit : pAccessUnits){
+            QUuid id = QUuid::createUuid();
+            QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(pAccessUnit, id));
+            pSortedAccessUnitModelsToDecode.push_back(pAccessUnitModel);
+            if(pAccessUnit->decodable) pDecodableAccessUnitModels.push_back(pAccessUnitModel);
+            pAccessUnitModels.push_back(pAccessUnitModel);
+            m_currentGOPModel.push_back(pAccessUnitModel);
+            checkForNewGOP();
+        }
+        std::sort(pSortedAccessUnitModelsToDecode.begin(), pSortedAccessUnitModelsToDecode.end(), [](QSharedPointer<QAccessUnitModel> lhs, QSharedPointer<QAccessUnitModel> rhs){
+            if(!lhs->m_displayedFrameNum.has_value()) return true;
+            if(!rhs->m_displayedFrameNum.has_value()) return false;
+            return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
+        });
+        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);
+        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) decodeH265Slice(pAccessUnitModel);
+        emit addTimelineUnits(pAccessUnitModels);
+    }
+
+    if(H265PPS::PPSMap.size() != PPSUnitsBefore) buildH265PPSView(this);
+    if(H265SPS::SPSMap.size() != SPSUnitsBefore) buildH265SPSView(this);
+    if(H265VPS::VPSMap.size() != VPSUnitsBefore) buildVPSView(this);
+    switch(m_tabIndex){
+        case 0:
+            emitStreamErrors();
+            break;
+        case 1:
+            emitVPSErrors();
+            break;
+        case 2:
+            emitH265SPSErrors();
+            break;
+        case 3:
+            emitH265PPSErrors();
+            break;
+    }
+}
+
+void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
+    uint32_t accessUnitCountBefore = m_pH265Stream->accessUnitCount();
+    uint8_t PPSUnitsBefore = H265PPS::PPSMap.size();
+    uint8_t SPSUnitsBefore = H265SPS::SPSMap.size();
+    uint8_t VPSUnitsBefore = H265VPS::VPSMap.size();
+    m_pH265Stream->parsePacket(fileContent, fileSize);
+    decodeCurrentH265GOP();
+    delete[] fileContent;
+    uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
+    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
+    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
         bool foundIDR = false;
         for(int i = 1;i < GOPs.size()-1;++i){
             if(GOPs[i]->hasIDR){

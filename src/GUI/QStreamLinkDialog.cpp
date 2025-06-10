@@ -12,7 +12,7 @@
 QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
     QDialog(parent), m_pURLInput(new QComboBox(this)), m_pUsernameInput(new QLineEdit(this)), m_pPasswordInput(new QLineEdit(this))
 {
-    qRegisterMetaTypeStreamOperators<QSet<QString>>();
+    qRegisterMetaTypeStreamOperators<QList<QString>>();
 
     resize(700, 100);
 
@@ -51,7 +51,7 @@ QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
 
     m_pPasswordInput->setEchoMode(QLineEdit::Password);
     QSettings settings;
-    QSet<QString> registeredLinks = settings.value("validLinks").value<QSet<QString>>();
+    QList<QString> registeredLinks = settings.value("validLinks").value<QList<QString>>();
     for(QString link : registeredLinks) m_pURLInput->addItem(link);
     m_pURLInput->setEditable(true);
 
@@ -69,4 +69,5 @@ QStreamLinkDialog::~QStreamLinkDialog(){}
 
 void QStreamLinkDialog::validURLsUpdated(const QString& URL){
     m_pURLInput->addItem(URL);
+    if(m_pURLInput->count() > 7) m_pURLInput->removeItem(0);
 }

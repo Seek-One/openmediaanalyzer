@@ -17,7 +17,7 @@ QStreamModel::QStreamModel():
     m_pTimer(nullptr), m_videoBytes(0), m_audioBytes(0), m_globalBytes(0)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    qRegisterMetaTypeStreamOperators<QSet<QString>>();
+    qRegisterMetaTypeStreamOperators<QList<QString>>();
 }
 
 QStreamModel::~QStreamModel(){
@@ -258,9 +258,10 @@ void QStreamWorker::process(){
     if(handleHasData == 0) emit error(tr("No stream data found"));
     else if(receivingData == 1 && handleHasData == 1){
         QSettings settings;
-        QSet<QString> registeredLinks = settings.value("validLinks").value<QSet<QString>>();
+        QList<QString> registeredLinks = settings.value("validLinks").value<QList<QString>>();
         if(!registeredLinks.contains(URL)) {
-            registeredLinks.insert(URL);
+            registeredLinks.push_back(URL);
+            if(registeredLinks.size() > 7) registeredLinks.pop_front();
             settings.setValue("validLinks", QVariant::fromValue(registeredLinks));
             emit updateValidURLs(URL);
         }

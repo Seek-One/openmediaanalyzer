@@ -145,7 +145,7 @@ void QTimelineView::accessUnitsRemoved(uint32_t count){
     for(int i = 0;i < count;++i){
         QLayoutItem* item = m_pBarHBoxLayout->takeAt(1);
         if(item->widget()) item->widget()->deleteLater();
-        item = m_pCounterHBoxLayout->takeAt(m_pBarHBoxLayout->count()-2);
+        item = m_pCounterHBoxLayout->takeAt(m_pCounterHBoxLayout->count()-2);
         if(item->widget()) item->widget()->deleteLater();
         emit deleteFrame(m_pAccessUnitElements.front()->m_pAccessUnitModel->m_id);
         if(m_pAccessUnitElements.front()->m_selected) emit selectAccessUnit(nullptr);

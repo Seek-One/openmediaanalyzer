@@ -1031,7 +1031,8 @@ void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
 qsizetype QDecoderModel::pictureMemoryUsageMB(){
     QList<QSharedPointer<QImage>> images = m_decodedFrames.values();
     uint64_t totalImageSize = std::accumulate(images.begin(), images.end(), 0u, [](uint64_t acc, const QSharedPointer<QImage> image){
-        return acc + image->sizeInBytes();
+        if(!image) return acc;
+        return acc + (uint64_t)image->sizeInBytes();
     });
     totalImageSize /= 1e6;
     return totalImageSize;

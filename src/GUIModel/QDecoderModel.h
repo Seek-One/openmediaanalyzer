@@ -17,7 +17,7 @@ extern "C" {
 
 #include "QAccessUnitModel.h"
 
-#define GOP_LIMIT 15
+#define DEFAULT_PICTURE_MEMORY_LIMIT_MB 2048
 
 class QVideoInputView;
 class H264Stream;
@@ -34,7 +34,7 @@ public:
         StreamStatus_NoStream
     };
 
-    QDecoderModel();
+    QDecoderModel(int pictureMemoryLimit);
 
     virtual ~QDecoderModel();
     
@@ -96,6 +96,7 @@ private:
     void decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* getQImageFromH264Frame(const AVFrame* pFrame);
     QImage* getQImageFromH265Frame(const AVFrame* pFrame);
+    qsizetype pictureMemoryUsageMB();
 
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
@@ -116,4 +117,6 @@ private:
     int m_pixelFormat;
 
     bool m_liveContent;
+
+    int PICTURE_MEMORY_LIMIT_MB;
 };

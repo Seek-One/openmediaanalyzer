@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QCommandLineParser>
 
 class QWindowMain;
 class QFolderModel;
@@ -16,7 +17,7 @@ class QWindowMainController : public QObject
 {
     Q_OBJECT
 public:
-    QWindowMainController();
+    QWindowMainController(const QCommandLineParser& parser);
 
     virtual ~QWindowMainController();
 
@@ -39,4 +40,6 @@ private:
     QErrorViewController* m_pErrorViewController;
     QStatusViewController* m_pStatusViewController;
     QVideoFrameViewController* m_pVideoFrameViewController;
+
+    const QCommandLineParser& m_parser;
 };

@@ -15,11 +15,11 @@
 
 #include "QDecoderModel.h"
 
-QDecoderModel::QDecoderModel():
+QDecoderModel::QDecoderModel(int pictureMemoryLimit):
     m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0), 
     m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
     m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
-    m_liveContent(true)
+    m_liveContent(true), PICTURE_MEMORY_LIMIT_MB(pictureMemoryLimit)
 {
     if(!m_pH264Codec) {
         qDebug() << "Couldn't find H264 decoder";
@@ -192,7 +192,7 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
-    if(GOPs.size() > GOP_LIMIT){
+    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
         // try to remove GOPs preceding the first GOP with an IDR first
         bool foundIDR = false;
         for(int i = 1;i < GOPs.size()-1;++i){
@@ -202,8 +202,8 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
                 break;
             }
         }
-        // if no IDR GOPs are found, remove half of the max capacity
-        if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(GOP_LIMIT/2));
+        // if no IDR GOPs are found, remove 1 GOP at a time
+        if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
     }
     checkForNewGOP();
     m_minorStreamErrors.clear();
@@ -259,8 +259,7 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
-    if(GOPs.size() > GOP_LIMIT){
-        // try to remove GOPs preceding the first GOP with an IDR first
+    while(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
         bool foundIDR = false;
         for(int i = 1;i < GOPs.size()-1;++i){
             if(GOPs[i]->hasIDR){
@@ -269,8 +268,7 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
                 break;
             }
         }
-        // if no IDR GOPs are found, remove half of the max capacity
-        if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(GOP_LIMIT/2));
+        if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
     }
     checkForNewGOP();
     m_minorStreamErrors.clear();
@@ -965,7 +963,6 @@ QImage* QDecoderModel::getQImageFromH265Frame(const AVFrame* pFrame) {
     QImage* pImage = new QImage(rgbBuffer, pFrame->width, pFrame->height, QImage::Format_RGB888, [](void* data) {
         free(data);
     }, rgbBuffer);
-
     rgbBuffer = nullptr;
     return pImage;
 }
@@ -1029,5 +1026,13 @@ void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     pAccessUnitModel->decoded = true;
     av_frame_free(&pFrame); 
     avformat_network_deinit();
+}
 
+qsizetype QDecoderModel::pictureMemoryUsageMB(){
+    QList<QSharedPointer<QImage>> images = m_decodedFrames.values();
+    uint64_t totalImageSize = std::accumulate(images.begin(), images.end(), 0u, [](uint64_t acc, const QSharedPointer<QImage> image){
+        return acc + image->sizeInBytes();
+    });
+    totalImageSize /= 1e6;
+    return totalImageSize;
 }

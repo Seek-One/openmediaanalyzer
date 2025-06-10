@@ -17,10 +17,19 @@
 
 #include "QWindowMainController.h"
 
-QWindowMainController::QWindowMainController(){
+QWindowMainController::QWindowMainController(const QCommandLineParser& parser):
+    m_parser(parser)
+{
     m_pFolderModel = new QFolderModel();
     m_pStreamModel = new QStreamModel();
-    m_pDecoderModel = new QDecoderModel();
+    int pictureMemoryLimit = DEFAULT_PICTURE_MEMORY_LIMIT_MB;
+    if(parser.isSet("pictureMemoryLimit")){
+        bool isNumber = false;
+        int tempPictureMemoryLimit = parser.value("pictureMemoryLimit").toInt(&isNumber);
+        if(!isNumber || tempPictureMemoryLimit <= 0) qCritical() << "Invalid value for --pictureMemoryLimit; using default value";
+        else pictureMemoryLimit = tempPictureMemoryLimit;
+    }
+    m_pDecoderModel = new QDecoderModel(pictureMemoryLimit);
     m_pWindowMain = nullptr;
     m_pVideoInputViewController = nullptr;
     m_pTimelineViewController = nullptr;

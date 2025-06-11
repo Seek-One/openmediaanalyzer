@@ -13,12 +13,14 @@ public:
     virtual ~QStatusView();
 
 public slots:
-    void sizeUpdated(uint64_t size);
-    void frameValidityUpdated(uint32_t valid, uint32_t total);
     void videoStatusUpdated(QDecoderModel::StreamStatus status);
+    void frameValidityUpdated(uint32_t valid, uint32_t total);
+    void codedSizeUpdated(uint64_t size);
+    void decodedSizeUpdated(uint64_t size);
 
 private:
-    QLabel* m_pVideoSize;
-    QLabel* m_pFrameValidity;
     QLabel* m_pVideoStatus;
+    QLabel* m_pFrameValidity;
+    QLabel* m_pCodedVideoSize;
+    QLabel* m_pDecodedPicturesSize;
 };

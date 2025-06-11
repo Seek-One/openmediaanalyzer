@@ -145,13 +145,15 @@ void QDecoderModel::reset(){
     m_pSelectedFrameModel = nullptr;
     m_currentGOPModel.clear();
     m_decodedFrames.clear();
+    m_firstGOPSliceTimestamp.clear();
     while(!m_requestedFrames.empty()) m_requestedFrames.pop();
     frameSelected(nullptr);
     buildH264SPSView(this);
     buildH264PPSView(this);
-    emit updateSize(0);
-    emit updateValidity(0, 0);
     emit updateStatus(StreamStatus_NoStream);
+    emit updateValidity(0, 0);
+    emit updateCodedSize(0);
+    emit updateDecodedSize(0);
     emit updateVideoFrameViewText("");
     if(m_pH264SwsCtx){
         sws_freeContext(m_pH264SwsCtx);
@@ -191,7 +193,6 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH264GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
-    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
     checkForNewGOP();
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
@@ -234,20 +235,7 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH264GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
-    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs(); 
-    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
-        // try to remove GOPs preceding the first GOP with an IDR first
-        bool foundIDR = false;
-        for(int i = 1;i < GOPs.size()-1;++i){
-            if(GOPs[i]->hasIDR){
-                foundIDR = true;
-                emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(i));
-                break;
-            }
-        }
-        // if no IDR GOPs are found, remove 1 GOP at a time
-        if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
-    }
+    discardH264GOPs();
     checkForNewGOP();
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
@@ -301,7 +289,6 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH265GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
-    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
     checkForNewGOP();
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
@@ -355,18 +342,7 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH265GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
-    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs(); 
-    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
-        bool foundIDR = false;
-        for(int i = 1;i < GOPs.size()-1;++i){
-            if(GOPs[i]->hasIDR){
-                foundIDR = true;
-                emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(i));
-                break;
-            }
-        }
-        if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
-    }
+    discardH265GOPs();
     checkForNewGOP();
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
@@ -646,6 +622,7 @@ void QDecoderModel::folderLoaded(){
     if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit), majorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
     else emitStreamErrors();
     emit updateTimelineUnits();
+    emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
 void QDecoderModel::emitStreamErrors(){
@@ -772,8 +749,42 @@ void QDecoderModel::checkForNewGOP(){
         m_currentGOPModel.pop_back();
         emit updateGOVLength(m_currentGOPModel.size());
         validateCurrentGOP();
+        m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id] = QDateTime::currentDateTime();
+        qDebug() << m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id];
         m_currentGOPModel.clear();
         m_currentGOPModel.push_back(pAccessUnitModel);
+    }
+}
+
+void QDecoderModel::discardH264GOPs(){
+    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
+    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
+        // try to remove GOPs preceding the first GOP with an IDR first
+        bool foundIDR = false;
+        for(int i = 1;i < GOPs.size()-1;++i){
+            if(GOPs[i]->hasIDR){
+                foundIDR = true;
+                emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(i));
+                break;
+            }
+        }
+        // if no IDR GOPs are found, remove 1 GOP at a time
+        if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
+    }
+}
+
+void QDecoderModel::discardH265GOPs(){
+    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
+    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
+        bool foundIDR = false;
+        for(int i = 1;i < GOPs.size()-1;++i){
+            if(GOPs[i]->hasIDR){
+                foundIDR = true;
+                emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(i));
+                break;
+            }
+        }
+        if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
     }
 }
 
@@ -884,12 +895,15 @@ void QDecoderModel::validateH265GOPFrames(){
     }
 }
 
-void QDecoderModel::updateH264StatusBarSize(){
+void QDecoderModel::updateH264StatusBarStatus(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
-        return acc + GOP->byteSize();
-    });
-    emit updateSize(size);
+    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
+        return pGOP->hasMajorErrors();
+    })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
+    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
+        return pGOP->hasMinorErrors();
+    })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
+    else updateStatus(StreamStatus::StreamStatus_OK);
 }
 
 void QDecoderModel::updateH264StatusBarValidity(){
@@ -906,29 +920,30 @@ void QDecoderModel::updateH264StatusBarValidity(){
     emit updateValidity(valid, total);
 }
 
-void QDecoderModel::updateH264StatusBarStatus(){
+void QDecoderModel::updateH264StatusBarSize(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
-    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
-        return pGOP->hasMajorErrors();
-    })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
-    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
-        return pGOP->hasMinorErrors();
-    })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
-    else updateStatus(StreamStatus::StreamStatus_OK);
+    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
+        return acc + GOP->byteSize();
+    });
+    emit updateCodedSize(size);
 }
 
 void QDecoderModel::updateH264StatusBar(){
-    updateH264StatusBarSize();
-    updateH264StatusBarValidity();
     updateH264StatusBarStatus();
+    updateH264StatusBarValidity();
+    updateH264StatusBarSize();
+    emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
-void QDecoderModel::updateH265StatusBarSize(){
+void QDecoderModel::updateH265StatusBarStatus(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
-        return acc + GOP->byteSize();
-    });
-    emit updateSize(size);
+    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
+        return pGOP->hasMajorErrors();
+    })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
+    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
+        return pGOP->hasMinorErrors();
+    })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
+    else updateStatus(StreamStatus::StreamStatus_OK);
 }
 
 void QDecoderModel::updateH265StatusBarValidity(){
@@ -945,21 +960,19 @@ void QDecoderModel::updateH265StatusBarValidity(){
     emit updateValidity(valid, total);
 }
 
-void QDecoderModel::updateH265StatusBarStatus(){
+void QDecoderModel::updateH265StatusBarSize(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
-    if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
-        return pGOP->hasMajorErrors();
-    })) emit updateStatus(StreamStatus::StreamStatus_Damaged);
-    else if(!m_minorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
-        return pGOP->hasMinorErrors();
-    })) emit updateStatus(StreamStatus::StreamStatus_NonConformant);
-    else updateStatus(StreamStatus::StreamStatus_OK);
+    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
+        return acc + GOP->byteSize();
+    });
+    emit updateCodedSize(size);
 }
 
 void QDecoderModel::updateH265StatusBar(){
-    updateH265StatusBarSize();
-    updateH265StatusBarValidity();
     updateH265StatusBarStatus();
+    updateH265StatusBarValidity();
+    updateH265StatusBarSize();
+    emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
 // https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format

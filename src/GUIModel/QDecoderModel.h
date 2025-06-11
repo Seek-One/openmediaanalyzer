@@ -5,6 +5,7 @@
 #include <QFileSystemModel>
 #include <QStandardItemModel>
 #include <QImage>
+#include <QDateTime>
 #include <queue>
 
 extern "C" {
@@ -51,9 +52,10 @@ signals:
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
     void updateErrorView(QString title, QStringList minorErrors, QStringList majorErrors);
-    void updateSize(uint64_t size);
-    void updateValidity(uint32_t valid, uint32_t total);
     void updateStatus(StreamStatus status);
+    void updateValidity(uint32_t valid, uint32_t total);
+    void updateCodedSize(uint64_t size);
+    void updateDecodedSize(uint64_t size);
     void updateGOVLength(quint32 GOVLength);
     void updateVideoFrameViewImage(QSharedPointer<QImage> pImage);
     void updateVideoFrameViewText(const QString& text);
@@ -80,12 +82,16 @@ private:
     void emitVPSErrors();
     void emitH265SPSErrors();
     void emitH265PPSErrors();
+
     void checkForNewGOP();
+    void discardH264GOPs();
+    void discardH265GOPs();
     void decodeCurrentH264GOP();
     void decodeCurrentH265GOP();
     void validateCurrentGOP();
     void validateH264GOPFrames();
     void validateH265GOPFrames();
+
     void updateH264StatusBarSize();
     void updateH264StatusBarValidity();
     void updateH264StatusBarStatus();
@@ -94,6 +100,7 @@ private:
     void updateH265StatusBarValidity();
     void updateH265StatusBarStatus();
     void updateH265StatusBar();
+
     void decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     void decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
     QImage* getQImageFromH264Frame(const AVFrame* pFrame);
@@ -102,12 +109,11 @@ private:
 
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
-    int m_tabIndex;
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
     std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
-
+    
     const AVCodec* m_pH264Codec;
     AVCodecContext* m_pH264CodecCtx;
     SwsContext* m_pH264SwsCtx;
@@ -117,8 +123,10 @@ private:
     int m_frameWidth;
     int m_frameHeight; 
     int m_pixelFormat;
-
+    
+    int m_tabIndex;
     bool m_liveContent;
 
     int PICTURE_MEMORY_LIMIT_MB;
+    QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;
 };

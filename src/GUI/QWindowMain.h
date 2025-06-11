@@ -9,6 +9,7 @@ class QVideoFrameView;
 class QTimelineView;
 class QNALUInfoView;
 class QErrorView;
+class QStreamSettingsView;
 class QStatusView;
 class QStreamLinkDialog;
 
@@ -28,18 +29,18 @@ public:
     QNALUInfoView* getPPSInfoView();
     QNALUInfoView* getFrameInfoView();
     QErrorView* getErrorView();
+    QStreamSettingsView* getStreamSettingsView();
     QStatusView* getStatusView();
     QVideoFrameView* getVideoFrameView();
     QStreamLinkDialog* getStreamLinkDialog();
 
 public slots:
     void errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors);
+    void streamSettingsViewToggled(bool visible);
 
 signals:
     void openFolderClicked();
     void openStreamClicked();
-    void setLiveContent(bool val);
-    void stopStreamClicked();
     void openFramesTab();
     void openVPSTab();
     void openSPSTab();
@@ -59,6 +60,7 @@ private:
     QNALUInfoView* m_pSPSInfoView;
     QNALUInfoView* m_pPPSInfoView;
     QErrorView* m_pErrorView;
+    QStreamSettingsView* m_pStreamSettingsView;
     QStatusView* m_pStatusView;
     QStreamLinkDialog* m_pStreamLinkDialog;
 };

@@ -15,8 +15,6 @@ int main(int argc, char *argv[]){
     QCommandLineParser parser;
     parser.setApplicationDescription("H264/H265 analysis and error checking");
     parser.addHelpOption();
-    QCommandLineOption pictureMemoryLimitOption(QStringList() << "pictureMemoryLimit", "Limit the memory used by decoded pictures to <limit> MB", "limit");
-    parser.addOption(pictureMemoryLimitOption);
     parser.process(app);
 
     // QTranslator translator;
@@ -24,7 +22,7 @@ int main(int argc, char *argv[]){
     QWindowMain* pWindowMain = new QWindowMain();
     if(pWindowMain) pWindowMain->show();
 
-    QWindowMainController controller(parser);
+    QWindowMainController controller;
     controller.init(pWindowMain);
     
     app.exec();

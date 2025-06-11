@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QObject>
-#include <QCommandLineParser>
 
 class QWindowMain;
 class QFolderModel;
@@ -10,6 +9,7 @@ class QDecoderModel;
 class QVideoInputViewController;
 class QTimelineViewController;
 class QErrorViewController;
+class QStreamSettingsViewController;
 class QStatusViewController;
 class QVideoFrameViewController;
 
@@ -17,7 +17,7 @@ class QWindowMainController : public QObject
 {
     Q_OBJECT
 public:
-    QWindowMainController(const QCommandLineParser& parser);
+    QWindowMainController();
 
     virtual ~QWindowMainController();
 
@@ -27,6 +27,7 @@ public slots:
     void folderOpened();
 
 signals:
+    void toggleStreamSettingsView(bool visible);
     void openFolder(const QString& folderPath);
     void openStream();
 
@@ -38,8 +39,7 @@ private:
     QVideoInputViewController* m_pVideoInputViewController;
     QTimelineViewController* m_pTimelineViewController;
     QErrorViewController* m_pErrorViewController;
+    QStreamSettingsViewController* m_pStreamSettingsViewController;
     QStatusViewController* m_pStatusViewController;
     QVideoFrameViewController* m_pVideoFrameViewController;
-
-    const QCommandLineParser& m_parser;
 };

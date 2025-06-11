@@ -31,6 +31,8 @@ set(APPLICATION_SOURCES
     src/GUI/QNALUInfoView.h
     src/GUI/QStatusView.cpp
     src/GUI/QStatusView.h
+    src/GUI/QStreamSettingsView.cpp
+    src/GUI/QStreamSettingsView.h
     src/GUI/QStreamLinkDialog.cpp
     src/GUI/QStreamLinkDialog.h
     src/GUI/QTimelineCounterElement.cpp
@@ -49,6 +51,8 @@ set(APPLICATION_SOURCES
     src/GUIController/QVideoInputViewController.h
     src/GUIController/QStatusViewController.cpp
     src/GUIController/QStatusViewController.h
+    src/GUIController/QStreamSettingsViewController.cpp
+    src/GUIController/QStreamSettingsViewController.h
     src/GUIController/QTimelineViewController.cpp
     src/GUIController/QTimelineViewController.h
     src/GUIController/QVideoFrameViewController.cpp
@@ -204,6 +208,7 @@ SET (UNITTEST_SRC
     test/Codec/H264/H264ValidSamplesParsing.cpp
     test/Codec/H264/H264ValidSamplesParsing.h
     test/Codec/H264/H264InvalidSamplesParsing.cpp
+    test/Codec/H264/H264InvalidSamplesParsing.h
     test/Codec/H265/H265ValidSamplesParsing.cpp
     test/Codec/H265/H265ValidSamplesParsing.h
     test/Codec/H265/H265InvalidSamplesParsing.cpp

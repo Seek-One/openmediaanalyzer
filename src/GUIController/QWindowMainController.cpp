@@ -12,28 +12,22 @@
 #include "QVideoInputViewController.h"
 #include "QTimelineViewController.h"
 #include "QErrorViewController.h"
+#include "QStreamSettingsViewController.h"
 #include "QStatusViewController.h"
 #include "QVideoFrameViewController.h"
 
 #include "QWindowMainController.h"
 
-QWindowMainController::QWindowMainController(const QCommandLineParser& parser):
-    m_parser(parser)
+QWindowMainController::QWindowMainController()
 {
     m_pFolderModel = new QFolderModel();
     m_pStreamModel = new QStreamModel();
-    int pictureMemoryLimit = DEFAULT_PICTURE_MEMORY_LIMIT_MB;
-    if(parser.isSet("pictureMemoryLimit")){
-        bool isNumber = false;
-        int tempPictureMemoryLimit = parser.value("pictureMemoryLimit").toInt(&isNumber);
-        if(!isNumber || tempPictureMemoryLimit <= 0) qCritical() << "Invalid value for --pictureMemoryLimit; using default value";
-        else pictureMemoryLimit = tempPictureMemoryLimit;
-    }
-    m_pDecoderModel = new QDecoderModel(pictureMemoryLimit);
+    m_pDecoderModel = new QDecoderModel();
     m_pWindowMain = nullptr;
     m_pVideoInputViewController = nullptr;
     m_pTimelineViewController = nullptr;
     m_pErrorViewController = nullptr;
+    m_pStreamSettingsViewController = nullptr;
     m_pStatusViewController = nullptr;
     m_pVideoFrameViewController = nullptr;
 }
@@ -44,6 +38,7 @@ QWindowMainController::~QWindowMainController(){
     if(m_pVideoInputViewController) delete m_pVideoInputViewController;
     if(m_pTimelineViewController) delete m_pTimelineViewController;
     if(m_pErrorViewController) delete m_pErrorViewController;
+    if(m_pStreamSettingsViewController) delete m_pStreamSettingsViewController;
     if(m_pStatusViewController) delete m_pStatusViewController;
     if(m_pVideoFrameViewController) delete m_pVideoFrameViewController;
 }
@@ -53,20 +48,25 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     m_pVideoInputViewController = new QVideoInputViewController(pWindowMain->getVideoInputView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
     m_pErrorViewController = new QErrorViewController(pWindowMain->getErrorView(), m_pDecoderModel);
+    m_pStreamSettingsViewController = new QStreamSettingsViewController(pWindowMain->getStreamSettingsView(), m_pDecoderModel, m_pStreamModel);
     m_pStatusViewController = new QStatusViewController(pWindowMain->getStatusView(), m_pDecoderModel);
     m_pVideoFrameViewController = new QVideoFrameViewController(pWindowMain->getVideoFrameView(), m_pDecoderModel, m_pStreamModel);
 
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
-    connect(m_pWindowMain, &QWindowMain::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream ,m_pVideoInputViewController, &QVideoInputViewController::openStream);
     connect(m_pStreamModel, &QStreamModel::updateValidURLs, m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::validURLsUpdated);
     connect(this, &QWindowMainController::openFolder, m_pVideoInputViewController, &QVideoInputViewController::openFolder);
     connect(m_pFolderModel, &QFolderModel::loadFolderStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
+    connect(m_pFolderModel, &QFolderModel::loadFolderStart, this, [this](){
+        emit toggleStreamSettingsView(false);
+    });
     connect(m_pStreamModel, &QStreamModel::loadStreamStart, m_pTimelineViewController, &QTimelineViewController::startTimeline);
-    connect(m_pWindowMain, &QWindowMain::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
-    connect(m_pWindowMain, &QWindowMain::setLiveContent, m_pDecoderModel, &QDecoderModel::liveContentSet);
+    connect(m_pStreamModel, &QStreamModel::loadStreamStart, this, [this](){
+        emit toggleStreamSettingsView(true);
+    });
+    connect(m_pStreamSettingsViewController, &QStreamSettingsViewController::setLiveContent, m_pTimelineViewController, &QTimelineViewController::setLiveContent);
 
     connect(m_pDecoderModel, &QDecoderModel::updateVPSInfoView, m_pWindowMain->getVPSInfoView(), &QNALUInfoView::viewUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updateSPSInfoView, m_pWindowMain->getSPSInfoView(), &QNALUInfoView::viewUpdated);
@@ -79,6 +79,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     connect(m_pDecoderModel, &QDecoderModel::updateErrorView, pWindowMain, &QWindowMain::errorViewToggled);
 
     connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(this, &QWindowMainController::toggleStreamSettingsView, m_pWindowMain, &QWindowMain::streamSettingsViewToggled);
 
     qRegisterMetaType<uint64_t>("uint64_t");
 }

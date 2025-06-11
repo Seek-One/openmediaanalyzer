@@ -21,8 +21,10 @@ QVideoInputView::QVideoInputView(QWidget* parent)
     m_pStreamInfoView->verticalHeader()->setVisible(false);
     m_pStreamInfoView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     m_pStreamInfoView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    m_pStreamInfoView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_pStreamInfoView->setSelectionMode(QAbstractItemView::NoSelection);
     m_pStreamInfoView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    
     QStandardItemModel* pMetricsModel = new QStandardItemModel(m_pStreamInfoView);
     m_pStreamInfoView->setModel(pMetricsModel);
     pMetricsModel->setHorizontalHeaderLabels({tr("Stream metric"), tr("value")});

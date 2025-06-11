@@ -9,6 +9,7 @@
 #include "QTimelineView.h"
 #include "QNALUInfoView.h"
 #include "QErrorView.h"
+#include "QStreamSettingsView.h"
 #include "QStatusView.h"
 #include "QStreamLinkDialog.h"
 
@@ -33,13 +34,14 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pFrameInfoView = new QNALUInfoView(pWidget);
     m_pTimelineView = new QTimelineView(pWidget);
     m_pErrorView = new QErrorView(pWidget);
+    m_pStreamSettingsView = new QStreamSettingsView(pWidget);
     m_pStatusView = new QStatusView(pWidget);
     m_pStreamLinkDialog = new QStreamLinkDialog(pWidget);
 
     setCentralWidget(pWidget);
     
     pWidget->setLayout(pGridLayout);
-    pGridLayout->addWidget(m_pVideoInputView, 0, 0, 3, 1);
+    pGridLayout->addWidget(m_pVideoInputView, 0, 0, m_pStreamSettingsView->isVisibleTo(this) ? 2 : 3, 1);
     pGridLayout->addWidget(m_pVideoFrameView, 0, 1, 2, 2);
     m_pTabWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     pGridLayout->addWidget(m_pTabWidget, 0, 3, m_pErrorView->isVisibleTo(this) ? 2 : 3, 1);
@@ -49,9 +51,10 @@ QWindowMain::QWindowMain(QWidget* parent)
     m_pTabWidget->addTab(m_pPPSInfoView, "PPS");
 
     pGridLayout->addWidget(m_pTimelineView, 2, 1, 1, 2);
+    pGridLayout->addWidget(m_pStreamSettingsView, 2, 0, 1, 1);
     pGridLayout->addWidget(m_pErrorView, 2, 3, 1, 1);
 
-    m_pVideoInputView->setMinimumSize(WINDOW_WIDTH/5, WINDOW_HEIGHT);
+    m_pVideoInputView->setMinimumWidth(WINDOW_WIDTH/5);
     m_pTabWidget->setMinimumWidth(WINDOW_WIDTH/5);
 
 
@@ -72,26 +75,6 @@ QWindowMain::QWindowMain(QWidget* parent)
         pFileMenu->addAction(pOpenFolderAction);
         pFileMenu->addAction(pOpenStreamAction);
     }
-
-    QMenu *pStreamMenu = menuBar()->addMenu(tr("Stream"));
-    {
-        QAction* pToggleLiveContent = new QAction(tr("Live content"), this);
-        pToggleLiveContent->setShortcut(QKeySequence("Ctrl+L"));
-        pToggleLiveContent->setCheckable(true);
-        pToggleLiveContent->setChecked(true);
-        connect(pToggleLiveContent, &QAction::toggled, [this, pToggleLiveContent]() {
-            emit setLiveContent(pToggleLiveContent->isChecked());
-        });
-        QAction* pStopStreamThread = new QAction(tr("Stop stream..."), this);
-        pStopStreamThread->setShortcut(QKeySequence("Ctrl+C"));
-        connect(pStopStreamThread, &QAction::triggered, [this]() {
-            emit stopStreamClicked();
-        });
-        
-        pStreamMenu->addAction(pToggleLiveContent);
-        pStreamMenu->addAction(pStopStreamThread);
-    }
-    
     
     pWidget->show();
     
@@ -149,6 +132,10 @@ QErrorView* QWindowMain::getErrorView(){
     return m_pErrorView;
 }
 
+QStreamSettingsView* QWindowMain::getStreamSettingsView(){
+    return m_pStreamSettingsView;
+}
+
 QStatusView* QWindowMain::getStatusView(){
     return m_pStatusView;
 }
@@ -165,6 +152,14 @@ void QWindowMain::errorViewToggled(QString _, QStringList minorErrors, QStringLi
     QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
     layout->removeWidget(m_pTabWidget);
     layout->addWidget(m_pTabWidget, 0, 3, minorErrors.empty() && majorErrors.empty() ? 3 : 2, 1);
+}
+
+void QWindowMain::streamSettingsViewToggled(bool visible){
+    if(visible) m_pStreamSettingsView->show();
+    else m_pStreamSettingsView->hide();
+    QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
+    layout->removeWidget(m_pVideoInputView);
+    layout->addWidget(m_pVideoInputView, 0, 0, visible ? 2 : 3, 1);
 }
 
 void QWindowMain::closeEvent(QCloseEvent* event){

@@ -18,8 +18,6 @@ extern "C" {
 
 #include "QAccessUnitModel.h"
 
-#define DEFAULT_PICTURE_MEMORY_LIMIT_MB 2048
-
 class QVideoInputView;
 class H264Stream;
 class H265Stream;
@@ -35,7 +33,7 @@ public:
         StreamStatus_NoStream
     };
 
-    QDecoderModel(int pictureMemoryLimit);
+    QDecoderModel();
 
     virtual ~QDecoderModel();
     
@@ -62,10 +60,12 @@ signals:
 
 public slots:
     void reset();
+
     void h264FileLoaded(uint8_t* fileContent, quint32 fileSize);
     void h264PacketLoaded(uint8_t* fileContent, quint32 fileSize);
     void h265FileLoaded(uint8_t* fileContent, quint32 fileSize);
     void h265PacketLoaded(uint8_t* fileContent, quint32 fileSize);
+
     void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void folderLoaded();
     void framesTabOpened();
@@ -73,7 +73,14 @@ public slots:
     void spsTabOpened();
     void ppsTabOpened();
     void frameDeleted(QUuid id);
-    void liveContentSet(bool val);
+
+    void liveContentSet(bool activated);
+    void memoryLimitToggled(bool activated);
+    void durationLimitToggled(bool activated);
+    void GOPCountLimitToggled(bool activated);
+    void memoryLimitUpdated(int val);
+    void durationLimitUpdated(int val);
+    void GOPCountLimitUpdated(int val);
 
 private:
     void emitStreamErrors();
@@ -127,6 +134,12 @@ private:
     int m_tabIndex;
     bool m_liveContent;
 
-    int PICTURE_MEMORY_LIMIT_MB;
+    bool m_memoryLimitSet;
+    bool m_durationLimitSet;
+    bool m_GOPCountLimitSet;
+    int m_pictureMemoryLimit;
+    int m_durationLimit;
+    int m_GOPCountLimit;
+    QList<QUuid> m_firstGOPSliceId;
     QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;
 };

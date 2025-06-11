@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../GUI/QVideoInputView.h"
+#include "../GUI/QStreamSettingsView.h"
 #include "../Codec/H264/H264Stream.h"
 #include "../Codec/H264/H264GOP.h"
 #include "../Codec/H264/H264Slice.h"
@@ -15,11 +16,13 @@
 
 #include "QDecoderModel.h"
 
-QDecoderModel::QDecoderModel(int pictureMemoryLimit):
+QDecoderModel::QDecoderModel():
     m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0), 
     m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
     m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
-    m_liveContent(true), PICTURE_MEMORY_LIMIT_MB(pictureMemoryLimit)
+    m_memoryLimitSet(MEMORY_LIMIT_SET_BY_DEFAULT), m_durationLimitSet(DURATION_LIMIT_SET_BY_DEFAULT), m_GOPCountLimitSet(GOP_COUNT_LIMIT_SET_BY_DEFAULT),
+    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
+    m_liveContent(true)
 {
     if(!m_pH264Codec) {
         qDebug() << "Couldn't find H264 decoder";
@@ -145,6 +148,7 @@ void QDecoderModel::reset(){
     m_pSelectedFrameModel = nullptr;
     m_currentGOPModel.clear();
     m_decodedFrames.clear();
+    m_firstGOPSliceId.clear();
     m_firstGOPSliceTimestamp.clear();
     while(!m_requestedFrames.empty()) m_requestedFrames.pop();
     frameSelected(nullptr);
@@ -585,8 +589,32 @@ void QDecoderModel::frameDeleted(QUuid id){
     if(m_decodedFrames[id]) m_decodedFrames.remove(id);
 }
 
-void QDecoderModel::liveContentSet(bool val){
-    m_liveContent = val;
+void QDecoderModel::liveContentSet(bool activated){
+    m_liveContent = activated;
+}
+
+void QDecoderModel::memoryLimitToggled(bool activated){
+    m_memoryLimitSet = activated;
+}
+
+void QDecoderModel::durationLimitToggled(bool activated){
+    m_durationLimitSet = activated;
+}
+
+void QDecoderModel::GOPCountLimitToggled(bool activated){
+    m_GOPCountLimitSet = activated;
+}
+
+void QDecoderModel::memoryLimitUpdated(int val){
+    m_pictureMemoryLimit = std::clamp(val, MEMORY_LIMIT_MIN, MEMORY_LIMIT_MAX);
+}
+
+void QDecoderModel::durationLimitUpdated(int val){
+    m_durationLimit = std::clamp(val, DURATION_LIMIT_MIN, DURATION_LIMIT_MAX);
+}
+
+void QDecoderModel::GOPCountLimitUpdated(int val){
+    m_GOPCountLimit = std::clamp(val, GOP_COUNT_LIMIT_MIN, GOP_COUNT_LIMIT_MAX);
 }
 
 void QDecoderModel::folderLoaded(){
@@ -730,7 +758,7 @@ void QDecoderModel::emitH265PPSErrors(){
 
 /* Checks if the most recent access unit is the start of a new GOP.
    If it is, moves it to a new GOP, and checks the previous GOP for 
-   errors before discarding it.
+   errors before replacing it.
  */
 void QDecoderModel::checkForNewGOP(){
     if(m_currentGOPModel.size() > 1){
@@ -750,7 +778,7 @@ void QDecoderModel::checkForNewGOP(){
         emit updateGOVLength(m_currentGOPModel.size());
         validateCurrentGOP();
         m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id] = QDateTime::currentDateTime();
-        qDebug() << m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id];
+        m_firstGOPSliceId.push_back(m_currentGOPModel.first()->m_id);
         m_currentGOPModel.clear();
         m_currentGOPModel.push_back(pAccessUnitModel);
     }
@@ -758,33 +786,66 @@ void QDecoderModel::checkForNewGOP(){
 
 void QDecoderModel::discardH264GOPs(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
-    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
-        // try to remove GOPs preceding the first GOP with an IDR first
-        bool foundIDR = false;
-        for(int i = 1;i < GOPs.size()-1;++i){
-            if(GOPs[i]->hasIDR){
-                foundIDR = true;
-                emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(i));
-                break;
-            }
+    uint32_t removedGOPs = 0;
+    if(m_durationLimitSet){
+        QDateTime now = QDateTime::currentDateTime();
+        uint32_t outdatedGOPs = 0;
+        for(QUuid GOPId : m_firstGOPSliceId){
+            if(m_firstGOPSliceTimestamp[GOPId].secsTo(now) / 60 < m_durationLimit) break;
+            outdatedGOPs++;
         }
-        // if no IDR GOPs are found, remove 1 GOP at a time
-        if(!foundIDR) emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
+        if(outdatedGOPs > 0) {
+            emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(outdatedGOPs));
+            removedGOPs += outdatedGOPs;
+        }
+        GOPs = m_pH264Stream->getGOPs(); // re-set GOPs for other checks
+    }
+    // size()-1 checked to not account for the current incomplete GOP
+    if(m_GOPCountLimitSet && GOPs.size()-1 > m_GOPCountLimit) {
+        emit removeTimelineUnits(m_pH264Stream->popFrontGOPs((GOPs.size()-1)-m_GOPCountLimit));
+        removedGOPs += GOPs.size()-1-m_GOPCountLimit;
+    }
+    if(m_memoryLimitSet){
+        while(pictureMemoryUsageMB() > m_pictureMemoryLimit) {
+            emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
+            ++removedGOPs;
+        }
+    }
+    for(int i = 0;i < removedGOPs;++i) {
+        m_firstGOPSliceTimestamp.remove(m_firstGOPSliceId.front());
+        m_firstGOPSliceId.pop_front();
     }
 }
 
 void QDecoderModel::discardH265GOPs(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
-    if(pictureMemoryUsageMB() > PICTURE_MEMORY_LIMIT_MB){
-        bool foundIDR = false;
-        for(int i = 1;i < GOPs.size()-1;++i){
-            if(GOPs[i]->hasIDR){
-                foundIDR = true;
-                emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(i));
-                break;
-            }
+    uint32_t removedGOPs = 0;
+    if(m_durationLimitSet){
+        QDateTime now = QDateTime::currentDateTime();
+        uint32_t outdatedGOPs = 0;
+        for(QUuid GOPId : m_firstGOPSliceId){
+            if(m_firstGOPSliceTimestamp[GOPId].secsTo(now) / 60 < m_durationLimit) break;
+            outdatedGOPs++;
         }
-        if(!foundIDR) emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
+        if(outdatedGOPs > 0) {
+            emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(outdatedGOPs));
+            removedGOPs += outdatedGOPs;
+        }
+        GOPs = m_pH265Stream->getGOPs();
+    }
+    if(m_GOPCountLimitSet && GOPs.size()-1 > m_GOPCountLimit) {
+        emit removeTimelineUnits(m_pH265Stream->popFrontGOPs((GOPs.size()-1)-m_GOPCountLimit));
+        removedGOPs += GOPs.size()-1-m_GOPCountLimit;
+    }
+    if(m_memoryLimitSet){
+        while(pictureMemoryUsageMB() > m_pictureMemoryLimit) {
+            emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
+            ++removedGOPs;
+        }
+    }
+    for(int i = 0;i < removedGOPs;++i) {
+        m_firstGOPSliceTimestamp.remove(m_firstGOPSliceId.front());
+        m_firstGOPSliceId.pop_front();
     }
 }
 

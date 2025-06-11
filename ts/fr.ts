@@ -225,10 +225,6 @@
         <translation>Images valides : </translation>
     </message>
     <message>
-        <source>Current video size : </source>
-        <translation>Taille actuelle de la vidéo : </translation>
-    </message>
-    <message>
         <source>Video status : OK</source>
         <translation>État de la vidéo : OK</translation>
     </message>
@@ -239,6 +235,14 @@
     <message>
         <source>Video status : Damaged</source>
         <translation>État de la vidéo : Endommagée</translation>
+    </message>
+    <message>
+        <source>Current coded video size : </source>
+        <translation>Taille vidéo encodée : </translation>
+    </message>
+    <message>
+        <source>Current decoded pictures size : </source>
+        <translation>Taille images décodées : </translation>
     </message>
 </context>
 <context>
@@ -376,18 +380,6 @@
     <message>
         <source>Open stream...</source>
         <translation>Ouvrir un flux...</translation>
-    </message>
-    <message>
-        <source>Stop stream...</source>
-        <translation>Fermer le flux...</translation>
-    </message>
-    <message>
-        <source>Stream</source>
-        <translation>Flux</translation>
-    </message>
-    <message>
-        <source>Live content</source>
-        <translation>Contenu en direct</translation>
     </message>
 </context>
 </TS>

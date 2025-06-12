@@ -235,8 +235,12 @@ void QStreamWorker::process(){
     }
     QString URL = m_URL;
     QString httpsPrefix = "https://";
+    QString httpPrefix = "https://";
     if(m_URL.startsWith(httpsPrefix)) URL.remove(0, httpsPrefix.size());
-    QString fullURL = QString("https://%1:%2@%3").arg(m_username, m_password, URL);
+    else if (m_URL.startsWith(httpPrefix)) URL.remove(0, httpPrefix.size());
+    QString fullURL; 
+    if(m_username.isEmpty() && m_password.isEmpty()) fullURL = QString("https://%1").arg(URL);
+    else fullURL = QString("https://%1:%2@%3").arg(m_username, m_password, URL);
     curl_easy_setopt(curlE, CURLOPT_URL, fullURL.toStdString().c_str());
     curl_easy_setopt(curlE, CURLOPT_HEADERFUNCTION, receiveHeader);
     curl_easy_setopt(curlE, CURLOPT_HEADERDATA, this);

@@ -368,7 +368,7 @@
     </message>
     <message>
         <source>Stream protocol</source>
-        <translation>Protocol du flux</translation>
+        <translation>Protocole du flux</translation>
     </message>
     <message>
         <source>Total encoded video size</source>

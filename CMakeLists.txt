@@ -3,11 +3,11 @@ project(openmediaanalyzer CXX)
 set (APPLICATION_EXE_NAME openmediaanalyzer)
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt5 REQUIRED COMPONENTS Gui)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt5 REQUIRED COMPONENTS LinguistTools)  
-find_package(Qt5 REQUIRED COMPONENTS Test) 
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Gui)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)  
+find_package(Qt6 REQUIRED COMPONENTS Test) 
 find_package(CURL REQUIRED)
 find_package(fmt REQUIRED)
 
@@ -175,9 +175,9 @@ set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURR
 
 option (UPDATE_TRANSLATIONS "Update source translation ts/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)" ON)
 if (UPDATE_TRANSLATIONS)
-	qt5_create_translation(qm_FILES ${TS_FILES} ${I18N_FILES} OPTIONS -locations none)
+	qt6_create_translation(qm_FILES ${TS_FILES} ${I18N_FILES} OPTIONS -locations none)
 else (UPDATE_TRANSLATIONS)
-	qt5_add_translation(qm_FILES ${TS_FILES})
+	qt6_add_translation(qm_FILES ${TS_FILES})
 endif (UPDATE_TRANSLATIONS)
 
 add_custom_target(update_ts ALL DEPENDS ${qm_FILES})
@@ -191,9 +191,9 @@ add_executable(${APPLICATION_EXE_NAME}
 )
 
 target_link_libraries(${APPLICATION_EXE_NAME} 
-    Qt5::Core 
-    Qt5::Gui
-    Qt5::Widgets
+    Qt6::Core 
+    Qt6::Gui
+    Qt6::Widgets
     PkgConfig::LIBAV
     CURL::libcurl
     fmt::fmt
@@ -224,8 +224,8 @@ set_target_properties(${UNITTEST_EXE} PROPERTIES
 )
 
 target_link_libraries (${UNITTEST_EXE}
-    Qt5::Core 
-    Qt5::Test
+    Qt6::Core 
+    Qt6::Test
     fmt::fmt
 )
 install(TARGETS ${UNITTEST_EXE} DESTINATION ${INSTALL_PATH_BIN})

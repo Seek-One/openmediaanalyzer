@@ -4,7 +4,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSettings>
-#include <QMetaType>
 #include <QDebug>
 
 #include "QStreamLinkDialog.h"
@@ -12,8 +11,6 @@
 QStreamLinkDialog::QStreamLinkDialog(QWidget* parent):
     QDialog(parent), m_pURLInput(new QComboBox(this)), m_pUsernameInput(new QLineEdit(this)), m_pPasswordInput(new QLineEdit(this))
 {
-    qRegisterMetaTypeStreamOperators<QList<QString>>();
-
     resize(700, 100);
 
     QVBoxLayout* pFormLayout = new QVBoxLayout(this);

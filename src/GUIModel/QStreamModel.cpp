@@ -3,7 +3,6 @@
 #include <QThread>
 #include <QMessageBox>
 #include <QSettings>
-#include <QMetaType>
 #include <curl/curl.h>
 #include <fstream>
 
@@ -17,7 +16,6 @@ QStreamModel::QStreamModel():
     m_pBitrateTimer(nullptr), m_videoBytes(0), m_audioBytes(0), m_globalBytes(0)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    qRegisterMetaTypeStreamOperators<QList<QString>>();
 }
 
 QStreamModel::~QStreamModel(){

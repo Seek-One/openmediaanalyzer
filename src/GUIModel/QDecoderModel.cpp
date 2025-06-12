@@ -22,8 +22,10 @@ QDecoderModel::QDecoderModel():
     m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
     m_memoryLimitSet(MEMORY_LIMIT_SET_BY_DEFAULT), m_durationLimitSet(DURATION_LIMIT_SET_BY_DEFAULT), m_GOPCountLimitSet(GOP_COUNT_LIMIT_SET_BY_DEFAULT),
     m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
-    m_liveContent(true)
+    m_liveContent(true),
+    m_frameCount(0), m_pFrameRateTimer(new QTimer(this))
 {
+    connect(m_pFrameRateTimer, &QTimer::timeout, this, &QDecoderModel::frameRateUpdater);
     if(!m_pH264Codec) {
         qDebug() << "Couldn't find H264 decoder";
         return;
@@ -150,6 +152,8 @@ void QDecoderModel::reset(){
     m_decodedFrames.clear();
     m_firstGOPSliceId.clear();
     m_firstGOPSliceTimestamp.clear();
+    m_frameCount = 0;
+    m_pFrameRateTimer->stop();
     while(!m_requestedFrames.empty()) m_requestedFrames.pop();
     frameSelected(nullptr);
     buildH264SPSView(this);
@@ -187,6 +191,19 @@ void QDecoderModel::reset(){
         qDebug() << "Couldn't open codec";
         return;
     }
+}
+
+void QDecoderModel::startFrameRateTimer(){
+    m_pFrameRateTimer->start(1000);
+}
+
+void QDecoderModel::stopFrameRateTimer(){
+    m_pFrameRateTimer->stop();
+}
+
+void QDecoderModel::frameRateUpdater(){
+    emit updateFrameRate(m_frameCount);
+    m_frameCount = 0;
 }
 
 void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
@@ -239,6 +256,7 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH264GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
+    m_frameCount += accessUnitCountDiff;
     discardH264GOPs();
     checkForNewGOP();
     m_minorStreamErrors.clear();
@@ -346,6 +364,7 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     decodeCurrentH265GOP();
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
+    m_frameCount += accessUnitCountDiff;
     discardH265GOPs();
     checkForNewGOP();
     m_minorStreamErrors.clear();
@@ -1057,6 +1076,7 @@ QImage* QDecoderModel::getQImageFromH264Frame(const AVFrame* pFrame) {
         m_frameWidth = pFrame->width;
         m_frameHeight = pFrame->height;
         m_pixelFormat = pFrame->format;
+        emit updateResolution(m_frameWidth, m_frameHeight);
     }
 
     int imgBytesSize = 3 * pFrame->width * pFrame->height;
@@ -1108,6 +1128,7 @@ QImage* QDecoderModel::getQImageFromH265Frame(const AVFrame* pFrame) {
         m_frameWidth = pFrame->width;
         m_frameHeight = pFrame->height;
         m_pixelFormat = pFrame->format;
+        emit updateResolution(m_frameWidth, m_frameHeight);
     }
 
     int imgBytesSize = 3 * pFrame->width * pFrame->height;

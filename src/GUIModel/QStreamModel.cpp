@@ -14,7 +14,7 @@
 
 QStreamModel::QStreamModel():
     m_pThread(nullptr), m_pWorker(nullptr),
-    m_pTimer(nullptr), m_videoBytes(0), m_audioBytes(0), m_globalBytes(0)
+    m_pBitrateTimer(nullptr), m_videoBytes(0), m_audioBytes(0), m_globalBytes(0)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     qRegisterMetaTypeStreamOperators<QList<QString>>();
@@ -22,29 +22,29 @@ QStreamModel::QStreamModel():
 
 QStreamModel::~QStreamModel(){
     emit stopProcessing();
-    if(m_pTimer) m_pTimer->deleteLater();
+    if(m_pBitrateTimer) m_pBitrateTimer->deleteLater();
 }
 
 size_t receiveHeader(char* contents, size_t size, size_t nmemb, QStreamWorker* inputData){
     size_t totalSize = size*nmemb;
     QString responseStr = QString((char*)contents);
-    // qDebug() << responseStr;
-    QRegularExpression responseRegEx = QRegularExpression("HTTP/\\d\\.\\d ((\\d+) [\\S ]+)");
+    QRegularExpression responseRegEx = QRegularExpression("(HTTP/\\d+\\.\\d+) ((\\d+) [\\S ]+)");
     QRegularExpressionMatch responseMatch = responseRegEx.match(responseStr);
 
     QRegularExpression multipartRegEx = QRegularExpression("[Cc]ontent-[Tt]ype: (\\w+)");
     QRegularExpressionMatch multipartMatch = multipartRegEx.match(responseStr);
     if(!responseMatch.hasMatch() && !multipartMatch.hasMatch()) return totalSize;
     if(responseMatch.hasMatch()){
-        if(responseMatch.lastCapturedIndex() != 2) {
+        if(responseMatch.lastCapturedIndex() != 3) {
             emit inputData->error(QStreamWorker::tr("Incomplete header response"));
             return 0;
         }
-        int responseCode = responseMatch.captured(2).toInt();
+        int responseCode = responseMatch.captured(3).toInt();
         if(responseCode != 200){
-            emit inputData->error(QStreamWorker::tr("Server replied with the following : ") + responseMatch.captured(1));
+            emit inputData->error(QStreamWorker::tr("Server replied with the following : ") + responseMatch.captured(2));
             return 0;
         }
+        emit inputData->updateProtocol(responseMatch.captured(1));
     } else if(multipartMatch.hasMatch()){
         if(multipartMatch.captured(1) != "multipart"){
             emit inputData->error(QStreamWorker::tr("Multipart stream expected"));
@@ -62,7 +62,6 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
     uint64_t audioBytes = 0;
     
     QString responseStr = QString((char*)contents);
-    // qDebug() << responseStr;
     QRegularExpression contentTypeRegEx = QRegularExpression("Content-type: (\\w+)/([\\w\\-\\+\\.]+)");
     QRegularExpressionMatch contentTypeMatch = contentTypeRegEx.match(responseStr);
     if(contentTypeMatch.hasMatch()){
@@ -83,12 +82,16 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
             if(codec == "H264") inputData->m_codec = Codec_H264;
             else if(codec == "H265") inputData->m_codec = Codec_H265;
             else inputData->m_codec = Codec_Unsupported;
+            emit inputData->updateVideoCodec(codec);
         } else if (type == "image"){
             inputData->m_contentType = ContentType_Image;
             QString imgType = contentTypeMatch.captured(2);
             if(imgType == "jpeg") inputData->m_codec = Codec_MJPEG;
             else inputData->m_codec = Codec_Unsupported;
-        } else if (type == "audio") inputData->m_contentType = ContentType_Audio;
+        } else if (type == "audio") {
+            inputData->m_contentType = ContentType_Audio;
+            emit inputData->updateAudioCodec(contentTypeMatch.captured(2));
+        }
         else inputData->m_contentType = ContentType_Other;
         switch(inputData->m_contentType){
             case ContentType_Video:
@@ -165,26 +168,34 @@ void QStreamModel::streamLoaded(const QString& URL, const QString& username, con
     connect(m_pWorker, &QStreamWorker::finished, m_pThread, &QThread::quit);
     connect(m_pWorker, &QStreamWorker::finished, m_pWorker, &QStreamWorker::deleteLater);
     connect(m_pThread, &QThread::finished, m_pThread, &QThread::deleteLater);
-    connect(m_pWorker, &QStreamWorker::loadH264Packet, this, &QStreamModel::loadH264Packet);
-    connect(m_pWorker, &QStreamWorker::loadH265Packet, this, &QStreamModel::loadH265Packet);
-    connect(m_pWorker, &QStreamWorker::detectUnsupportedVideoCodec, this, &QStreamModel::detectUnsupportedVideoCodec);
     connect(this, &QStreamModel::stopProcessing, m_pWorker, &QStreamWorker::streamStopped);
     connect(m_pWorker, &QStreamWorker::error, this, &QStreamModel::stopProcessing);
     connect(m_pWorker, &QStreamWorker::error, this, [](const QString& errMsg){
         QMessageBox::critical(nullptr, tr("Error"), errMsg);
     });
-    connect(m_pWorker, &QStreamWorker::receiveBytes, this, &QStreamModel::bytesReceived);
-    connect(m_pWorker, &QStreamWorker::updateContentType, this, &QStreamModel::updateContentType);
+
     connect(m_pWorker, &QStreamWorker::updateValidURLs, this, &QStreamModel::updateValidURLs);
+    
+    connect(m_pWorker, &QStreamWorker::loadH264Packet, this, &QStreamModel::loadH264Packet);
+    connect(m_pWorker, &QStreamWorker::loadH265Packet, this, &QStreamModel::loadH265Packet);
+    connect(m_pWorker, &QStreamWorker::detectUnsupportedVideoCodec, this, &QStreamModel::detectUnsupportedVideoCodec);
+    
+    connect(m_pWorker, &QStreamWorker::receiveBytes, this, &QStreamModel::bytesReceived);
+    connect(m_pWorker, &QStreamWorker::updateVideoCodec, this, &QStreamModel::updateVideoCodec);
+    connect(m_pWorker, &QStreamWorker::updateAudioCodec, this, &QStreamModel::updateAudioCodec);
+    connect(m_pWorker, &QStreamWorker::updateContentType, this, &QStreamModel::updateContentType);
+    connect(m_pWorker, &QStreamWorker::updateProtocol, this, &QStreamModel::updateProtocol);
+
+    
 
     m_pThread->start();
 
     m_videoBytes = 0;
     m_audioBytes = 0;
     m_globalBytes = 0;
-    m_pTimer = new QTimer(this);
-    connect(m_pTimer, &QTimer::timeout, this, &QStreamModel::secondElapsed);
-    m_pTimer->start(1000);
+    m_pBitrateTimer = new QTimer(this);
+    connect(m_pBitrateTimer, &QTimer::timeout, this, &QStreamModel::secondElapsed);
+    m_pBitrateTimer->start(1000);
 }
 
 void QStreamModel::bytesReceived(uint64_t videoBytes, uint64_t audioBytes, uint64_t globalBytes){
@@ -195,15 +206,15 @@ void QStreamModel::bytesReceived(uint64_t videoBytes, uint64_t audioBytes, uint6
 
 void QStreamModel::streamStopped(){
     emit stopProcessing();
-    if(m_pTimer){
-        m_pTimer->stop();
-        m_pTimer->deleteLater();
-        m_pTimer = nullptr;
+    if(m_pBitrateTimer){
+        m_pBitrateTimer->stop();
+        m_pBitrateTimer->deleteLater();
+        m_pBitrateTimer = nullptr;
     }
 }
 
 void QStreamModel::secondElapsed(){
-    emit updateStatusBitrates(m_videoBytes, m_audioBytes, m_globalBytes);
+    emit updateStreamBitrates(m_videoBytes, m_audioBytes, m_globalBytes);
     m_videoBytes = 0;
     m_audioBytes = 0;
     m_globalBytes = 0;

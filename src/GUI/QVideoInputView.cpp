@@ -51,8 +51,6 @@ QVideoInputView::QVideoInputView(QWidget* parent)
 
     m_pStreamInfoView->setColumnWidth(0, 0.65*width()*3);
     
-    for(QStandardItem* pItem : {m_pVideoCodec, m_pVideoResolution, m_pVideoFrameRate, m_pGOVLength, m_pVideoContentBitrate, m_pCodedVideoSize, m_pDecodedPicturesSize,
-       m_pFrameValidity, m_pAudioCodec, m_pAudioContentBitrate, m_pContentType, m_pGlobalContentBitrate, m_pProtocol}) pItem->setText("-");
     m_pStreamInfoView->hide();
     m_pStreamInfoView->expandAll();
     show();
@@ -63,6 +61,7 @@ QVideoInputView::~QVideoInputView(){
 }
 
 void QVideoInputView::folderSet(QFileSystemModel* pModel){
+    resetMetrics();
     m_pFolderView->setModel(pModel);
     for (int col = 1; col < m_pFolderView->model()->columnCount(); ++col) m_pFolderView->setColumnHidden(col, true);
     const QString& path = pModel->rootPath();
@@ -73,6 +72,7 @@ void QVideoInputView::folderSet(QFileSystemModel* pModel){
 }
 
 void QVideoInputView::streamSet(const QString& URL){
+    resetMetrics();
     QString trimmedURL = URL;
     const uint8_t MAX_VISIBLE_URL_LENGTH = 30;
     if(trimmedURL.startsWith("https://")) trimmedURL.remove(0, 8);
@@ -97,8 +97,16 @@ void QVideoInputView::bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitra
     }
 }
 
-void QVideoInputView::contentTypeUpdated(const QString& contentType){
-    m_pContentType->setText(contentType);
+void QVideoInputView::videoCodecUpdated(const QString& codec){
+    m_pVideoCodec->setText(codec);
+}
+
+void QVideoInputView::videoResolutionUpdated(int width, int height){
+    m_pVideoResolution->setText(QString::number(width)+"x"+QString::number(height));
+}
+
+void QVideoInputView::videoFrameRateUpdated(int frameRate){
+    m_pVideoFrameRate->setText(QString::number(frameRate));
 }
 
 void QVideoInputView::GOVLengthUpdated(uint32_t GOVLength){
@@ -127,4 +135,21 @@ void QVideoInputView::decodedSizeUpdated(uint64_t size){
     float sizeGB = size/(float)1e3;
     if(sizeGB > 10) m_pDecodedPicturesSize->setText( QString::number(sizeGB) + tr("GB"));
     else m_pDecodedPicturesSize->setText(QString::number(size) + tr("MB"));
+}
+
+void QVideoInputView::audioCodecUpdated(const QString& codec){
+    m_pAudioCodec->setText(codec);
+}
+
+void QVideoInputView::protocolUpdated(const QString& protocol){
+    m_pProtocol->setText(protocol);
+}
+
+void QVideoInputView::contentTypeUpdated(const QString& contentType){
+    m_pContentType->setText(contentType);
+}
+
+void QVideoInputView::resetMetrics(){
+    for(QStandardItem* pItem : {m_pVideoCodec, m_pVideoResolution, m_pVideoFrameRate, m_pGOVLength, m_pVideoContentBitrate, m_pCodedVideoSize, m_pDecodedPicturesSize,
+       m_pFrameValidity, m_pAudioCodec, m_pAudioContentBitrate, m_pContentType, m_pGlobalContentBitrate, m_pProtocol}) pItem->setText("-");
 }

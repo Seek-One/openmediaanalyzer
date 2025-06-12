@@ -19,14 +19,22 @@ public slots:
 
     void bitratesUpdated(uint64_t videoBitrate, uint64_t audioBitrate, uint64_t otherBitrate);
 
+    void videoCodecUpdated(const QString& codec);
+    void videoResolutionUpdated(int width, int height);
+    void videoFrameRateUpdated(int frameRate);
     void GOVLengthUpdated(uint32_t GOVLength);
     void codedSizeUpdated(uint64_t size);
     void decodedSizeUpdated(uint64_t size);
     void frameValidityUpdated(uint32_t valid, uint32_t total);
 
+    void audioCodecUpdated(const QString& codec);
+
+    void protocolUpdated(const QString& protocol);
     void contentTypeUpdated(const QString& contentType);
     
 private:
+    void resetMetrics();
+
     QTreeView* m_pFolderView;
     QTreeView* m_pStreamInfoView;
 

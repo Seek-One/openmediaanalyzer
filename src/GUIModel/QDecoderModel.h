@@ -6,6 +6,7 @@
 #include <QStandardItemModel>
 #include <QImage>
 #include <QDateTime>
+#include <QTimer>
 #include <queue>
 
 extern "C" {
@@ -45,12 +46,16 @@ signals:
     void updateTimelineUnits();
     void addTimelineUnits(QVector<QSharedPointer<QAccessUnitModel>> accessUnits);
     void removeTimelineUnits(uint32_t count);
+
     void updateVPSInfoView(QStandardItemModel* pModel);
     void updateSPSInfoView(QStandardItemModel* pModel);
     void updatePPSInfoView(QStandardItemModel* pModel);
     void updateFrameInfoView(QStandardItemModel* pModel);
     void updateErrorView(QString title, QStringList minorErrors, QStringList majorErrors);
+
     void updateStatus(StreamStatus status);
+    void updateResolution(int width, int height);
+    void updateFrameRate(int frameRate);
     void updateValidity(uint32_t valid, uint32_t total);
     void updateCodedSize(uint64_t size);
     void updateDecodedSize(uint64_t size);
@@ -60,6 +65,9 @@ signals:
 
 public slots:
     void reset();
+    void startFrameRateTimer();
+    void stopFrameRateTimer();
+    void frameRateUpdater();
 
     void h264FileLoaded(uint8_t* fileContent, quint32 fileSize);
     void h264PacketLoaded(uint8_t* fileContent, quint32 fileSize);
@@ -130,6 +138,9 @@ private:
     int m_frameWidth;
     int m_frameHeight; 
     int m_pixelFormat;
+
+    uint m_frameCount;
+    QTimer* m_pFrameRateTimer;
     
     int m_tabIndex;
     bool m_liveContent;

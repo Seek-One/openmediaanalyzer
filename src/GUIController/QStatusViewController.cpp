@@ -10,9 +10,8 @@ QStatusViewController::QStatusViewController(QStatusView* pStatusView, QDecoderM
     : m_pStatusView(pStatusView), m_pDecoderModel(pDecoderModel)
 {
     connect(m_pDecoderModel, &QDecoderModel::updateStatus, m_pStatusView, &QStatusView::videoStatusUpdated);
-    connect(m_pDecoderModel, &QDecoderModel::updateValidity, m_pStatusView, &QStatusView::frameValidityUpdated);
-    connect(m_pDecoderModel, &QDecoderModel::updateCodedSize, m_pStatusView, &QStatusView::codedSizeUpdated);
-    connect(m_pDecoderModel, &QDecoderModel::updateDecodedSize, m_pStatusView, &QStatusView::decodedSizeUpdated);
+    connect(this, &QStatusViewController::openFolder, m_pStatusView, &QStatusView::folderPathSet);
+    connect(this, &QStatusViewController::openStream, m_pStatusView, &QStatusView::streamLinkSet);
 }
 
 QStatusViewController::~QStatusViewController(){

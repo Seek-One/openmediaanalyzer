@@ -14,13 +14,10 @@ public:
 
 public slots:
     void videoStatusUpdated(QDecoderModel::StreamStatus status);
-    void frameValidityUpdated(uint32_t valid, uint32_t total);
-    void codedSizeUpdated(uint64_t size);
-    void decodedSizeUpdated(uint64_t size);
+    void folderPathSet(QFileSystemModel* pModel);
+    void streamLinkSet(const QString& URL);
 
 private:
+    QLabel* m_pInputSource;
     QLabel* m_pVideoStatus;
-    QLabel* m_pFrameValidity;
-    QLabel* m_pCodedVideoSize;
-    QLabel* m_pDecodedPicturesSize;
 };

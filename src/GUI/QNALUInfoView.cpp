@@ -7,11 +7,13 @@ QNALUInfoView::QNALUInfoView(QWidget* parent)
     : QWidget(parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    m_pTreeView = new QTreeView(this);
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
     setLayout(pVBoxLayout);
+
+    m_pTreeView = new QTreeView(this);
     pVBoxLayout->addWidget(m_pTreeView);
     m_pTreeView->show();
+    m_pTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     show();
 }
 

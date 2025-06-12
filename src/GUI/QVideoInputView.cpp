@@ -5,9 +5,12 @@
 #include "QVideoInputView.h"
 
 QVideoInputView::QVideoInputView(QWidget* parent)
-    : QGroupBox(tr("No video data"), parent), m_pFolderView(new QTreeView(this)), m_pStreamInfoView(new QTableView(this)),
-    m_pVideoContentBitrate(new QStandardItem()), m_pAudioContentBitrate(new QStandardItem()), m_pGlobalContentBitrate(new QStandardItem()),
-    m_pGOVLength(new QStandardItem()), m_pContentType(new QStandardItem())
+    : QGroupBox(tr("No video data"), parent), m_pFolderView(new QTreeView(this)), m_pStreamInfoView(new QTreeView(this)),
+    m_pVideoCodec(new QStandardItem()), m_pVideoResolution(new QStandardItem()), m_pVideoFrameRate(new QStandardItem()), 
+    m_pGOVLength(new QStandardItem()), m_pVideoContentBitrate(new QStandardItem()), 
+    m_pCodedVideoSize(new QStandardItem()), m_pDecodedPicturesSize(new QStandardItem()), m_pFrameValidity(new QStandardItem()),
+    m_pAudioCodec(new QStandardItem()), m_pAudioContentBitrate(new QStandardItem()),
+    m_pContentType(new QStandardItem()), m_pGlobalContentBitrate(new QStandardItem()), m_pProtocol(new QStandardItem())
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
@@ -18,29 +21,40 @@ QVideoInputView::QVideoInputView(QWidget* parent)
     m_pFolderView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     
     m_pStreamInfoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_pStreamInfoView->verticalHeader()->setVisible(false);
-    m_pStreamInfoView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    m_pStreamInfoView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    m_pStreamInfoView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_pStreamInfoView->setSelectionMode(QAbstractItemView::NoSelection);
     m_pStreamInfoView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     
     QStandardItemModel* pMetricsModel = new QStandardItemModel(m_pStreamInfoView);
     m_pStreamInfoView->setModel(pMetricsModel);
     pMetricsModel->setHorizontalHeaderLabels({tr("Stream metric"), tr("value")});
     pMetricsModel->setColumnCount(2);
-    pMetricsModel->appendRow({new QStandardItem(tr("Video bitrate")), m_pVideoContentBitrate});
-    pMetricsModel->appendRow({new QStandardItem(tr("Audio bitrate")), m_pAudioContentBitrate});
-    pMetricsModel->appendRow({new QStandardItem(tr("Global bitrate")), m_pGlobalContentBitrate});
-    pMetricsModel->appendRow({new QStandardItem(tr("Last packet data type")), m_pContentType});
-    pMetricsModel->appendRow({new QStandardItem(tr("GOV length")), m_pGOVLength});
-    m_pStreamInfoView->setColumnWidth(0, 3*width()*0.5);
-    m_pStreamInfoView->setColumnWidth(1, 3*width()*0.51);
+
+    QStandardItem* pVideoSection = new QStandardItem(tr("Video"));
+    QStandardItem* pAudioSection = new QStandardItem(tr("Audio"));
+    QStandardItem* pGeneralSection = new QStandardItem(tr("General"));
+    pMetricsModel->appendRow(pVideoSection);
+    pMetricsModel->appendRow(pAudioSection);
+    pMetricsModel->appendRow(pGeneralSection);
+
+    pVideoSection->appendRow({new QStandardItem(tr("Video codec")), m_pVideoCodec});
+    pVideoSection->appendRow({new QStandardItem(tr("Video resolution")), m_pVideoResolution});
+    pVideoSection->appendRow({new QStandardItem(tr("Video frame rate")), m_pVideoFrameRate});
+    pVideoSection->appendRow({new QStandardItem(tr("GOV length")), m_pGOVLength});
+    pVideoSection->appendRow({new QStandardItem(tr("Video bitrate")), m_pVideoContentBitrate});
+    pVideoSection->appendRow({new QStandardItem(tr("Total encoded video size")), m_pCodedVideoSize});
+    pVideoSection->appendRow({new QStandardItem(tr("Total decoded pictures size")), m_pDecodedPicturesSize});
+    pVideoSection->appendRow({new QStandardItem(tr("Frame validity")), m_pFrameValidity});
+    pAudioSection->appendRow({new QStandardItem(tr("Audio codec")), m_pAudioCodec});
+    pAudioSection->appendRow({new QStandardItem(tr("Audio bitrate")), m_pAudioContentBitrate});
+    pGeneralSection->appendRow({new QStandardItem(tr("Last packet data type")), m_pContentType});
+    pGeneralSection->appendRow({new QStandardItem(tr("Global bitrate")), m_pGlobalContentBitrate});
+    pGeneralSection->appendRow({new QStandardItem(tr("Stream protocol")), m_pProtocol});
+
+    m_pStreamInfoView->setColumnWidth(0, 0.65*width()*3);
     
-    bitratesUpdated(0, 0, 0);
-    contentTypeUpdated("");
-    GOVLengthUpdated(0);
+    for(QStandardItem* pItem : {m_pVideoCodec, m_pVideoResolution, m_pVideoFrameRate, m_pGOVLength, m_pVideoContentBitrate, m_pCodedVideoSize, m_pDecodedPicturesSize,
+       m_pFrameValidity, m_pAudioCodec, m_pAudioContentBitrate, m_pContentType, m_pGlobalContentBitrate, m_pProtocol}) pItem->setText("-");
     m_pStreamInfoView->hide();
+    m_pStreamInfoView->expandAll();
     show();
 }
 
@@ -89,4 +103,28 @@ void QVideoInputView::contentTypeUpdated(const QString& contentType){
 
 void QVideoInputView::GOVLengthUpdated(uint32_t GOVLength){
     m_pGOVLength->setText(QString::number(GOVLength));
+}
+
+void QVideoInputView::frameValidityUpdated(uint32_t valid, uint32_t total){
+    if(total == 0) m_pFrameValidity->setText("0/0 (100%)");
+    else {
+        float percentage = 100*valid/total;
+        m_pFrameValidity->setText(QString::number(valid) + "/" + QString::number(total) + " (" + QString::number(percentage) + "%)");
+    }
+}
+
+void QVideoInputView::codedSizeUpdated(uint64_t size){
+    float sizeGB = size/(float)1e9;
+    float sizeMB = size/(float)1e6;
+    float sizeKB = size/(float)1e3;
+    if(sizeGB > 10) m_pCodedVideoSize->setText(QString::number(sizeGB) + tr("GB"));
+    else if(sizeMB > 10) m_pCodedVideoSize->setText(QString::number(sizeMB) + tr("MB"));
+    else m_pCodedVideoSize->setText(QString::number(sizeKB) + tr("KB"));
+}
+
+
+void QVideoInputView::decodedSizeUpdated(uint64_t size){
+    float sizeGB = size/(float)1e3;
+    if(sizeGB > 10) m_pDecodedPicturesSize->setText( QString::number(sizeGB) + tr("GB"));
+    else m_pDecodedPicturesSize->setText(QString::number(size) + tr("MB"));
 }

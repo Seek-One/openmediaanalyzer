@@ -13,6 +13,10 @@ public:
 
     virtual ~QStatusViewController();
 
+signals:
+    void openFolder(QFileSystemModel* pModel);
+    void openStream(const QString& URL);
+
 
 private:
     QStatusView* m_pStatusView;

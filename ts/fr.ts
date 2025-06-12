@@ -205,26 +205,6 @@
 <context>
     <name>QStatusView</name>
     <message>
-        <source>Valid frames : 0/0 (100%)</source>
-        <translation>Images valides : 0/0 (100%)</translation>
-    </message>
-    <message>
-        <source>GB</source>
-        <translation>Go</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>Mo</translation>
-    </message>
-    <message>
-        <source>KB</source>
-        <translation>Ko</translation>
-    </message>
-    <message>
-        <source>Valid frames : </source>
-        <translation>Images valides : </translation>
-    </message>
-    <message>
         <source>Video status : OK</source>
         <translation>État de la vidéo : OK</translation>
     </message>
@@ -237,12 +217,8 @@
         <translation>État de la vidéo : Endommagée</translation>
     </message>
     <message>
-        <source>Current coded video size : </source>
-        <translation>Taille vidéo encodée : </translation>
-    </message>
-    <message>
-        <source>Current decoded pictures size : </source>
-        <translation>Taille images décodées : </translation>
+        <source>Source : </source>
+        <translation>Source : </translation>
     </message>
 </context>
 <context>
@@ -361,6 +337,62 @@
     <message>
         <source>value</source>
         <translation>valeur</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Vidéo</translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation>Audio</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>Général</translation>
+    </message>
+    <message>
+        <source>Video codec</source>
+        <translation>Codec vidéo</translation>
+    </message>
+    <message>
+        <source>Video resolution</source>
+        <translation>Résolution vidéo</translation>
+    </message>
+    <message>
+        <source>Video frame rate</source>
+        <translation>Images par seconde</translation>
+    </message>
+    <message>
+        <source>Audio codec</source>
+        <translation>Codec audio</translation>
+    </message>
+    <message>
+        <source>Stream protocol</source>
+        <translation>Protocol du flux</translation>
+    </message>
+    <message>
+        <source>Total encoded video size</source>
+        <translation>Taille totale de la vidéo encodée</translation>
+    </message>
+    <message>
+        <source>Total decoded pictures size</source>
+        <translation>Taille totale des images décodées</translation>
+    </message>
+    <message>
+        <source>Frame validity</source>
+        <translation>Images valides</translation>
+    </message>
+    <message>
+        <source>GB</source>
+        <translation>Go</translation>
+    </message>
+    <message>
+        <source>MB</source>
+        <translation>Mo</translation>
+    </message>
+    <message>
+        <source>KB</source>
+        <translation>Ko</translation>
     </message>
 </context>
 <context>

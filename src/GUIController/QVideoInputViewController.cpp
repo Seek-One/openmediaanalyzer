@@ -27,6 +27,9 @@ QVideoInputViewController::QVideoInputViewController(QVideoInputView* pVideoInpu
     connect(m_pStreamModel, &QStreamModel::updateStatusBitrates, m_pVideoInputView, &QVideoInputView::bitratesUpdated);
     connect(m_pStreamModel, &QStreamModel::updateContentType, m_pVideoInputView, &QVideoInputView::contentTypeUpdated);
     connect(m_pDecoderModel, &QDecoderModel::updateGOVLength, m_pVideoInputView, &QVideoInputView::GOVLengthUpdated);
+    connect(m_pDecoderModel, &QDecoderModel::updateValidity, m_pVideoInputView, &QVideoInputView::frameValidityUpdated);
+    connect(m_pDecoderModel, &QDecoderModel::updateCodedSize, m_pVideoInputView, &QVideoInputView::codedSizeUpdated);
+    connect(m_pDecoderModel, &QDecoderModel::updateDecodedSize, m_pVideoInputView, &QVideoInputView::decodedSizeUpdated);
 
     connect(m_pFolderModel, &QFolderModel::loadFolderEnd, m_pDecoderModel, &QDecoderModel::folderLoaded);
 }

@@ -63,6 +63,8 @@ signals:
     void updateVideoFrameViewImage(QSharedPointer<QImage> pImage);
     void updateVideoFrameViewText(const QString& text);
 
+    void setLiveContent(bool activated);
+
 public slots:
     void reset();
     void startFrameRateTimer();
@@ -76,6 +78,7 @@ public slots:
 
     void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void folderLoaded();
+    void streamStopped();
     void framesTabOpened();
     void vpsTabOpened();
     void spsTabOpened();
@@ -101,8 +104,8 @@ private:
     void checkForNewGOP();
     void discardH264GOPs();
     void discardH265GOPs();
-    void decodeCurrentH264GOP();
-    void decodeCurrentH265GOP();
+    void decodeH264GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP);
+    void decodeH265GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP);
     void validateCurrentGOP();
     void validateH264GOPFrames();
     void validateH265GOPFrames();
@@ -126,8 +129,11 @@ private:
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
+    
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
     std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
+    QVector<QVector<QSharedPointer<QAccessUnitModel>>> m_previousGOPModels;
+    QVector<QSharedPointer<QAccessUnitModel>> m_selectedDecodedGOPModel;
     
     const AVCodec* m_pH264Codec;
     AVCodecContext* m_pH264CodecCtx;
@@ -151,6 +157,5 @@ private:
     int m_pictureMemoryLimit;
     int m_durationLimit;
     int m_GOPCountLimit;
-    QList<QUuid> m_firstGOPSliceId;
     QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;
 };

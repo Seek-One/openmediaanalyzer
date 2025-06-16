@@ -18,8 +18,11 @@ QStreamSettingsViewController::QStreamSettingsViewController(QStreamSettingsView
     connect(m_pStreamSettingsView, &QStreamSettingsView::updateGOPCountLimit, m_pDecoderModel, &QDecoderModel::GOPCountLimitUpdated);
 
     connect(m_pStreamSettingsView, &QStreamSettingsView::stopStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(m_pStreamSettingsView, &QStreamSettingsView::stopStreamClicked, m_pDecoderModel, &QDecoderModel::streamStopped);
     connect(m_pStreamSettingsView, &QStreamSettingsView::setLiveContent, this, &QStreamSettingsViewController::setLiveContent);
     connect(m_pStreamSettingsView, &QStreamSettingsView::setLiveContent, m_pDecoderModel, &QDecoderModel::liveContentSet);
+
+    connect(m_pDecoderModel, &QDecoderModel::setLiveContent, m_pStreamSettingsView, &QStreamSettingsView::liveContentSet);
 }
 
 QStreamSettingsViewController::~QStreamSettingsViewController(){

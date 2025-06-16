@@ -145,16 +145,20 @@ void QDecoderModel::reset(){
     m_pH264Stream = new H264Stream();
     if(m_pH265Stream) delete m_pH265Stream;
     m_pH265Stream = new H265Stream();
+
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
     m_pSelectedFrameModel = nullptr;
     m_currentGOPModel.clear();
+
     m_decodedFrames.clear();
-    m_firstGOPSliceId.clear();
+    while(!m_requestedFrames.empty()) m_requestedFrames.pop();
+    m_previousGOPModels.clear();
+    m_selectedDecodedGOPModel.clear();
+
     m_firstGOPSliceTimestamp.clear();
     m_frameCount = 0;
     m_pFrameRateTimer->stop();
-    while(!m_requestedFrames.empty()) m_requestedFrames.pop();
     frameSelected(nullptr);
     buildH264SPSView(this);
     buildH264PPSView(this);
@@ -208,10 +212,8 @@ void QDecoderModel::frameRateUpdater(){
 
 void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH264Stream->accessUnitCount();
-    uint8_t PPSUnitsBefore = H264PPS::PPSMap.size();
-    uint8_t SPSUnitsBefore = H264SPS::SPSMap.size();
     m_pH264Stream->parsePacket(fileContent, fileSize);
-    decodeCurrentH264GOP();
+    decodeH264GOP(m_currentGOPModel);
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     checkForNewGOP();
@@ -222,38 +224,19 @@ void QDecoderModel::h264FileLoaded(uint8_t* fileContent, quint32 fileSize){
         for(auto itAccessUnit = pAccessUnits.begin();itAccessUnit != pAccessUnits.end();++itAccessUnit){
             QUuid id = QUuid::createUuid();
             QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(*itAccessUnit, id));
-            if((*itAccessUnit)->decodable) decodeH264Slice(pAccessUnitModel);
             pAccessUnitModels.push_back(pAccessUnitModel);
             m_currentGOPModel.push_back(pAccessUnitModel);
             checkForNewGOP();
+            decodeH264GOP(m_currentGOPModel);
         }        
         emit addTimelineUnits(pAccessUnitModels);
-    }
-
-    if(H264PPS::PPSMap.size() != PPSUnitsBefore) buildH264PPSView(this);
-    if(H264SPS::SPSMap.size() != SPSUnitsBefore) buildH264SPSView(this);
-    switch(m_tabIndex){
-        case 0:
-            emitStreamErrors();
-            break;
-        case 1:
-            // No VPS units in H264
-            break;
-        case 2:
-            emitH264SPSErrors();
-            break;
-        case 3:
-            emitH264PPSErrors();
-            break;
     }
 }
 
 void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH264Stream->accessUnitCount();
-    uint8_t PPSUnitsBefore = H264PPS::PPSMap.size();
-    uint8_t SPSUnitsBefore = H264SPS::SPSMap.size();
     m_pH264Stream->parsePacket(fileContent, fileSize);
-    decodeCurrentH264GOP();
+    if(m_liveContent) decodeH264GOP(m_currentGOPModel);
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH264Stream->accessUnitCount() - accessUnitCountBefore;
     m_frameCount += accessUnitCountDiff;
@@ -275,16 +258,16 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
         for(auto itAccessUnit = pAccessUnits.begin();itAccessUnit != pAccessUnits.end();++itAccessUnit){
             QUuid id = QUuid::createUuid();
             QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(*itAccessUnit, id));
-            if((*itAccessUnit)->decodable) decodeH264Slice(pAccessUnitModel);
             pAccessUnitModels.push_back(pAccessUnitModel);
             m_currentGOPModel.push_back(pAccessUnitModel);
             checkForNewGOP();
+            if(m_liveContent) decodeH264GOP(m_currentGOPModel);
         }        
         emit addTimelineUnits(pAccessUnitModels);
     }
 
-    if(H264PPS::PPSMap.size() != PPSUnitsBefore) buildH264PPSView(this);
-    if(H264SPS::SPSMap.size() != SPSUnitsBefore) buildH264SPSView(this);
+    buildH264PPSView(this);
+    buildH264SPSView(this);
     switch(m_tabIndex){
         case 0:
             emitStreamErrors();
@@ -304,11 +287,8 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
 
 void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH265Stream->accessUnitCount();
-    uint8_t PPSUnitsBefore = H265PPS::PPSMap.size();
-    uint8_t SPSUnitsBefore = H265SPS::SPSMap.size();
-    uint8_t VPSUnitsBefore = H265VPS::VPSMap.size();
     m_pH265Stream->parsePacket(fileContent, fileSize);
-    decodeCurrentH265GOP();
+    decodeH265GOP(m_currentGOPModel);
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     checkForNewGOP();
@@ -316,52 +296,22 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
     else {
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
         std::list<H265AccessUnit*> pAccessUnits = m_pH265Stream->getLastAccessUnits(accessUnitCountDiff);
-        QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels, pSortedAccessUnitModelsToDecode;
         for(H265AccessUnit* pAccessUnit : pAccessUnits){
             QUuid id = QUuid::createUuid();
             QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(pAccessUnit, id));
-            pSortedAccessUnitModelsToDecode.push_back(pAccessUnitModel);
-            if(pAccessUnit->decodable) pDecodableAccessUnitModels.push_back(pAccessUnitModel);
             pAccessUnitModels.push_back(pAccessUnitModel);
             m_currentGOPModel.push_back(pAccessUnitModel);
             checkForNewGOP();
+            decodeH265GOP(m_currentGOPModel);
         }
-        std::sort(pSortedAccessUnitModelsToDecode.begin(), pSortedAccessUnitModelsToDecode.end(), [](QSharedPointer<QAccessUnitModel> lhs, QSharedPointer<QAccessUnitModel> rhs){
-            if(!lhs->m_displayedFrameNum.has_value()) return true;
-            if(!rhs->m_displayedFrameNum.has_value()) return false;
-            return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
-        });
-        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);
-        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) decodeH265Slice(pAccessUnitModel);
         emit addTimelineUnits(pAccessUnitModels);
-    }
-
-    if(H265PPS::PPSMap.size() != PPSUnitsBefore) buildH265PPSView(this);
-    if(H265SPS::SPSMap.size() != SPSUnitsBefore) buildH265SPSView(this);
-    if(H265VPS::VPSMap.size() != VPSUnitsBefore) buildVPSView(this);
-    switch(m_tabIndex){
-        case 0:
-            emitStreamErrors();
-            break;
-        case 1:
-            emitVPSErrors();
-            break;
-        case 2:
-            emitH265SPSErrors();
-            break;
-        case 3:
-            emitH265PPSErrors();
-            break;
     }
 }
 
 void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH265Stream->accessUnitCount();
-    uint8_t PPSUnitsBefore = H265PPS::PPSMap.size();
-    uint8_t SPSUnitsBefore = H265SPS::SPSMap.size();
-    uint8_t VPSUnitsBefore = H265VPS::VPSMap.size();
     m_pH265Stream->parsePacket(fileContent, fileSize);
-    decodeCurrentH265GOP();
+    if(m_liveContent) decodeH265GOP(m_currentGOPModel);
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     m_frameCount += accessUnitCountDiff;
@@ -379,29 +329,20 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     else {
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
         std::list<H265AccessUnit*> pAccessUnits = m_pH265Stream->getLastAccessUnits(accessUnitCountDiff);
-        QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels, pSortedAccessUnitModelsToDecode;
         for(H265AccessUnit* pAccessUnit : pAccessUnits){
             QUuid id = QUuid::createUuid();
             QSharedPointer<QAccessUnitModel> pAccessUnitModel = QSharedPointer<QAccessUnitModel>(new QAccessUnitModel(pAccessUnit, id));
-            pSortedAccessUnitModelsToDecode.push_back(pAccessUnitModel);
-            if(pAccessUnit->decodable) pDecodableAccessUnitModels.push_back(pAccessUnitModel);
             pAccessUnitModels.push_back(pAccessUnitModel);
             m_currentGOPModel.push_back(pAccessUnitModel);
             checkForNewGOP();
+            if(m_liveContent) decodeH265GOP(m_currentGOPModel);
         }
-        std::sort(pSortedAccessUnitModelsToDecode.begin(), pSortedAccessUnitModelsToDecode.end(), [](QSharedPointer<QAccessUnitModel> lhs, QSharedPointer<QAccessUnitModel> rhs){
-            if(!lhs->m_displayedFrameNum.has_value()) return true;
-            if(!rhs->m_displayedFrameNum.has_value()) return false;
-            return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
-        });
-        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);
-        for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) decodeH265Slice(pAccessUnitModel);
         emit addTimelineUnits(pAccessUnitModels);
     }
 
-    if(H265PPS::PPSMap.size() != PPSUnitsBefore) buildH265PPSView(this);
-    if(H265SPS::SPSMap.size() != SPSUnitsBefore) buildH265SPSView(this);
-    if(H265VPS::VPSMap.size() != VPSUnitsBefore) buildVPSView(this);
+    buildH265PPSView(this);
+    buildH265SPSView(this);
+    buildVPSView(this);
     switch(m_tabIndex){
         case 0:
             emitStreamErrors();
@@ -574,11 +515,49 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
     if(pAccessUnitModel) {
         modelFromAccessUnit(model, pAccessUnitModel->m_pAccessUnit);
         if(m_tabIndex == 0) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit), majorErrorListFromAccessUnit(pAccessUnitModel->m_pAccessUnit));
-        emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
     } else if(m_tabIndex == 0){
         emit updateErrorView(tr("Stream errors"), m_minorStreamErrors, m_majorStreamErrors);
     }
     emit updateFrameInfoView(model);
+    if(!pAccessUnitModel) return;
+    if(m_liveContent){
+        for(QSharedPointer<QAccessUnitModel> pCurrentGOPAccessUnitModel : m_currentGOPModel){
+            if(pAccessUnitModel->m_id == pCurrentGOPAccessUnitModel->m_id){
+                emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
+                return;
+            }
+        }
+    }
+    for(QSharedPointer<QAccessUnitModel> pSelectedGOPAccessUnitModel : m_selectedDecodedGOPModel){
+        if(pAccessUnitModel->m_id == pSelectedGOPAccessUnitModel->m_id){
+            emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
+            return;
+        }
+    }
+    m_decodedFrames.clear();
+    while(!m_requestedFrames.empty()) m_requestedFrames.pop();
+    m_selectedDecodedGOPModel = QVector<QSharedPointer<QAccessUnitModel>>();
+    for(QVector<QSharedPointer<QAccessUnitModel>> prevGOP : m_previousGOPModels){
+        for(QSharedPointer<QAccessUnitModel> pPrevGOPAccessUnitModel : prevGOP){
+            if(pAccessUnitModel->m_id == pPrevGOPAccessUnitModel->m_id){
+                m_selectedDecodedGOPModel = prevGOP;
+                break;
+            }
+        }
+        if(!m_selectedDecodedGOPModel.empty()) break;
+    }
+    if(m_selectedDecodedGOPModel.empty()){
+        emit updateVideoFrameViewImage(nullptr);
+        return;
+    }
+
+    for(QSharedPointer<QAccessUnitModel> pSelectedGOPAccessUnitModel : m_selectedDecodedGOPModel) pSelectedGOPAccessUnitModel->decoded = false;
+
+    m_liveContent = false;
+    emit setLiveContent(false);
+    if(m_selectedDecodedGOPModel.front()->isH264()) decodeH264GOP(m_selectedDecodedGOPModel);
+    else if(m_selectedDecodedGOPModel.front()->isH265()) decodeH265GOP(m_selectedDecodedGOPModel);
+    emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
 }
 
 void QDecoderModel::framesTabOpened(){
@@ -605,11 +584,22 @@ void QDecoderModel::ppsTabOpened(){
 }
 
 void QDecoderModel::frameDeleted(QUuid id){
-    if(m_decodedFrames[id]) m_decodedFrames.remove(id);
+    m_decodedFrames.remove(id);
 }
 
 void QDecoderModel::liveContentSet(bool activated){
     m_liveContent = activated;
+    if(m_liveContent){
+        for(QSharedPointer<QAccessUnitModel> pSelectedGOPAccessUnitModel : m_selectedDecodedGOPModel){
+            m_decodedFrames.remove(pSelectedGOPAccessUnitModel->m_id);
+        }
+        m_selectedDecodedGOPModel = QVector<QSharedPointer<QAccessUnitModel>>();
+        for(QSharedPointer<QAccessUnitModel> pCurrentGOPAccessUnitModel : m_currentGOPModel){
+            pCurrentGOPAccessUnitModel->decoded = false;
+        }
+        if(m_currentGOPModel.front()->isH264()) decodeH264GOP(m_currentGOPModel);
+        else if(m_currentGOPModel.front()->isH265()) decodeH265GOP(m_currentGOPModel);
+    }
 }
 
 void QDecoderModel::memoryLimitToggled(bool activated){
@@ -650,9 +640,25 @@ void QDecoderModel::folderLoaded(){
         std::transform(m_pH264Stream->majorErrors.begin(), m_pH264Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
-        decodeCurrentH264GOP();
+        decodeH264GOP(m_currentGOPModel);
         updateH264StatusBarValidity();
         updateH264StatusBarStatus();
+        buildH264PPSView(this);
+        buildH264SPSView(this);
+        switch(m_tabIndex){
+            case 0:
+                emitStreamErrors();
+                break;
+            case 1:
+                // No VPS units in H264
+                break;
+            case 2:
+                emitH264SPSErrors();
+                break;
+            case 3:
+                emitH264PPSErrors();
+                break;
+        }
     } else if(!h265GOPs.empty()){
         m_pH265Stream->lastPacketParsed();
         std::transform(m_pH265Stream->minorErrors.begin(), m_pH265Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
@@ -661,15 +667,47 @@ void QDecoderModel::folderLoaded(){
         std::transform(m_pH265Stream->majorErrors.begin(), m_pH265Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
             return QString(err.c_str());
         });
-        decodeCurrentH265GOP();
+        decodeH265GOP(m_currentGOPModel);
         updateH265StatusBarValidity();
         updateH265StatusBarStatus();
+        buildH265PPSView(this);
+        buildH265SPSView(this);
+        buildVPSView(this);
+        switch(m_tabIndex){
+            case 0:
+                emitStreamErrors();
+                break;
+            case 1:
+                emitVPSErrors();
+                break;
+            case 2:
+                emitH265SPSErrors();
+                break;
+            case 3:
+                emitH265PPSErrors();
+                break;
+        }
     }
     validateCurrentGOP();
+    m_previousGOPModels.push_back(QVector<QSharedPointer<QAccessUnitModel>>());
+    for(QSharedPointer<QAccessUnitModel> pPrevGOPAccessUnitModel : m_currentGOPModel) {
+        m_previousGOPModels.back().push_back(pPrevGOPAccessUnitModel);
+        m_decodedFrames.remove(pPrevGOPAccessUnitModel->m_id);
+    }
+    m_currentGOPModel.clear();
     if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit), majorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
     else emitStreamErrors();
     emit updateTimelineUnits();
     emit updateDecodedSize(pictureMemoryUsageMB());
+}
+
+void QDecoderModel::streamStopped(){
+    m_previousGOPModels.push_back(QVector<QSharedPointer<QAccessUnitModel>>());
+    for(QSharedPointer<QAccessUnitModel> pPrevGOPAccessUnitModel : m_currentGOPModel) {
+        m_previousGOPModels.back().push_back(pPrevGOPAccessUnitModel);
+        m_decodedFrames.remove(pPrevGOPAccessUnitModel->m_id);
+    }
+    m_currentGOPModel.clear();
 }
 
 void QDecoderModel::emitStreamErrors(){
@@ -797,7 +835,11 @@ void QDecoderModel::checkForNewGOP(){
         emit updateGOVLength(m_currentGOPModel.size());
         validateCurrentGOP();
         m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id] = QDateTime::currentDateTime();
-        m_firstGOPSliceId.push_back(m_currentGOPModel.first()->m_id);
+        m_previousGOPModels.push_back(QVector<QSharedPointer<QAccessUnitModel>>());
+        for(QSharedPointer<QAccessUnitModel> pPrevGOPAccessUnitModel : m_currentGOPModel) {
+            m_previousGOPModels.back().push_back(pPrevGOPAccessUnitModel);
+            m_decodedFrames.remove(pPrevGOPAccessUnitModel->m_id);
+        }
         m_currentGOPModel.clear();
         m_currentGOPModel.push_back(pAccessUnitModel);
     }
@@ -809,8 +851,8 @@ void QDecoderModel::discardH264GOPs(){
     if(m_durationLimitSet){
         QDateTime now = QDateTime::currentDateTime();
         uint32_t outdatedGOPs = 0;
-        for(QUuid GOPId : m_firstGOPSliceId){
-            if(m_firstGOPSliceTimestamp[GOPId].secsTo(now) / 60 < m_durationLimit) break;
+        for(QVector<QSharedPointer<QAccessUnitModel>> pPrevGOPModel : m_previousGOPModels){
+            if(m_firstGOPSliceTimestamp[pPrevGOPModel.front()->m_id].secsTo(now) / 60 < m_durationLimit) break;
             outdatedGOPs++;
         }
         if(outdatedGOPs > 0) {
@@ -831,8 +873,8 @@ void QDecoderModel::discardH264GOPs(){
         }
     }
     for(int i = 0;i < removedGOPs;++i) {
-        m_firstGOPSliceTimestamp.remove(m_firstGOPSliceId.front());
-        m_firstGOPSliceId.pop_front();
+        m_firstGOPSliceTimestamp.remove(m_previousGOPModels.front().front()->m_id);
+        m_previousGOPModels.pop_front();
     }
 }
 
@@ -842,8 +884,8 @@ void QDecoderModel::discardH265GOPs(){
     if(m_durationLimitSet){
         QDateTime now = QDateTime::currentDateTime();
         uint32_t outdatedGOPs = 0;
-        for(QUuid GOPId : m_firstGOPSliceId){
-            if(m_firstGOPSliceTimestamp[GOPId].secsTo(now) / 60 < m_durationLimit) break;
+        for(QVector<QSharedPointer<QAccessUnitModel>> pPrevGOPModel : m_previousGOPModels){
+            if(m_firstGOPSliceTimestamp[pPrevGOPModel.front()->m_id].secsTo(now) / 60 < m_durationLimit) break;
             outdatedGOPs++;
         }
         if(outdatedGOPs > 0) {
@@ -863,27 +905,35 @@ void QDecoderModel::discardH265GOPs(){
         }
     }
     for(int i = 0;i < removedGOPs;++i) {
-        m_firstGOPSliceTimestamp.remove(m_firstGOPSliceId.front());
-        m_firstGOPSliceId.pop_front();
+        m_firstGOPSliceTimestamp.remove(m_previousGOPModels.front().front()->m_id);
+        m_previousGOPModels.pop_front();
     }
 }
 
-void QDecoderModel::decodeCurrentH264GOP(){
-    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){
-        auto decodedFrame = m_decodedFrames.find(pAccessUnitModel->m_id);
-        bool noValidDecodedFrame = decodedFrame == m_decodedFrames.end() || decodedFrame->get() == nullptr;
-        if(noValidDecodedFrame && std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable){
+void QDecoderModel::decodeH264GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP){
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : GOP){
+        if(std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->hasMajorErrors()) continue;
+        if(!m_decodedFrames.contains(pAccessUnitModel->m_id) && std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable && !pAccessUnitModel->decoded){
             decodeH264Slice(pAccessUnitModel);
         }
     }
 }
 
-void QDecoderModel::decodeCurrentH265GOP(){
-    QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels;
-    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){
+void QDecoderModel::decodeH265GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP){
+    QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels, pSortedAccessUnitModelsToDecode;
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : GOP){
         if(std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->hasMajorErrors()) continue;
-        if(!m_decodedFrames[pAccessUnitModel->m_id] && std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable) pDecodableAccessUnitModels.push_back(pAccessUnitModel);
+        if(!m_decodedFrames.contains(pAccessUnitModel->m_id)  && std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable && !pAccessUnitModel->decoded){
+            pSortedAccessUnitModelsToDecode.push_back(pAccessUnitModel);
+            pDecodableAccessUnitModels.push_back(pAccessUnitModel);
+        }
     }
+    std::sort(pSortedAccessUnitModelsToDecode.begin(), pSortedAccessUnitModelsToDecode.end(), [](QSharedPointer<QAccessUnitModel> lhs, QSharedPointer<QAccessUnitModel> rhs){
+        if(!lhs->m_displayedFrameNum.has_value()) return true;
+        if(!rhs->m_displayedFrameNum.has_value()) return false;
+        return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
+    });
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) decodeH265Slice(pAccessUnitModel);
 }
 
@@ -1177,8 +1227,7 @@ void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
         return;
     }
     m_requestedFrames.push(pAccessUnitModel);
-
-
+    
     int receivedFrame = avcodec_receive_frame(m_pH264CodecCtx, pFrame);
     while(receivedFrame == 0 && !m_requestedFrames.empty()){
         while(std::get<const H264AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
@@ -1187,6 +1236,8 @@ void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
         m_requestedFrames.pop();
         receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }
+    pAccessUnitModel->decoded = true;
+
     av_frame_free(&pFrame); 
     avformat_network_deinit();
 }
@@ -1211,7 +1262,9 @@ void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     while(receivedFrame == 0){
         while(std::get<const H265AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
         m_decodedFrames[m_requestedFrames.front()->m_id] = QSharedPointer<QImage>(getQImageFromH265Frame(pFrame));
-        if(m_liveContent) emit updateVideoFrameViewImage(m_decodedFrames[m_requestedFrames.front()->m_id] );
+        if(m_liveContent) {
+            emit updateVideoFrameViewImage(m_decodedFrames[m_requestedFrames.front()->m_id]);
+        }
         m_requestedFrames.pop();
         receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }

@@ -54,8 +54,10 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
 
     connect(m_pWindowMain, &QWindowMain::stop, m_pStreamModel, &QStreamModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(m_pWindowMain, &QWindowMain::openFolderClicked, m_pDecoderModel, &QDecoderModel::streamStopped);
     connect(m_pWindowMain, &QWindowMain::openFolderClicked, this, &QWindowMainController::folderOpened);
     connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pStreamModel, &QStreamModel::streamStopped);
+    connect(m_pWindowMain, &QWindowMain::openStreamClicked, m_pDecoderModel, &QDecoderModel::streamStopped);
 
     connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream, m_pVideoInputViewController, &QVideoInputViewController::openStream);
     connect(m_pWindowMain->getStreamLinkDialog(), &QStreamLinkDialog::accessStream, m_pStatusViewController, &QStatusViewController::openStream);

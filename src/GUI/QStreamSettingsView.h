@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QGroupBox>
-#include <QSpinBox>
+#include <QCheckBox>
 
 #define MEMORY_LIMIT_MIN 512
 #define MEMORY_LIMIT_MAX 8192
@@ -27,7 +27,7 @@ public:
     virtual ~QStreamSettingsView();
 
 public slots:
-
+    void liveContentSet(bool activated);
 signals:
     void toggleMemoryLimit(bool activated);
     void toggleDurationLimit(bool activated);
@@ -37,8 +37,9 @@ signals:
     void updateDurationLimit(int val);
     void updateGOPCountLimit(int val);
 
-    void setLiveContent(bool val);
+    void setLiveContent(bool activated);
     void stopStreamClicked();
 
 private:
+    QCheckBox* m_pLiveContentCheckbox;
 };

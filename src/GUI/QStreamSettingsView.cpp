@@ -3,14 +3,14 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QCheckBox>
 #include <QPushButton>
+#include <QSpinBox>
 
 
 #include "QStreamSettingsView.h"
 
 QStreamSettingsView::QStreamSettingsView(QWidget* parent)
-    : QGroupBox(tr("Stream settings"), parent)
+    : QGroupBox(tr("Stream settings"), parent), m_pLiveContentCheckbox(new QCheckBox(tr("Live content"), this))
 {
     QVBoxLayout* pStreamSettingsLayout = new QVBoxLayout(this);
     setLayout(pStreamSettingsLayout);
@@ -71,24 +71,27 @@ QStreamSettingsView::QStreamSettingsView(QWidget* parent)
     QHBoxLayout* pStreamControlLayout = new QHBoxLayout(pStreamControlContainer);
     pStreamControlContainer->setLayout(pStreamControlLayout);
 
-    QCheckBox* pLiveContentCheckbox = new QCheckBox(tr("Live content"), pStreamControlContainer);
     QPushButton* pStopStreamButton = new QPushButton(tr("Stop stream"), pStreamControlContainer);
-    pStreamControlLayout->addWidget(pLiveContentCheckbox);
+    pStreamControlLayout->addWidget(m_pLiveContentCheckbox);
     pStreamControlLayout->addWidget(pStopStreamButton);
 
-    connect(pLiveContentCheckbox, &QCheckBox::toggled, this, [this](bool checked) {
+    connect(m_pLiveContentCheckbox, &QCheckBox::toggled, this, [this](bool checked) {
             emit setLiveContent(checked);
     });
     connect(pStopStreamButton, &QAbstractButton::clicked, [this]() {
         emit stopStreamClicked();
     });
 
-    pLiveContentCheckbox->setChecked(true);
+    m_pLiveContentCheckbox->setChecked(true);
 
     hide();
 }
 
 QStreamSettingsView::~QStreamSettingsView(){
 
+}
+
+void QStreamSettingsView::liveContentSet(bool activated){
+    m_pLiveContentCheckbox->setChecked(activated);
 }
 

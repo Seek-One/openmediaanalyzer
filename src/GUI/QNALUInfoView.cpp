@@ -34,4 +34,5 @@ void QNALUInfoView::viewUpdated(QStandardItemModel* pModel){
     m_pTreeView->setModel(pModel);
     m_pTreeView->setColumnWidth(0, 200);
     m_pTreeView->setColumnWidth(1, 50);
+    m_pTreeView->expandAll();
 }

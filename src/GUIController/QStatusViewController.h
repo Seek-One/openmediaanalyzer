@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QFileSystemModel>
 
 class QStatusView;
 class QDecoderModel;

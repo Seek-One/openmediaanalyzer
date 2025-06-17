@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<structure_file version="1"  endianness="little-endian">
+
+  <!-- Define AVIMAINHEADER -->
+  <complex_type name="AVIMAINHEADER">
+    <field name="fcc" type="string" size="4" />
+    <field name="cb" type="uint32" />
+    <field name="dwMicroSecPerFrame" type="uint32" />
+    <field name="dwMaxBytesPerSec" type="uint32" />
+    <field name="dwPaddingGranularity" type="uint32" />
+    <field name="dwFlags" type="uint32" />
+    <field name="dwTotalFrames" type="uint32" />
+    <field name="dwInitialFrames" type="uint32" />
+    <field name="dwStreams" type="uint32" />
+    <field name="dwSuggestedBufferSize" type="uint32" />
+    <field name="dwWidth" type="uint32" />
+    <field name="dwHeight" type="uint32" />
+    <block name="dwReserved">
+      <field name="dwReserved[0]" type="uint32" />
+      <field name="dwReserved[1]" type="uint32" />
+      <field name="dwReserved[2]" type="uint32" />
+      <field name="dwReserved[3]" type="uint32" />
+    </block>
+  </complex_type>
+
+  <complex_type name="AVISTREAMHEADER">
+    <field name="fcc" type="string" size="4" />
+    <field name="cb" type="uint32" />
+    <field name="fccType" type="string" size="4" />
+    <field name="fccHandler" type="string" size="4" />
+    <field name="dwFlags" type="uint32" />
+    <field name="wPriority" type="uint16" />
+    <field name="wLanguage" type="uint16" />
+    <field name="dwInitialFrames" type="uint32" />
+    <field name="dwScale" type="uint32" />
+    <field name="dwRate" type="uint32" />
+    <field name="dwStart" type="uint32" />
+    <field name="dwLength" type="uint32" />
+    <field name="dwSuggestedBufferSize" type="uint32" />
+    <field name="dwQuality" type="uint32" />
+    <field name="dwSampleSize" type="uint32" />
+    <block name="rcFrame">
+      <field name="left" type="uint16" />
+      <field name="top" type="uint16" />
+      <field name="right" type="uint16" />
+      <field name="bottom" type="uint16" />
+    </block>
+  </complex_type>
+
+  <complex_type name="BITMAPINFOHEADER">
+    <field name="biSize" type="uint32" />
+    <field name="biWidth" type="int32" />
+    <field name="biHeight" type="int32" />
+    <field name="biPlanes" type="uint16" />
+    <field name="biBitCount" type="uint16" />
+    <field name="biCompression" type="string" size="4" />
+    <field name="biSizeImage" type="uint32" />
+    <field name="biXPelsPerMeter" type="int32" />
+    <field name="biYPelsPerMeter" type="int32" />
+    <field name="biClrUsed" type="uint32" />
+    <field name="biClrImportant" type="uint32" />
+    <condition expr="${biSize} > 40 ">
+      <field name="biData" type="bytes" size="${biSize}-40+1" />
+    </condition>
+  </complex_type>
+
+  <complex_type name="WAVEFORMATEX">
+    <field name="wFormatTag" type="uint16" />
+    <field name="nChannels" type="uint16" />
+    <field name="nSamplesPerSec" type="uint32" />
+    <field name="nAvgBytesPerSec" type="uint32" />
+    <field name="nBlockAlign" type="uint16" />
+    <field name="wBitsPerSample" type="uint16" />
+    <field name="cbSize" type="uint16" />
+    <condition expr="${cbSize} > 0 ">
+      <field name="cbData" type="bytes" size="${cbSize}" />
+    </condition>
+  </complex_type>
+
+  <complex_type name="AVIINDEXENTRY">
+     <field name="ckid" type="string" size="4" />
+     <field name="dwFlags" type="uint32" />
+     <field name="dwChunkOffset" type="uint32" />
+     <field name="dwChunkLength" type="uint32" />
+  </complex_type>
+
+  <complex_type name="ATOM" display="flat" />
+
+  <!-- DEFINE THE ATOMIC CHUNK TYPE -->
+  <complex_type name="CHUNK">
+    <field name="dwFourCC" type="string" size="4" display="none" />
+    <field name="dwSize" type="uint32" display="none" />
+    <seek mode="backward" offset="8" />
+
+    <list_item_infos name="${dwFourCC}" />
+
+    <!-- avih -->
+    <condition expr="'${dwFourCC}' == 'avih'">
+      <field name="avih" type="AVIMAINHEADER" size="${dwSize}" />
+    </condition>
+
+    <!-- strh -->
+    <condition expr="'${dwFourCC}' == 'strh'">
+      <field name="strh" type="AVISTREAMHEADER" size="${dwSize}" />
+    </condition>
+
+    <!-- strf -->
+    <condition expr="'${dwFourCC}' == 'strf' ">
+      <condition expr="'${fccType}' == 'vids' ">
+        <seek mode="forward" offset="8" />
+        <field name="strf" type="BITMAPINFOHEADER" size="${dwSize}" />
+      </condition>
+      <condition expr="'${fccType}' == 'auds' ">
+        <seek mode="forward" offset="8" />
+        <field name="strf" type="WAVEFORMATEX" size="${dwSize}" />
+      </condition>
+      <condition expr="['vids', 'auds'].indexOf('${fccType}') == -1">
+        <field name="dwFourCC" type="string" size="4" />
+        <field name="dwSize" type="uint32"/>
+        <field name="data" type="bytes" size="${dwSize}" />
+      </condition>
+    </condition>
+
+    <!-- idx1 -->
+    <condition expr="'${dwFourCC}' == 'idx1'">
+      <field name="dwFourCC" type="string" size="4" />
+      <field name="dwSize" type="uint32"/>
+      <list name="idxs" mode="bytes" size="${dwSize}" display="flat" >
+        <field name="idxs" type="AVIINDEXENTRY" />
+      </list>
+    </condition>
+
+    <condition expr="['avih', 'strh', 'strf', 'idx1'].indexOf('${dwType}') == -1">
+      <field name="dwFourCC" type="string" size="4" />
+      <field name="dwSize" type="uint32"/>
+      <field name="data" type="bytes" size="${dwSize}" />
+      <condition  expr="${dwSize}%2 == 1" >
+        <field name="pad" type="bytes" size="1" />
+      </condition>
+    </condition>
+  </complex_type>
+
+  <!-- DEFINE THE ATOMIC LIST TYPE -->
+  <complex_type name="LIST" >
+    <field name="dwList" type="string" size="4" />
+    <field name="dwSize" type="uint32" />
+    <field name="dwFourCC" type="string" size="4" />
+
+    <list_item_infos name="${dwFourCC}" />
+
+    <list name="LIST" mode="bytes" size="${dwSize}-4" display="flat" >
+      <field name="data" type="ATOM" display="flat" />
+    </list>
+  </complex_type>
+
+  <!-- DEFINE THE ATOMIC LIST TYPE -->
+  <complex_type name="ATOM" >
+    <field name="dwType" type="string" size="4" display="none" />
+    <seek mode="backward" offset="4" />
+
+    <!-- List -->
+    <condition expr="['RIFF', 'LIST'].indexOf('${dwType}') != -1">
+      <field name="LIST" type="LIST" display="flat" />
+    </condition>
+
+    <!-- Chunk -->
+    <condition expr="['RIFF', 'LIST'].indexOf('${dwType}') == -1">
+      <field name="CHUNK" type="CHUNK" display="flat" />
+    </condition>
+
+  </complex_type>
+
+  <root>
+    <field name="RIFF-AVI" type="LIST" />
+  </root>
+
+</structure_file>

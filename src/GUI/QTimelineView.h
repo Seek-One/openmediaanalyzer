@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QScrollArea>
+#include <QUuid>
 #include <list>
 
 #define SCROLL_CLAMP_RIGHT_THRESHOLD 0.925

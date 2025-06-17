@@ -1,0 +1,19 @@
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PC_LIBDRM REQUIRED libdrm)
+
+find_library(LIBDRM_LIBRARIES
+  NAMES drm
+  HINTS ${PC_LIBDRM_LIBDIR}
+)
+
+find_path(LIBDRM_INCLUDE_DIRS
+  NAMES drm.h
+  HINTS ${PC_LIBDRM_INCLUDEDIR}
+)
+
+include(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libdrm DEFAULT_MSG
+  LIBDRM_LIBRARIES LIBDRM_INCLUDE_DIRS
+)
+
+mark_as_advanced(LIBDRM_INCLUDE_DIRS LIBDRM_LIBRARIES)

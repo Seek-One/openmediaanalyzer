@@ -47,58 +47,65 @@ H265VuiParameters::H265VuiParameters(){
 	log2_max_mv_length_vertical = 15;
 }
 
-std::vector<std::string> H265VuiParameters::dump_fields(){
-	std::vector<std::string> fields;
-	fields.push_back(fmt::format("aspect_ratio_info_present_flag:{}", aspect_ratio_info_present_flag));
+UnitFieldList H265VuiParameters::dump_fields(){
+	UnitFieldList fields = UnitFieldList("Video Usability Information");
+	ValueUnitFieldList aspect_ratio_info_present_flagField = ValueUnitFieldList("aspect_ratio_info_present_flag", aspect_ratio_info_present_flag);
 	if(aspect_ratio_info_present_flag){
-		fields.push_back(fmt::format("  aspect_ratio_idc:{}", aspect_ratio_idc));
+		ValueUnitFieldList aspect_ratio_idcField = ValueUnitFieldList("aspect_ratio_idc", aspect_ratio_idc);
 		if(aspect_ratio_idc == EXTENDED_SAR){
-			fields.push_back(fmt::format("    sar_width:{}", sar_width));
-			fields.push_back(fmt::format("    sar_height:{}", sar_height));
+			aspect_ratio_idcField.addItem(UnitField("sar_width", sar_width));
+			aspect_ratio_idcField.addItem(UnitField("sar_height", sar_height));
 		}
+		aspect_ratio_info_present_flagField.addItem(std::move(aspect_ratio_idcField));
 	}
-	fields.push_back(fmt::format("overscan_info_present_flag:{}", overscan_info_present_flag));
-	if(overscan_info_present_flag) fields.push_back(fmt::format("  overscan_appropriate_flag:{}", overscan_appropriate_flag));
-	fields.push_back(fmt::format("video_signal_type_present_flag:{}", video_signal_type_present_flag));
+	fields.addItem(std::move(aspect_ratio_info_present_flagField));
+	ValueUnitFieldList overscan_info_present_flagField = ValueUnitFieldList("overscan_info_present_flag", overscan_info_present_flag);
+	if(overscan_info_present_flag) overscan_info_present_flagField.addItem(UnitField("overscan_appropriate_flag", overscan_appropriate_flag));
+	fields.addItem(std::move(overscan_info_present_flagField));
+	ValueUnitFieldList video_signal_type_present_flagField = ValueUnitFieldList("video_signal_type_present_flag", video_signal_type_present_flag);
 	if(video_signal_type_present_flag){
-		fields.push_back(fmt::format("  video_format:{}", video_format));
-		fields.push_back(fmt::format("  video_full_range_flag:{}", video_full_range_flag));
-		fields.push_back(fmt::format("  colour_description_present_flag:{}", colour_description_present_flag));
+		video_signal_type_present_flagField.addItem(UnitField("video_format", video_format));
+		video_signal_type_present_flagField.addItem(UnitField("video_full_range_flag", video_full_range_flag));
+		ValueUnitFieldList colour_description_present_flagField = ValueUnitFieldList("colour_description_present_flag", colour_description_present_flag);
 		if(colour_description_present_flag){
-			fields.push_back(fmt::format("    colour_primaries:{}", colour_primaries));
-			fields.push_back(fmt::format("    transfer_characteristics:{}", transfer_characteristics));
-			fields.push_back(fmt::format("    matrix_coeffs:{}", matrix_coeffs));
+			colour_description_present_flagField.addItem(UnitField("colour_primaries", colour_primaries));
+			colour_description_present_flagField.addItem(UnitField("transfer_characteristics", transfer_characteristics));
+			colour_description_present_flagField.addItem(UnitField("matrix_coeffs", matrix_coeffs));
 		}
+		video_signal_type_present_flagField.addItem(std::move(colour_description_present_flagField));
 	}
-	fields.push_back(fmt::format("chroma_loc_info_present_flag:{}", chroma_loc_info_present_flag));
+	fields.addItem(std::move(video_signal_type_present_flagField));
+	ValueUnitFieldList chroma_loc_info_present_flagField = ValueUnitFieldList("chroma_loc_info_present_flag", chroma_loc_info_present_flag);
 	if(chroma_loc_info_present_flag){
-		fields.push_back(fmt::format("  chroma_sample_loc_type_top_field:{}", chroma_sample_loc_type_top_field));
-		fields.push_back(fmt::format("  chroma_sample_loc_type_bottom_field:{}", chroma_sample_loc_type_bottom_field));
+		chroma_loc_info_present_flagField.addItem(UnitField("chroma_sample_loc_type_top_field", chroma_sample_loc_type_top_field));
+		chroma_loc_info_present_flagField.addItem(UnitField("chroma_sample_loc_type_bottom_field", chroma_sample_loc_type_bottom_field));
 	}
-	fields.push_back(fmt::format("neutral_chroma_indication_flag:{}", neutral_chroma_indication_flag));
-	fields.push_back(fmt::format("field_seq_flag:{}", field_seq_flag));
-	fields.push_back(fmt::format("frame_field_info_present_flag:{}", frame_field_info_present_flag));
-	fields.push_back(fmt::format("default_display_window_flag:{}", default_display_window_flag));
+	fields.addItem(std::move(chroma_loc_info_present_flagField));
+	fields.addItem(UnitField("neutral_chroma_indication_flag", neutral_chroma_indication_flag));
+	fields.addItem(UnitField("field_seq_flag", field_seq_flag));
+	fields.addItem(UnitField("frame_field_info_present_flag", frame_field_info_present_flag));
+	ValueUnitFieldList default_display_window_flagField = ValueUnitFieldList("default_display_window_flag",default_display_window_flag);
 	if(default_display_window_flag){
-		fields.push_back(fmt::format("  def_disp_win_left_offset:{}", def_disp_win_left_offset));
-		fields.push_back(fmt::format("  def_disp_win_right_offset:{}", def_disp_win_right_offset));
-		fields.push_back(fmt::format("  def_disp_win_top_offset:{}", def_disp_win_top_offset));
-		fields.push_back(fmt::format("  def_disp_win_bottom_offset:{}", def_disp_win_bottom_offset));
+		default_display_window_flagField.addItem(UnitField("def_disp_win_left_offset", def_disp_win_left_offset));
+		default_display_window_flagField.addItem(UnitField("def_disp_win_right_offset", def_disp_win_right_offset));
+		default_display_window_flagField.addItem(UnitField("def_disp_win_top_offset", def_disp_win_top_offset));
+		default_display_window_flagField.addItem(UnitField("def_disp_win_bottom_offset", def_disp_win_bottom_offset));
 	}
-	fields.push_back(fmt::format("vui_timing_info_present_flag:{}", vui_timing_info_present_flag));
+	fields.addItem(std::move(default_display_window_flagField));
+	ValueUnitFieldList vui_timing_info_present_flagField = ValueUnitFieldList("vui_timing_info_present_flag", vui_timing_info_present_flag);
 	if(vui_timing_info_present_flag){
-		fields.push_back(fmt::format("  vui_num_units_in_tick:{}", vui_num_units_in_tick));
-		fields.push_back(fmt::format("  vui_time_scale:{}", vui_time_scale));
-		fields.push_back(fmt::format("  vui_poc_proportional_to_timing_flag:{}", vui_poc_proportional_to_timing_flag));
-		if(vui_poc_proportional_to_timing_flag) fields.push_back(fmt::format("    vui_num_ticks_poc_diff_one_minus1:{}", vui_num_ticks_poc_diff_one_minus1));
+		vui_timing_info_present_flagField.addItem(UnitField("vui_num_units_in_tick", vui_num_units_in_tick));
+		vui_timing_info_present_flagField.addItem(UnitField("vui_time_scale", vui_time_scale));
+		ValueUnitFieldList vui_poc_proportional_to_timing_flagField = ValueUnitFieldList("vui_poc_proportional_to_timing_flag",vui_poc_proportional_to_timing_flag);
+		vui_timing_info_present_flagField.addItem(std::move(vui_poc_proportional_to_timing_flagField));
+		if(vui_poc_proportional_to_timing_flag) vui_poc_proportional_to_timing_flagField.addItem(UnitField("vui_num_ticks_poc_diff_one_minus1", vui_num_ticks_poc_diff_one_minus1));
 	}
-	fields.push_back(fmt::format("vui_hrd_parameters_present_flag:{}", vui_hrd_parameters_present_flag));
+	fields.addItem(std::move(vui_timing_info_present_flagField));
+	ValueUnitFieldList vui_hrd_parameters_present_flagField = ValueUnitFieldList("vui_hrd_parameters_present_flag", vui_hrd_parameters_present_flag);
 	if(vui_hrd_parameters_present_flag){
-		std::vector<std::string> hrdParametersFields = hrd_parameters.dump_fields(1);
-		std::transform(hrdParametersFields.begin(), hrdParametersFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
+		vui_hrd_parameters_present_flagField.addItem(std::move(hrd_parameters.dump_fields(1)));
 	}
+	fields.addItem(std::move(vui_hrd_parameters_present_flagField));
 	return fields;
 }
 
@@ -114,17 +121,17 @@ H265SPSRangeExtension::H265SPSRangeExtension(){
 	cabac_bypass_alignment_enabled_flag = 0;
 }
 
-std::vector<std::string> H265SPSRangeExtension::dump_fields(){
-	std::vector<std::string> fields;
-	fields.push_back(fmt::format("transform_skip_rotation_enabled_flag:{}", transform_skip_rotation_enabled_flag));
-	fields.push_back(fmt::format("transform_skip_context_enabled_flag:{}", transform_skip_context_enabled_flag));
-	fields.push_back(fmt::format("implicit_rdpcm_enabled_flag:{}", implicit_rdpcm_enabled_flag));
-	fields.push_back(fmt::format("explicit_rdpcm_enabled_flag:{}", explicit_rdpcm_enabled_flag));
-	fields.push_back(fmt::format("extended_precision_processing_flag:{}", extended_precision_processing_flag));
-	fields.push_back(fmt::format("intra_smoothing_disabled_flag:{}", intra_smoothing_disabled_flag));
-	fields.push_back(fmt::format("high_precision_offsets_enabled_flag:{}", high_precision_offsets_enabled_flag));
-	fields.push_back(fmt::format("persistent_rice_adaptation_enabled_flag:{}", persistent_rice_adaptation_enabled_flag));
-	fields.push_back(fmt::format("cabac_bypass_alignment_enabled_flag:{}", cabac_bypass_alignment_enabled_flag));
+UnitFieldList H265SPSRangeExtension::dump_fields(){
+	UnitFieldList fields = UnitFieldList("SPS Range Extension");
+	fields.addItem(UnitField("transform_skip_rotation_enabled_flag", transform_skip_rotation_enabled_flag));
+	fields.addItem(UnitField("transform_skip_context_enabled_flag", transform_skip_context_enabled_flag));
+	fields.addItem(UnitField("implicit_rdpcm_enabled_flag", implicit_rdpcm_enabled_flag));
+	fields.addItem(UnitField("explicit_rdpcm_enabled_flag", explicit_rdpcm_enabled_flag));
+	fields.addItem(UnitField("extended_precision_processing_flag", extended_precision_processing_flag));
+	fields.addItem(UnitField("intra_smoothing_disabled_flag", intra_smoothing_disabled_flag));
+	fields.addItem(UnitField("high_precision_offsets_enabled_flag", high_precision_offsets_enabled_flag));
+	fields.addItem(UnitField("persistent_rice_adaptation_enabled_flag", persistent_rice_adaptation_enabled_flag));
+	fields.addItem(UnitField("cabac_bypass_alignment_enabled_flag", cabac_bypass_alignment_enabled_flag));
 	return fields;
 }
 
@@ -132,9 +139,9 @@ H265SPSMultilayerExtension::H265SPSMultilayerExtension(){
 	inter_view_mv_vert_constraint_flag = 0;
 }
 
-std::vector<std::string> H265SPSMultilayerExtension::dump_fields(){
-	std::vector<std::string> fields;
-	fields.push_back(fmt::format("inter_view_mv_vert_constraint_flag:{}", inter_view_mv_vert_constraint_flag));
+UnitFieldList H265SPSMultilayerExtension::dump_fields(){
+	UnitFieldList fields = UnitFieldList("SPS Multilayer Extension");
+	fields.addItem(UnitField("inter_view_mv_vert_constraint_flag", inter_view_mv_vert_constraint_flag));
 	return fields;
 }
 
@@ -157,25 +164,25 @@ H265SPS3DExtension::H265SPS3DExtension(){
 	}
 }
 
-std::vector<std::string> H265SPS3DExtension::dump_fields(){
-	std::vector<std::string> fields;
+UnitFieldList H265SPS3DExtension::dump_fields(){
+	UnitFieldList fields = UnitFieldList("SPS 3D Extension");
 	for(int d = 0;d <= 1;++d){
-		fields.push_back(fmt::format("iv_di_mc_enabled_flag[{}]:{}", d, iv_di_mc_enabled_flag[d]));
-		fields.push_back(fmt::format("iv_mv_scal_enabled_flag[{}]:{}", d, iv_mv_scal_enabled_flag[d]));
+		fields.addItem(IdxUnitField("iv_di_mc_enabled_flag", iv_di_mc_enabled_flag[d], d));
+		fields.addItem(IdxUnitField("iv_mv_scal_enabled_flag", iv_mv_scal_enabled_flag[d], d));
 		if(d == 0){
-			fields.push_back(fmt::format("  log2_ivmc_sub_pb_size_minus3[{}]:{}", d, log2_ivmc_sub_pb_size_minus3[d]));
-			fields.push_back(fmt::format("  iv_res_pred_enabled_flag[{}]:{}", d, iv_res_pred_enabled_flag[d]));
-			fields.push_back(fmt::format("  depth_ref_enabled_flag[{}]:{}", d, depth_ref_enabled_flag[d]));
-			fields.push_back(fmt::format("  vsp_mc_enabled_flag[{}]:{}", d, vsp_mc_enabled_flag[d]));
-			fields.push_back(fmt::format("  dbbp_enabled_flag[{}]:{}", d, dbbp_enabled_flag[d]));
+			fields.addItem(IdxUnitField("log2_ivmc_sub_pb_size_minus3", log2_ivmc_sub_pb_size_minus3[d], d));
+			fields.addItem(IdxUnitField("iv_res_pred_enabled_flag", iv_res_pred_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("depth_ref_enabled_flag", depth_ref_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("vsp_mc_enabled_flag", vsp_mc_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("dbbp_enabled_flag", dbbp_enabled_flag[d], d));
 		} else {
-			fields.push_back(fmt::format("  tex_mc_enabled_flag[{}]:{}", d, tex_mc_enabled_flag[d]));
-			fields.push_back(fmt::format("  log2_texmc_sub_pb_size_minus3[{}]:{}", d, log2_texmc_sub_pb_size_minus3[d]));
-			fields.push_back(fmt::format("  intra_contour_enabled_flag[{}]:{}", d, intra_contour_enabled_flag[d]));
-			fields.push_back(fmt::format("  intra_dc_only_wedge_enabled_flag[{}]:{}", d, intra_dc_only_wedge_enabled_flag[d]));
-			fields.push_back(fmt::format("  cqt_cu_part_pred_enabled_flag[{}]:{}", d, cqt_cu_part_pred_enabled_flag[d]));
-			fields.push_back(fmt::format("  inter_dc_only_enabled_flag[{}]:{}", d, inter_dc_only_enabled_flag[d]));
-			fields.push_back(fmt::format("  skip_intra_enabled_flag[{}]:{}", d, skip_intra_enabled_flag[d]));
+			fields.addItem(IdxUnitField("tex_mc_enabled_flag", tex_mc_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("log2_texmc_sub_pb_size_minus3", log2_texmc_sub_pb_size_minus3[d], d));
+			fields.addItem(IdxUnitField("intra_contour_enabled_flag", intra_contour_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("intra_dc_only_wedge_enabled_flag", intra_dc_only_wedge_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("cqt_cu_part_pred_enabled_flag", cqt_cu_part_pred_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("inter_dc_only_enabled_flag", inter_dc_only_enabled_flag[d], d));
+			fields.addItem(IdxUnitField("skip_intra_enabled_flag", skip_intra_enabled_flag[d], d));
 		}
 	}
 	return fields;
@@ -192,25 +199,27 @@ H265SPSSCCExtension::H265SPSSCCExtension(){
 	intra_boundary_filtering_disabled_flag = 0;
 }
 
-std::vector<std::string> H265SPSSCCExtension::dump_fields(uint32_t chroma_format_idc){
-	std::vector<std::string> fields;
-	fields.push_back(fmt::format("sps_curr_pic_ref_enabled_flag:{}", sps_curr_pic_ref_enabled_flag));
-	fields.push_back(fmt::format("palette_mode_enabled_flag:{}", palette_mode_enabled_flag));
+UnitFieldList H265SPSSCCExtension::dump_fields(uint32_t chroma_format_idc){
+	UnitFieldList fields = UnitFieldList("SPS SCC Extension");
+	fields.addItem(UnitField("sps_curr_pic_ref_enabled_flag", sps_curr_pic_ref_enabled_flag));
+	ValueUnitFieldList palette_mode_enabled_flagField = ValueUnitFieldList("palette_mode_enabled_flag", palette_mode_enabled_flag);
 	if(palette_mode_enabled_flag){
-		fields.push_back(fmt::format("  palette_max_size:{}", palette_max_size));
-		fields.push_back(fmt::format("  delta_palette_max_predictor_size:{}", delta_palette_max_predictor_size));
-		fields.push_back(fmt::format("  sps_palette_predictor_initializers_present_flag:{}", sps_palette_predictor_initializers_present_flag));
+		palette_mode_enabled_flagField.addItem(UnitField("palette_max_size", palette_max_size));
+		palette_mode_enabled_flagField.addItem(UnitField("delta_palette_max_predictor_size", delta_palette_max_predictor_size));
+		ValueUnitFieldList sps_palette_predictor_initializers_present_flagField = ValueUnitFieldList("sps_palette_predictor_initializers_present_flag", sps_palette_predictor_initializers_present_flag);
+		palette_mode_enabled_flagField.addItem(std::move(sps_palette_predictor_initializers_present_flagField));
 		if(sps_palette_predictor_initializers_present_flag){
 			uint8_t numComps = (chroma_format_idc == 0) ? 1 : 3;
 			for(int comp = 0;comp < numComps;++comp){
 				for(int i = 0;i <= sps_num_palette_predictor_initializers_minus1;++i){
-					fields.push_back(fmt::format("  sps_palette_predictor_initializer[{}][{}]:{}", comp, i, sps_palette_predictor_initializer[comp][i]));
+					sps_palette_predictor_initializers_present_flagField.addItem(DblIdxUnitField("sps_palette_predictor_initializer", sps_palette_predictor_initializer[comp][i], comp, i));
 				}
 			}
 		}
 	}
-	fields.push_back(fmt::format("motion_vector_resolution_control_idc:{}", motion_vector_resolution_control_idc));
-	fields.push_back(fmt::format("intra_boundary_filtering_disabled_flag:{}", intra_boundary_filtering_disabled_flag));
+	fields.addItem(std::move(palette_mode_enabled_flagField));
+	fields.addItem(UnitField("motion_vector_resolution_control_idc", motion_vector_resolution_control_idc));
+	fields.addItem(UnitField("intra_boundary_filtering_disabled_flag", intra_boundary_filtering_disabled_flag));
 	return fields;
 }
 
@@ -298,117 +307,102 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 H265SPS::~H265SPS(){}
 
-std::vector<std::string> H265SPS::dump_fields(){
-	std::vector<std::string> fields = H265NAL::dump_fields();
+UnitFieldList H265SPS::dump_fields(){
+	UnitFieldList fields = UnitFieldList("Sequence Parameter Set", H265NAL::dump_fields());
 	if(!completelyParsed) return fields;
-	fields.push_back(fmt::format("sps_video_parameter_set_id:{}", sps_video_parameter_set_id));
-	fields.push_back(fmt::format("sps_max_sub_layers_minus1:{}", sps_max_sub_layers_minus1));
-	fields.push_back(fmt::format("sps_temporal_id_nesting_flag:{}", sps_temporal_id_nesting_flag));
-	std::vector<std::string> profileTierLevelFields = profile_tier_level.dump_fields();
-	std::transform(profileTierLevelFields.begin(), profileTierLevelFields.end(), std::back_inserter(fields), [](const std::string& subField){
-		return subField;
-	});
-	fields.push_back(fmt::format("sps_seq_parameter_set_id:{}", sps_seq_parameter_set_id));
-	fields.push_back(fmt::format("chroma_format_idc:{}", chroma_format_idc));
-	if(chroma_format_idc == 3) fields.push_back(fmt::format("  separate_colour_plane_flag:{}", separate_colour_plane_flag));
-	fields.push_back(fmt::format("pic_width_in_luma_samples:{}", pic_width_in_luma_samples));
-	fields.push_back(fmt::format("pic_height_in_luma_samples:{}", pic_height_in_luma_samples));
-	fields.push_back(fmt::format("conformance_window_flag:{}", conformance_window_flag));
+	fields.addItem(UnitField("sps_video_parameter_set_id", sps_video_parameter_set_id));
+	fields.addItem(UnitField("sps_max_sub_layers_minus1", sps_max_sub_layers_minus1));
+	fields.addItem(UnitField("sps_temporal_id_nesting_flag", sps_temporal_id_nesting_flag));
+	fields.addItem(std::move(profile_tier_level.dump_fields()));
+
+	fields.addItem(UnitField("sps_seq_parameter_set_id", sps_seq_parameter_set_id));
+	ValueUnitFieldList chroma_format_idcField = ValueUnitFieldList("chroma_format_idc", chroma_format_idc);
+	if(chroma_format_idc == 3) chroma_format_idcField.addItem(UnitField("separate_colour_plane_flag", separate_colour_plane_flag));
+	fields.addItem(std::move(chroma_format_idcField));
+	fields.addItem(UnitField("pic_width_in_luma_samples", pic_width_in_luma_samples));
+	fields.addItem(UnitField("pic_height_in_luma_samples", pic_height_in_luma_samples));
+	ValueUnitFieldList conformance_window_flagField = ValueUnitFieldList("conformance_window_flag", conformance_window_flag);
 	if(conformance_window_flag){
-		fields.push_back(fmt::format("  conf_win_left_offset:{}", conf_win_left_offset));
-		fields.push_back(fmt::format("  conf_win_right_offset:{}", conf_win_right_offset));
-		fields.push_back(fmt::format("  conf_win_top_offset:{}", conf_win_top_offset));
-		fields.push_back(fmt::format("  conf_win_bottom_offset:{}", conf_win_bottom_offset));
+		conformance_window_flagField.addItem(UnitField("conf_win_left_offset", conf_win_left_offset));
+		conformance_window_flagField.addItem(UnitField("conf_win_right_offset", conf_win_right_offset));
+		conformance_window_flagField.addItem(UnitField("conf_win_top_offset", conf_win_top_offset));
+		conformance_window_flagField.addItem(UnitField("conf_win_bottom_offset", conf_win_bottom_offset));
 	}
-	fields.push_back(fmt::format("bit_depth_luma_minus8:{}", bit_depth_luma_minus8));
-	fields.push_back(fmt::format("bit_depth_chroma_minus8:{}", bit_depth_chroma_minus8));
-	fields.push_back(fmt::format("log2_max_pic_order_cnt_lsb_minus4:{}", log2_max_pic_order_cnt_lsb_minus4));
-	fields.push_back(fmt::format("sps_sub_layer_ordering_info_present_flag:{}", sps_sub_layer_ordering_info_present_flag));
+	fields.addItem(std::move(conformance_window_flagField));
+	fields.addItem(UnitField("bit_depth_luma_minus8", bit_depth_luma_minus8));
+	fields.addItem(UnitField("bit_depth_chroma_minus8", bit_depth_chroma_minus8));
+	fields.addItem(UnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4));
+	fields.addItem(UnitField("sps_sub_layer_ordering_info_present_flag", sps_sub_layer_ordering_info_present_flag));
 	for(int i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1;i <= sps_max_sub_layers_minus1;++i){
-		fields.push_back(fmt::format("  sps_max_dec_pic_buffering_minus1[{}]:{}", i, sps_max_dec_pic_buffering_minus1[i]));
-		fields.push_back(fmt::format("  sps_max_num_reorder_pics[{}]:{}", i, sps_max_num_reorder_pics[i]));
-		fields.push_back(fmt::format("  sps_max_latency_increase_plus1[{}]:{}", i, sps_max_latency_increase_plus1[i]));
+		fields.addItem(IdxUnitField("sps_max_dec_pic_buffering_minus1", sps_max_dec_pic_buffering_minus1[i], i));
+		fields.addItem(IdxUnitField("sps_max_num_reorder_pics", sps_max_num_reorder_pics[i], i));
+		fields.addItem(IdxUnitField("sps_max_latency_increase_plus1", sps_max_latency_increase_plus1[i], i));
 	}
-	fields.push_back(fmt::format("log2_min_luma_coding_block_size_minus3:{}", log2_min_luma_coding_block_size_minus3));
-	fields.push_back(fmt::format("log2_diff_max_min_luma_coding_block_size:{}", log2_diff_max_min_luma_coding_block_size));
-	fields.push_back(fmt::format("log2_min_luma_transform_block_size_minus2:{}", log2_min_luma_transform_block_size_minus2));
-	fields.push_back(fmt::format("log2_diff_max_min_luma_transform_block_size:{}", log2_diff_max_min_luma_transform_block_size));
-	fields.push_back(fmt::format("max_transform_hierarchy_depth_inter:{}", max_transform_hierarchy_depth_inter));
-	fields.push_back(fmt::format("max_transform_hierarchy_depth_intra:{}", max_transform_hierarchy_depth_intra));
-	fields.push_back(fmt::format("scaling_list_enabled_flag:{}", scaling_list_enabled_flag));
+	fields.addItem(UnitField("log2_min_luma_coding_block_size_minus3", log2_min_luma_coding_block_size_minus3));
+	fields.addItem(UnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size));
+	fields.addItem(UnitField("log2_min_luma_transform_block_size_minus2", log2_min_luma_transform_block_size_minus2));
+	fields.addItem(UnitField("log2_diff_max_min_luma_transform_block_size", log2_diff_max_min_luma_transform_block_size));
+	fields.addItem(UnitField("max_transform_hierarchy_depth_inter", max_transform_hierarchy_depth_inter));
+	fields.addItem(UnitField("max_transform_hierarchy_depth_intra", max_transform_hierarchy_depth_intra));
+	ValueUnitFieldList scaling_list_enabled_flagField = ValueUnitFieldList("scaling_list_enabled_flag", scaling_list_enabled_flag);
 	if(scaling_list_enabled_flag){
-		fields.push_back(fmt::format("  sps_scaling_list_data_present_flag:{}", sps_scaling_list_data_present_flag));
+		ValueUnitFieldList sps_scaling_list_data_present_flagField = ValueUnitFieldList("sps_scaling_list_data_present_flag", sps_scaling_list_data_present_flag);
+		scaling_list_enabled_flagField.addItem(std::move(sps_scaling_list_data_present_flagField));
 		if(sps_scaling_list_data_present_flag){
-			std::vector<std::string> scalingListDataFields = scaling_list_data.dump_fields();
-			std::transform(scalingListDataFields.begin(), scalingListDataFields.end(), std::back_inserter(fields), [](const std::string& subField){
-				return "    " + subField;
-			});
+			sps_scaling_list_data_present_flagField.addItem(scaling_list_data.dump_fields());
 		}
 	}
-	fields.push_back(fmt::format("amp_enabled_flag:{}", amp_enabled_flag));
-	fields.push_back(fmt::format("sample_adaptive_offset_enabled_flag:{}", sample_adaptive_offset_enabled_flag));
-	fields.push_back(fmt::format("pcm_enabled_flag:{}", pcm_enabled_flag));
+	fields.addItem(std::move(scaling_list_enabled_flagField));
+	fields.addItem(UnitField("amp_enabled_flag", amp_enabled_flag));
+	fields.addItem(UnitField("sample_adaptive_offset_enabled_flag", sample_adaptive_offset_enabled_flag));
+	ValueUnitFieldList pcm_enabled_flagField = ValueUnitFieldList("pcm_enabled_flag", pcm_enabled_flag);
 	if(pcm_enabled_flag){
-		fields.push_back(fmt::format("  pcm_sample_bit_depth_luma_minus1:{}", pcm_sample_bit_depth_luma_minus1));
-		fields.push_back(fmt::format("  pcm_sample_bit_depth_chroma_minus1:{}", pcm_sample_bit_depth_chroma_minus1));
-		fields.push_back(fmt::format("  log2_min_pcm_luma_coding_block_size_minus3:{}", log2_min_pcm_luma_coding_block_size_minus3));
-		fields.push_back(fmt::format("  log2_diff_max_min_luma_coding_block_size:{}", log2_diff_max_min_luma_coding_block_size));
-		fields.push_back(fmt::format("  pcm_loop_filter_disabled_flag:{}", pcm_loop_filter_disabled_flag));
+		pcm_enabled_flagField.addItem(UnitField("pcm_sample_bit_depth_luma_minus1", pcm_sample_bit_depth_luma_minus1));
+		pcm_enabled_flagField.addItem(UnitField("pcm_sample_bit_depth_chroma_minus1", pcm_sample_bit_depth_chroma_minus1));
+		pcm_enabled_flagField.addItem(UnitField("log2_min_pcm_luma_coding_block_size_minus3", log2_min_pcm_luma_coding_block_size_minus3));
+		pcm_enabled_flagField.addItem(UnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size));
+		pcm_enabled_flagField.addItem(UnitField("pcm_loop_filter_disabled_flag", pcm_loop_filter_disabled_flag));
 	}
-	fields.push_back(fmt::format("num_short_term_ref_pic_sets:{}", num_short_term_ref_pic_sets));
+	fields.addItem(std::move(pcm_enabled_flagField));
+	ValueUnitFieldList num_short_term_ref_pic_setsField = ValueUnitFieldList("num_short_term_ref_pic_sets", num_short_term_ref_pic_sets);
 	for(int i = 0;i < num_short_term_ref_pic_sets;++i){
-		std::vector<std::string> shortTermRefPicSetFields = short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets);
-		std::transform(shortTermRefPicSetFields.begin(), shortTermRefPicSetFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
+		num_short_term_ref_pic_setsField.addItem(std::move(short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets)));
 	}
-	fields.push_back(fmt::format("long_term_ref_pics_present_flag:{}", long_term_ref_pics_present_flag));
+	fields.addItem(std::move(num_short_term_ref_pic_setsField));
+	ValueUnitFieldList long_term_ref_pics_present_flagField = ValueUnitFieldList("long_term_ref_pics_present_flag", long_term_ref_pics_present_flag);
 	if(long_term_ref_pics_present_flag){
-		fields.push_back(fmt::format("  num_long_term_ref_pics_sps:{}", num_long_term_ref_pics_sps));
+		ValueUnitFieldList num_long_term_ref_pics_spsField = ValueUnitFieldList("num_long_term_ref_pics_sps",num_long_term_ref_pics_sps);
+		long_term_ref_pics_present_flagField.addItem(std::move(num_long_term_ref_pics_spsField));
 		for(int i = 0;i < num_long_term_ref_pics_sps;++i){
-			fields.push_back(fmt::format("    lt_ref_pic_poc_lsb_sps[{}]:{}", i, lt_ref_pic_poc_lsb_sps[i]));
-			fields.push_back(fmt::format("    used_by_curr_pic_lt_sps_flag[{}]:{}", i, used_by_curr_pic_lt_sps_flag[i]));
+			num_long_term_ref_pics_spsField.addItem(IdxUnitField("lt_ref_pic_poc_lsb_sps", lt_ref_pic_poc_lsb_sps[i], i));
+			num_long_term_ref_pics_spsField.addItem(IdxUnitField("used_by_curr_pic_lt_sps_flag", used_by_curr_pic_lt_sps_flag[i], i));
 		}
 	}
-	fields.push_back(fmt::format("sps_temporal_mvp_enabled_flag:{}", sps_temporal_mvp_enabled_flag));
-	fields.push_back(fmt::format("strong_intra_smoothing_enabled_flag:{}", strong_intra_smoothing_enabled_flag));
-	fields.push_back(fmt::format("vui_parameters_present_flag:{}", vui_parameters_present_flag));
-	if(vui_parameters_present_flag){
-		std::vector<std::string> vuiParametersFields = vui_parameters.dump_fields();
-		std::transform(vuiParametersFields.begin(), vuiParametersFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
-	}
-	fields.push_back(fmt::format("sps_extension_flag:{}", sps_extension_flag));
+	fields.addItem(std::move(long_term_ref_pics_present_flagField));
+	fields.addItem(UnitField("sps_temporal_mvp_enabled_flag", sps_temporal_mvp_enabled_flag));
+	fields.addItem(UnitField("strong_intra_smoothing_enabled_flag", strong_intra_smoothing_enabled_flag));
+	ValueUnitFieldList vui_parameters_present_flagField = ValueUnitFieldList("vui_parameters_present_flag", vui_parameters_present_flag);
+	if(vui_parameters_present_flag) vui_parameters_present_flagField.addItem(std::move(vui_parameters.dump_fields()));
+	fields.addItem(std::move(vui_parameters_present_flagField));
+	
+	ValueUnitFieldList sps_extension_flagField = ValueUnitFieldList("sps_extension_flag", sps_extension_flag);
+	
+	ValueUnitFieldList sps_range_extension_flagField = ValueUnitFieldList("sps_range_extension_flag", sps_range_extension_flag);
+	ValueUnitFieldList sps_multilayer_extension_flagField = ValueUnitFieldList("sps_multilayer_extension_flag", sps_multilayer_extension_flag);
+	ValueUnitFieldList sps_3d_extension_flagField = ValueUnitFieldList("sps_3d_extension_flag", sps_3d_extension_flag);
+	ValueUnitFieldList sps_scc_extension_flagField = ValueUnitFieldList("sps_scc_extension_flag", sps_scc_extension_flag);
+	
+	fields.addItem(std::move(sps_extension_flagField));
+	if(sps_range_extension_flag)sps_range_extension_flagField.addItem(std::move(sps_range_extension.dump_fields()));
+	if(sps_multilayer_extension_flag) sps_multilayer_extension_flagField.addItem(std::move(sps_multilayer_extension.dump_fields()));
+	if(sps_3d_extension_flag) sps_3d_extension_flagField.addItem(std::move(sps_3d_extension.dump_fields()));
+	if(sps_scc_extension_flag) sps_scc_extension_flagField.addItem(std::move(sps_scc_extension.dump_fields(chroma_format_idc)));
+
 	if(sps_extension_flag){
-		fields.push_back(fmt::format("  sps_extension_flag:{}", sps_range_extension_flag));
-		fields.push_back(fmt::format("  sps_multilayer_extension_flag:{}", sps_multilayer_extension_flag));
-		fields.push_back(fmt::format("  sps_3d_extension_flag:{}", sps_3d_extension_flag));
-		fields.push_back(fmt::format("  sps_scc_extension_flag:{}", sps_scc_extension_flag));
-	}
-	if(sps_range_extension_flag){
-		std::vector<std::string> rangeExtensionFields = sps_range_extension.dump_fields();
-		std::transform(rangeExtensionFields.begin(), rangeExtensionFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
-	}
-	if(sps_multilayer_extension_flag){
-		std::vector<std::string> multilayerExtensionFields = sps_multilayer_extension.dump_fields();
-		std::transform(multilayerExtensionFields.begin(), multilayerExtensionFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
-	}
-	if(sps_3d_extension_flag){
-		std::vector<std::string> ThreeDExtensionFields = sps_3d_extension.dump_fields();
-		std::transform(ThreeDExtensionFields.begin(), ThreeDExtensionFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
-	}
-	if(sps_scc_extension_flag){
-		std::vector<std::string> sccExtensionFields = sps_scc_extension.dump_fields(chroma_format_idc);
-		std::transform(sccExtensionFields.begin(), sccExtensionFields.end(), std::back_inserter(fields), [](const std::string& subField){
-			return "  " + subField;
-		});
+		sps_extension_flagField.addItem(std::move(sps_range_extension_flagField));
+		sps_extension_flagField.addItem(std::move(sps_multilayer_extension_flagField));
+		sps_extension_flagField.addItem(std::move(sps_3d_extension_flagField));
+		sps_extension_flagField.addItem(std::move(sps_scc_extension_flagField));
 	}
 	return fields;
 }
@@ -416,56 +410,56 @@ std::vector<std::string> H265SPS::dump_fields(){
 void H265SPS::validate(){
 	H265NAL::validate();
 	if(!completelyParsed) return;
-	if(sps_max_sub_layers_minus1 > 6) minorErrors.push_back(fmt::format("[SPS] sps_max_sub_layers_minus1 value ({}) not in valid range (0..6)", sps_max_sub_layers_minus1));
+	if(sps_max_sub_layers_minus1 > 6) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_sub_layers_minus1 value (%ld) not in valid range (0..6)", sps_max_sub_layers_minus1));
 	auto referencedVPS = H265VPS::VPSMap.find(sps_video_parameter_set_id);
 	H265VPS* pVps = nullptr;
-	if(referencedVPS == H265VPS::VPSMap.end()) majorErrors.push_back(fmt::format("[SPS] reference to unknown VPS ({})", sps_video_parameter_set_id));
+	if(referencedVPS == H265VPS::VPSMap.end()) majorErrors.push_back(StringFormatter::formatString("[SPS] reference to unknown VPS (%ld)", sps_video_parameter_set_id));
 	else pVps = referencedVPS->second;
-	if(pVps && sps_max_sub_layers_minus1 > pVps->vps_max_sub_layers_minus1) minorErrors.push_back(fmt::format("[SPS] sps_max_sub_layers_minus1 value ({}) not less or equal to vps_max_sub_layers_minus1 value ({})", sps_max_sub_layers_minus1, pVps->vps_max_sub_layers_minus1));
+	if(pVps && sps_max_sub_layers_minus1 > pVps->vps_max_sub_layers_minus1) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_sub_layers_minus1 value (%ld) not less or equal to vps_max_sub_layers_minus1 value (%ld)", sps_max_sub_layers_minus1, pVps->vps_max_sub_layers_minus1));
 	if(pVps && pVps->vps_temporal_id_nesting_flag && !sps_temporal_id_nesting_flag) minorErrors.push_back("[SPS] sps_temporal_id_nesting_flag not set (as enforced by vps_temporal_id_nesting_flag)");
 	if(sps_max_sub_layers_minus1 == 0 && !sps_temporal_id_nesting_flag)minorErrors.push_back("[SPS] sps_temporal_id_nesting_flag not set (as enforced by sps_max_sub_layers_minus1)");
-	if(sps_seq_parameter_set_id > 15) minorErrors.push_back(fmt::format("[SPS] sps_seq_parameter_set_id value ({}) not in valid range (0..15)", sps_seq_parameter_set_id));
-	if(chroma_format_idc > 3) minorErrors.push_back(fmt::format("[SPS] chroma_format_idc value ({}) not in valid range (0..3)", chroma_format_idc));
+	if(sps_seq_parameter_set_id > 15) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_seq_parameter_set_id value (%ld) not in valid range (0..15)", sps_seq_parameter_set_id));
+	if(chroma_format_idc > 3) minorErrors.push_back(StringFormatter::formatString("[SPS] chroma_format_idc value (%ld) not in valid range (0..3)", chroma_format_idc));
 	if(pic_width_in_luma_samples == 0) minorErrors.push_back("[SPS] pic_width_in_luma_samples value equal to 0");
 	if(pic_width_in_luma_samples%MinCbSizeY != 0) minorErrors.push_back("[SPS] pic_width_in_luma_samples value not an integer multiple of MinCbSizeY");
 	if(pic_height_in_luma_samples == 0) minorErrors.push_back("[SPS] pic_height_in_luma_samples value equal to 0");
 	if(pic_height_in_luma_samples%MinCbSizeY != 0) minorErrors.push_back("[SPS] pic_height_in_luma_samples value not an integer multiple of MinCbSizeY");
 	if(conformance_window_flag){
 		uint32_t conformanceWindowOffsetWidth = SubWidthC*(conf_win_left_offset+conf_win_right_offset);
-		if(conformanceWindowOffsetWidth >= pic_width_in_luma_samples) minorErrors.push_back(fmt::format("[SPS] conformanceWindowOffsetWidth value ({}) greater or equal to pic_width_in_luma_samples", conformanceWindowOffsetWidth));
+		if(conformanceWindowOffsetWidth >= pic_width_in_luma_samples) minorErrors.push_back(StringFormatter::formatString("[SPS] conformanceWindowOffsetWidth value (%ld) greater or equal to pic_width_in_luma_samples", conformanceWindowOffsetWidth));
 		uint32_t conformanceWindowOffsetHeight = SubHeightC*(conf_win_top_offset+conf_win_bottom_offset);
-		if(conformanceWindowOffsetHeight >= pic_height_in_luma_samples) minorErrors.push_back(fmt::format("[SPS] conformanceWindowOffsetHeight value ({}) greater or equal to pic_height_in_luma_samples", conformanceWindowOffsetHeight));
+		if(conformanceWindowOffsetHeight >= pic_height_in_luma_samples) minorErrors.push_back(StringFormatter::formatString("[SPS] conformanceWindowOffsetHeight value (%ld) greater or equal to pic_height_in_luma_samples", conformanceWindowOffsetHeight));
 	}
-	if(bit_depth_luma_minus8 > 8) minorErrors.push_back(fmt::format("[SPS] bit_depth_luma_minus8 value ({}) not in valid range (0..8)", bit_depth_luma_minus8));
-	if(bit_depth_chroma_minus8 > 8) minorErrors.push_back(fmt::format("[SPS] bit_depth_chroma_minus8 value ({}) not in valid range (0..8)", bit_depth_chroma_minus8));
-	if(log2_max_pic_order_cnt_lsb_minus4 > 12) minorErrors.push_back(fmt::format("[SPS] log2_max_pic_order_cnt_lsb_minus4 value ({}) not in valid range (0..12)", log2_max_pic_order_cnt_lsb_minus4));
+	if(bit_depth_luma_minus8 > 8) minorErrors.push_back(StringFormatter::formatString("[SPS] bit_depth_luma_minus8 value (%ld) not in valid range (0..8)", bit_depth_luma_minus8));
+	if(bit_depth_chroma_minus8 > 8) minorErrors.push_back(StringFormatter::formatString("[SPS] bit_depth_chroma_minus8 value (%ld) not in valid range (0..8)", bit_depth_chroma_minus8));
+	if(log2_max_pic_order_cnt_lsb_minus4 > 12) minorErrors.push_back(StringFormatter::formatString("[SPS] log2_max_pic_order_cnt_lsb_minus4 value (%ld) not in valid range (0..12)", log2_max_pic_order_cnt_lsb_minus4));
 	for (uint8_t i = (sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1); i <= sps_max_sub_layers_minus1; ++i) {
-		if(sps_max_dec_pic_buffering_minus1[i] > MaxDpbSize-1) minorErrors.push_back(fmt::format("[SPS] sps_max_dec_pic_buffering_minus1[{}] value ({}) not in valid range (0..{})", i, sps_max_dec_pic_buffering_minus1[i], MaxDpbSize-1));
-		if(sps_max_num_reorder_pics[i] > sps_max_dec_pic_buffering_minus1[i]) minorErrors.push_back(fmt::format("[SPS] sps_max_num_reorder_pics[{}] value ({}) not in valid range (0..{})", i, sps_max_num_reorder_pics[i], sps_max_dec_pic_buffering_minus1[i]));
-		if(sps_max_latency_increase_plus1[i] == UINT32_MAX) minorErrors.push_back(fmt::format("[SPS] sps_max_latency_increase_plus1[{}] value ({}) not in valid range (0..4294967294)", i, sps_max_latency_increase_plus1[i]));
+		if(sps_max_dec_pic_buffering_minus1[i] > MaxDpbSize-1) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_dec_pic_buffering_minus1[%d] value (%ld) not in valid range (0..{})", i, sps_max_dec_pic_buffering_minus1[i], MaxDpbSize-1));
+		if(sps_max_num_reorder_pics[i] > sps_max_dec_pic_buffering_minus1[i]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_num_reorder_pics[%d] value (%ld) not in valid range (0..{})", i, sps_max_num_reorder_pics[i], sps_max_dec_pic_buffering_minus1[i]));
+		if(sps_max_latency_increase_plus1[i] == UINT32_MAX) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_latency_increase_plus1[%d] value (%ld) not in valid range (0..4294967294)", i, sps_max_latency_increase_plus1[i]));
 		if(i > 0){
-			if(sps_max_dec_pic_buffering_minus1[i] < sps_max_dec_pic_buffering_minus1[i-1]) minorErrors.push_back(fmt::format("[SPS] sps_max_dec_pic_buffering_minus1[{}] value ({}) lesser than previous sps_max_dec_pic_buffering_minus1 value", i, sps_max_dec_pic_buffering_minus1[i]));
-			if(sps_max_num_reorder_pics[i] < sps_max_num_reorder_pics[i-1]) minorErrors.push_back(fmt::format("[SPS] sps_max_num_reorder_pics[{}] value ({}) lesser than previous sps_max_num_reorder_pics value", i, sps_max_num_reorder_pics[i]));
+			if(sps_max_dec_pic_buffering_minus1[i] < sps_max_dec_pic_buffering_minus1[i-1]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_dec_pic_buffering_minus1[%d] value (%ld) lesser than previous sps_max_dec_pic_buffering_minus1 value", i, sps_max_dec_pic_buffering_minus1[i]));
+			if(sps_max_num_reorder_pics[i] < sps_max_num_reorder_pics[i-1]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_num_reorder_pics[%d] value (%ld) lesser than previous sps_max_num_reorder_pics value", i, sps_max_num_reorder_pics[i]));
 		}
 		if(pVps){
-			if(sps_max_dec_pic_buffering_minus1[i] > pVps->vps_max_dec_pic_buffering_minus1[i]) minorErrors.push_back(fmt::format("[SPS] sps_max_dec_pic_buffering_minus1[{}] value ({}) greater than vps_max_dec_pic_buffering_minus1[{}] value ({})", i, sps_max_dec_pic_buffering_minus1[i], i, pVps->vps_max_dec_pic_buffering_minus1[i]));
-			if(sps_max_num_reorder_pics[i] > pVps->vps_max_num_reorder_pics[i]) minorErrors.push_back(fmt::format("[SPS] sps_max_num_reorder_pics[{}] value ({}) greater than vps_max_num_reorder_pics[{}] value ({})", i, sps_max_num_reorder_pics[i], i, pVps->vps_max_num_reorder_pics[i]));
+			if(sps_max_dec_pic_buffering_minus1[i] > pVps->vps_max_dec_pic_buffering_minus1[i]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_dec_pic_buffering_minus1[%d] value (%ld) greater than vps_max_dec_pic_buffering_minus1[%d] value (%ld)", i, sps_max_dec_pic_buffering_minus1[i], i, pVps->vps_max_dec_pic_buffering_minus1[i]));
+			if(sps_max_num_reorder_pics[i] > pVps->vps_max_num_reorder_pics[i]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_num_reorder_pics[%d] value (%ld) greater than vps_max_num_reorder_pics[%d] value (%ld)", i, sps_max_num_reorder_pics[i], i, pVps->vps_max_num_reorder_pics[i]));
 			if(pVps->vps_max_latency_increase_plus1[i] != 0){
-				if(sps_max_latency_increase_plus1[i] == 0) minorErrors.push_back(fmt::format("[SPS] sps_max_latency_increase_plus1[{}] value should not be 0 (as enforced by vps_max_latency_increase_plus1[{}])", i, i));
-				if(sps_max_latency_increase_plus1[i] > pVps->vps_max_latency_increase_plus1[i]) minorErrors.push_back(fmt::format("[SPS] sps_max_latency_increase_plus1[{}] value ({}) greater than vps_max_latency_increase_plus1[{}] value ({})", i, sps_max_latency_increase_plus1[i], i, pVps->vps_max_latency_increase_plus1[i]));
+				if(sps_max_latency_increase_plus1[i] == 0) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_latency_increase_plus1[%d] value should not be 0 (as enforced by vps_max_latency_increase_plus1[%d])", i, i));
+				if(sps_max_latency_increase_plus1[i] > pVps->vps_max_latency_increase_plus1[i]) minorErrors.push_back(StringFormatter::formatString("[SPS] sps_max_latency_increase_plus1[%d] value (%ld) greater than vps_max_latency_increase_plus1[%d] value (%ld)", i, sps_max_latency_increase_plus1[i], i, pVps->vps_max_latency_increase_plus1[i]));
 			}
 		}
 	}
-	if(max_transform_hierarchy_depth_inter > CtbLog2SizeY - MinTbLog2SizeY) minorErrors.push_back(fmt::format("[SPS] max_transform_hierarchy_depth_inter value ({}) not in valid range (0..{})", max_transform_hierarchy_depth_inter, CtbLog2SizeY - MinTbLog2SizeY));
-	if(max_transform_hierarchy_depth_intra > CtbLog2SizeY - MinTbLog2SizeY) minorErrors.push_back(fmt::format("[SPS] max_transform_hierarchy_depth_intra value ({}) not in valid range (0..{})", max_transform_hierarchy_depth_intra, CtbLog2SizeY - MinTbLog2SizeY));
-	if(PcmBitDepthY > BitDepthY) minorErrors.push_back(fmt::format("[SPS] PcmBitDepthY value ({}) not in valid range (0..{})", PcmBitDepthY, BitDepthY));
-	if(PcmBitDepthC > BitDepthC) minorErrors.push_back(fmt::format("[SPS] PcmBitDepthC value ({}) not in valid range (0..{})", PcmBitDepthC, BitDepthC));
+	if(max_transform_hierarchy_depth_inter > CtbLog2SizeY - MinTbLog2SizeY) minorErrors.push_back(StringFormatter::formatString("[SPS] max_transform_hierarchy_depth_inter value (%ld) not in valid range (0..{})", max_transform_hierarchy_depth_inter, CtbLog2SizeY - MinTbLog2SizeY));
+	if(max_transform_hierarchy_depth_intra > CtbLog2SizeY - MinTbLog2SizeY) minorErrors.push_back(StringFormatter::formatString("[SPS] max_transform_hierarchy_depth_intra value (%ld) not in valid range (0..{})", max_transform_hierarchy_depth_intra, CtbLog2SizeY - MinTbLog2SizeY));
+	if(PcmBitDepthY > BitDepthY) minorErrors.push_back(StringFormatter::formatString("[SPS] PcmBitDepthY value (%ld) not in valid range (0..{})", PcmBitDepthY, BitDepthY));
+	if(PcmBitDepthC > BitDepthC) minorErrors.push_back(StringFormatter::formatString("[SPS] PcmBitDepthC value (%ld) not in valid range (0..{})", PcmBitDepthC, BitDepthC));
 	if(pcm_enabled_flag){
-		if(Log2MinIpcmCbSizeY < std::min(MinCbLog2SizeY, 5u) || Log2MinIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) minorErrors.push_back(fmt::format("[SPS] Log2MinIpcmCbSizeY value ({}) not in valid range ({}..{})", Log2MinIpcmCbSizeY, std::min(MinCbLog2SizeY, 5u), std::min(CtbLog2SizeY, 5u)));
-		if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) minorErrors.push_back(fmt::format("[SPS] Log2MaxIpcmCbSizeY value ({}) not in valid range (0..{})", Log2MaxIpcmCbSizeY, std::min(CtbLog2SizeY, 5u)));
+		if(Log2MinIpcmCbSizeY < std::min(MinCbLog2SizeY, 5u) || Log2MinIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) minorErrors.push_back(StringFormatter::formatString("[SPS] Log2MinIpcmCbSizeY value (%ld) not in valid range ({}..{})", Log2MinIpcmCbSizeY, std::min(MinCbLog2SizeY, 5u), std::min(CtbLog2SizeY, 5u)));
+		if(Log2MaxIpcmCbSizeY > std::min(CtbLog2SizeY, 5u)) minorErrors.push_back(StringFormatter::formatString("[SPS] Log2MaxIpcmCbSizeY value (%ld) not in valid range (0..{})", Log2MaxIpcmCbSizeY, std::min(CtbLog2SizeY, 5u)));
 	}
-	if(num_short_term_ref_pic_sets > 64) minorErrors.push_back(fmt::format("[SPS] num_short_term_ref_pic_sets value ({}) not in valid range (0..64)", num_short_term_ref_pic_sets));
-	if(num_long_term_ref_pics_sps > 32) minorErrors.push_back(fmt::format("[SPS] num_long_term_ref_pics_sps value ({}) not in valid range (0..32)", num_long_term_ref_pics_sps));
+	if(num_short_term_ref_pic_sets > 64) minorErrors.push_back(StringFormatter::formatString("[SPS] num_short_term_ref_pic_sets value (%ld) not in valid range (0..64)", num_short_term_ref_pic_sets));
+	if(num_long_term_ref_pics_sps > 32) minorErrors.push_back(StringFormatter::formatString("[SPS] num_long_term_ref_pics_sps value (%ld) not in valid range (0..32)", num_long_term_ref_pics_sps));
 }
 
 uint16_t H265SPS::computeMaxFrameNumber() const{

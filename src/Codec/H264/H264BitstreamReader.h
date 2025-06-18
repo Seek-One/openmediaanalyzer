@@ -36,8 +36,6 @@ private:
 	void readSEIUserDataUnregistered(H264SEI& h264SEI, uint payloadSize);
     void readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS &activeSPS);
 	void readSEIFullFrameFreeze(H264SEI& h264SEI);
-	void readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const H264SPS& activeSPS);
-	void readSEIMvcdOpViewInfo(H264SEIMvcdViewScalabilityInfo::movi& movi);
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264_BITSTREAM_READER_H_

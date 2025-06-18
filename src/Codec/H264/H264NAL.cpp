@@ -22,8 +22,12 @@ H264NAL::~H264NAL(){
 	if(nal_data) delete[] nal_data;
 }
 
-std::vector<std::string> H264NAL::dump_fields(){
-	return std::vector<std::string>();
+UnitFieldList H264NAL::dump_fields(){
+	UnitFieldList fieldList = UnitFieldList("NAL Unit");
+	fieldList.addItem(UnitField("forbidden_zero_bit", forbidden_zero_bit));
+	fieldList.addItem(UnitField("nal_ref_idc", nal_ref_idc));
+	fieldList.addItem(UnitField("nal_unit_type", nal_unit_type));
+	return fieldList;
 }
 
 void H264NAL::validate(){

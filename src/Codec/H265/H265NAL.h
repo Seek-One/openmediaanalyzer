@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "../../StringHelpers/UnitFieldList.h"
+#include "../../StringHelpers/StringFormatter.h"
+
 struct H265NAL {
 	enum UnitType {
 		UnitType_TRAIL_N     = 0,
@@ -61,7 +64,7 @@ struct H265NAL {
 	bool isIDR() const;
 	bool isTSA() const;
 	bool isSTSA() const;
-	virtual std::vector<std::string> dump_fields();
+	virtual UnitFieldList dump_fields();
 	virtual void validate();
 };
 

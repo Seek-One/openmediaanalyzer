@@ -1,5 +1,6 @@
-#include <fmt/core.h>
 #include <algorithm>
+
+#include "../../StringHelpers/StringFormatter.h"
 
 #include "H265HrdParameters.h"
 
@@ -8,16 +9,16 @@ H265SubLayerHrdParameters::H265SubLayerHrdParameters()
 
 }
 
-std::vector<std::string> H265SubLayerHrdParameters::dump_fields(uint8_t sub_pic_hrd_params_present_flag){
-	std::vector<std::string> fields;
+UnitFieldList H265SubLayerHrdParameters::dump_fields(uint8_t sub_pic_hrd_params_present_flag){
+	UnitFieldList fields = UnitFieldList("Sub-HRD Parameters");
 	for(int i = 0;i < bit_rate_du_value_minus1.size();++i){
-		fields.push_back(fmt::format("bit_rate_value_minus1[{}]:{}", i, bit_rate_value_minus1[i]));
-		fields.push_back(fmt::format("cpb_size_value_minus1[{}]:{}", i, cpb_size_value_minus1[i]));
+		fields.addItem(IdxUnitField("bit_rate_value_minus1", bit_rate_value_minus1[i], i));
+		fields.addItem(IdxUnitField("cpb_size_value_minus1", cpb_size_value_minus1[i], i));
 		if(sub_pic_hrd_params_present_flag){
-			fields.push_back(fmt::format("  cpb_size_du_value_minus1[{}]:{}", i, cpb_size_du_value_minus1[i]));
-			fields.push_back(fmt::format("  bit_rate_du_value_minus1[{}]:{}", i, bit_rate_du_value_minus1[i]));
+			fields.addItem(IdxUnitField("cpb_size_du_value_minus1", cpb_size_du_value_minus1[i], i));
+			fields.addItem(IdxUnitField("bit_rate_du_value_minus1", bit_rate_du_value_minus1[i], i));
 		}
-		fields.push_back(fmt::format("cbr_flag[{}]:{}", i, cbr_flag[i]));
+		fields.addItem(IdxUnitField("cbr_flag", cbr_flag[i], i));
 	}
 	return fields;
 }
@@ -39,45 +40,40 @@ H265HrdParameters::H265HrdParameters()
 	dpb_output_delay_length_minus1 = 0;
 }
 
-std::vector<std::string> H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
-	std::vector<std::string> fields;
+UnitFieldList H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
+	UnitFieldList fields = UnitFieldList("HRD Parameters");
 	if(commonInfPresentFlag){
-		fields.push_back(fmt::format("nal_hrd_parameters_present_flag:{}", nal_hrd_parameters_present_flag));
-		fields.push_back(fmt::format("vcl_hrd_parameters_present_flag:{}", vcl_hrd_parameters_present_flag));
+		fields.addItem(UnitField("nal_hrd_parameters_present_flag", nal_hrd_parameters_present_flag));
+		fields.addItem(UnitField("vcl_hrd_parameters_present_flag", vcl_hrd_parameters_present_flag));
 		if(nal_hrd_parameters_present_flag || vcl_hrd_parameters_present_flag){
-			fields.push_back(fmt::format("  sub_pic_hrd_params_present_flag:{}", sub_pic_hrd_params_present_flag));
+			ValueUnitFieldList sub_pic_hrd_params_present_flagField = ValueUnitFieldList("sub_pic_hrd_params_present_flag", sub_pic_hrd_params_present_flag);
 			if(sub_pic_hrd_params_present_flag){
-				fields.push_back(fmt::format("    tick_divisor_minus2:{}", tick_divisor_minus2));
-				fields.push_back(fmt::format("    du_cpb_removal_delay_increment_length_minus1:{}", du_cpb_removal_delay_increment_length_minus1));
-				fields.push_back(fmt::format("    sub_pic_cpb_params_in_pic_timing_sei_flag:{}", sub_pic_cpb_params_in_pic_timing_sei_flag));
-				fields.push_back(fmt::format("    dpb_output_delay_du_length_minus1:{}", dpb_output_delay_du_length_minus1));
+				sub_pic_hrd_params_present_flagField.addItem(UnitField("tick_divisor_minus2", tick_divisor_minus2));
+				sub_pic_hrd_params_present_flagField.addItem(UnitField("du_cpb_removal_delay_increment_length_minus1", du_cpb_removal_delay_increment_length_minus1));
+				sub_pic_hrd_params_present_flagField.addItem(UnitField("sub_pic_cpb_params_in_pic_timing_sei_flag", sub_pic_cpb_params_in_pic_timing_sei_flag));
+				sub_pic_hrd_params_present_flagField.addItem(UnitField("dpb_output_delay_du_length_minus1", dpb_output_delay_du_length_minus1));
 			}
-			fields.push_back(fmt::format("  bit_rate_scale:{}", bit_rate_scale));
-			fields.push_back(fmt::format("  cpb_size_scale:{}", cpb_size_scale));
-			if(sub_pic_hrd_params_present_flag) fields.push_back(fmt::format("    cpb_size_du_scale:{}", cpb_size_du_scale));
-			fields.push_back(fmt::format("  initial_cpb_removal_delay_length_minus1:{}", initial_cpb_removal_delay_length_minus1));
-			fields.push_back(fmt::format("  au_cpb_removal_delay_length_minus1:{}", au_cpb_removal_delay_length_minus1));
-			fields.push_back(fmt::format("  dpb_output_delay_length_minus1:{}", dpb_output_delay_length_minus1));
+			fields.addItem(std::move(sub_pic_hrd_params_present_flagField));
+			fields.addItem(UnitField("bit_rate_scale", bit_rate_scale));
+			fields.addItem(UnitField("cpb_size_scale", cpb_size_scale));
+			if(sub_pic_hrd_params_present_flag) fields.addItem(UnitField("cpb_size_du_scale", cpb_size_du_scale));
+			fields.addItem(UnitField("initial_cpb_removal_delay_length_minus1", initial_cpb_removal_delay_length_minus1));
+			fields.addItem(UnitField("au_cpb_removal_delay_length_minus1", au_cpb_removal_delay_length_minus1));
+			fields.addItem(UnitField("dpb_output_delay_length_minus1", dpb_output_delay_length_minus1));
 		}
 	}
 	for(int i = 0;i < fixed_pic_rate_general_flag.size();++i){
-		fields.push_back(fmt::format("fixed_pic_rate_general_flag[{}]:{}", i, fixed_pic_rate_general_flag[i]));
-		if(!fixed_pic_rate_general_flag[i]) fields.push_back(fmt::format("  fixed_pic_rate_within_cvs_flag[{}]:{}", i, fixed_pic_rate_within_cvs_flag[i]));
-		if(fixed_pic_rate_within_cvs_flag[i]) fields.push_back(fmt::format("  elemental_duration_in_tc_minus1[{}]:{}", i, elemental_duration_in_tc_minus1[i]));
-		else fields.push_back(fmt::format("  low_delay_hrd_flag[{}]:{}", i, low_delay_hrd_flag[i]));
-		if(!low_delay_hrd_flag[i]) fields.push_back(fmt::format("  cpb_cnt_minus1[{}]:{}", i, cpb_cnt_minus1[i]));
-		if(nal_hrd_parameters_present_flag){
-			std::vector<std::string> nalSubLayerHrdParametersFields = nal_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag);
-			std::transform(nalSubLayerHrdParametersFields.begin(), nalSubLayerHrdParametersFields.end(), std::back_inserter(fields), [](const std::string& subField){
-				return "    nal_" + subField;
-			});
+		IdxValueUnitFieldList fixed_pic_rate_general_flagField = IdxValueUnitFieldList("fixed_pic_rate_general_flag", fixed_pic_rate_general_flag[i], i);
+		IdxValueUnitFieldList fixed_pic_rate_within_cvs_flagField = IdxValueUnitFieldList("fixed_pic_rate_within_cvs_flag", fixed_pic_rate_within_cvs_flag[i], i);
+		if(!fixed_pic_rate_general_flag[i]) {
+			fixed_pic_rate_general_flagField.addItem(std::move(fixed_pic_rate_within_cvs_flagField));
 		}
-		if(vcl_hrd_parameters_present_flag){
-			std::vector<std::string> vclSubLayerHrdParametersFields = vcl_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag);
-			std::transform(vclSubLayerHrdParametersFields.begin(), vclSubLayerHrdParametersFields.end(), std::back_inserter(fields), [](const std::string& subField){
-				return "    vcl_" + subField;
-			});
-		}
+		fields.addItem(std::move(fixed_pic_rate_general_flagField));
+		if(fixed_pic_rate_within_cvs_flag[i]) fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("elemental_duration_in_tc_minus1", elemental_duration_in_tc_minus1[i], i));
+		else fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("low_delay_hrd_flag", low_delay_hrd_flag[i], i));
+		if(!low_delay_hrd_flag[i]) fields.addItem(IdxUnitField("cpb_cnt_minus1", cpb_cnt_minus1[i], i));
+		if(nal_hrd_parameters_present_flag) fields.addItem(std::move(nal_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag)));
+		if(vcl_hrd_parameters_present_flag) fields.addItem(std::move(vcl_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag)));
 	}
 	return fields;
 }
@@ -86,39 +82,39 @@ void H265HrdParameters::validate(){
 	for(int i = 0;i < fixed_pic_rate_general_flag.size();++i){
 		if(fixed_pic_rate_within_cvs_flag[i]) {
 			if(elemental_duration_in_tc_minus1[i] > 2047) {
-				errors.push_back(fmt::format("[HRD parameters] elemental_duration_in_tc_minus1[{}] value ({}) not in valid range (0..2047)", i, elemental_duration_in_tc_minus1[i]));
+				errors.push_back(StringFormatter::formatString("[HRD parameters] elemental_duration_in_tc_minus1[%d] value (%ld) not in valid range (0..2047)", i, elemental_duration_in_tc_minus1[i]));
 			}
 		}
-		if(cpb_cnt_minus1[i] > 31) errors.push_back(fmt::format("[HRD parameters] cpb_cnt_minus1[{}] value ({}) not in valid range (0..31)", i, cpb_cnt_minus1[i]));
+		if(cpb_cnt_minus1[i] > 31) errors.push_back(StringFormatter::formatString("[HRD parameters] cpb_cnt_minus1[%d] value (%ld) not in valid range (0..31)", i, cpb_cnt_minus1[i]));
 		if(nal_hrd_parameters_present_flag){
 			for(int j = 0;j <= cpb_cnt_minus1[i];++j){
 				if(nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] == UINT32_MAX){
-					errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].bit_rate_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+					errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 				}
 				if(nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] == UINT32_MAX){
-					errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].cpb_size_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+					errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 				}
 				if(j > 0){
 					if(nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j-1]){
-						errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].bit_rate_value_minus1[{}] value ({}) less or equal to previous bit rate value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 					}
 					if(nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j-1]){
-						errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].cpb_size_value_minus1[{}] value ({}) less or equal to previous cpb size value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 					}
 				}
 				if(sub_pic_hrd_params_present_flag){
 					if(nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] == UINT32_MAX){
-						errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].cpb_size_du_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 					}
 					if(nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] == UINT32_MAX){
-						errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].bit_rate_du_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 					}
 					if(j > 0){
 						if(nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j-1]){
-							errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].cpb_size_du_value_minus1[{}] value ({}) less or equal to previous cpb value du value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+							errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 						}
 						if(nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j-1]){
-							errors.push_back(fmt::format("[HRD parameters] nal_sub_layer_hrd_parameters[{}].bit_rate_du_value_minus1[{}] value ({}) less or equal to previous bit rate du value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+							errors.push_back(StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 						}
 					}
 				}
@@ -128,32 +124,32 @@ void H265HrdParameters::validate(){
 
 			for(int j = 0;j <= cpb_cnt_minus1[i];++j){
 				if(vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] == UINT32_MAX){
-					errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].bit_rate_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+					errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 				}
 				if(vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] == UINT32_MAX){
-					errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].cpb_size_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+					errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 				}
 				if(j > 0){
 					if(vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j-1]){
-						errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].bit_rate_value_minus1[{}] value ({}) less or equal to previous bit rate value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 					}
 					if(vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j-1]){
-						errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].cpb_size_value_minus1[{}] value ({}) less or equal to previous cpb size value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 					}
 				}
 				if(sub_pic_hrd_params_present_flag){
 					if(vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] == UINT32_MAX){
-						errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].cpb_size_du_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 					}
 					if(vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] == UINT32_MAX){
-						errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].bit_rate_du_value_minus1[{}] value ({}) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+						errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 					}
 					if(j > 0){
 						if(vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j-1]){
-							errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].cpb_size_du_value_minus1[{}] value ({}) less or equal to previous cpb value du value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+							errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 						}
 						if(vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j-1]){
-							errors.push_back(fmt::format("[HRD parameters] vcl_sub_layer_hrd_parameters[{}].bit_rate_du_value_minus1[{}] value ({}) less or equal to previous bit rate du value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+							errors.push_back(StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 						}
 					}
 				}

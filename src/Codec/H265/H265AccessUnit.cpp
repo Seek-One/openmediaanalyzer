@@ -150,7 +150,7 @@ void H265AccessUnit::validate(){
             case H265NAL::UnitType_SPS:
             case H265NAL::UnitType_PPS:
             case H265NAL::UnitType_SEI_PREFIX:
-                minorErrors.push_back(fmt::format("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
+                minorErrors.push_back(StringFormatter::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
             default: continue;
         }
     }

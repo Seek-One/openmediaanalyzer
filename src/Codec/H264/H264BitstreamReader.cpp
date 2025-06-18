@@ -733,10 +733,6 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS* activeSPS){
 			case SEI_FULL_FRAME_FREEZE:
 				readSEIFullFrameFreeze(h264SEI);
 				break;
-			case SEI_MVCD_VIEW_SCALABILITY_INFO:
-				if(activeSPS) readSEIMvcdViewScalabilityInfo(h264SEI, *activeSPS);
-				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
-				break;
 			default:
 				std::cerr << "Unsupported SEI type : " << payloadType << "\n";
 				skipBits(8*payloadSize);
@@ -869,76 +865,4 @@ void H264BitstreamReader::readSEIFullFrameFreeze(H264SEI& h264SEI){
 	h264SEImsg->payloadType = SEI_FULL_FRAME_FREEZE;
 	h264SEImsg->full_frame_freeze_repetition_period = readGolombUE();
 	
-}
-
-void H264BitstreamReader::readSEIMvcdViewScalabilityInfo(H264SEI& h264SEI, const H264SPS& activeSPS){
-	H264SEIMvcdViewScalabilityInfo* h264SEImsg = new H264SEIMvcdViewScalabilityInfo();
-	h264SEI.messages.push_back(h264SEImsg);
-	h264SEImsg->payloadType = SEI_MVCD_VIEW_SCALABILITY_INFO;
-	h264SEImsg->seq_parameter_seq_id = activeSPS.seq_parameter_set_id;
-	h264SEImsg->num_operation_points_minus1 = readGolombUE();
-	
-	for(int i = 0;i <= h264SEImsg->num_operation_points_minus1;++i){
-		h264SEImsg->operation_point_id[i] = readGolombUE();
-		h264SEImsg->priority_id[i] = readBits(5);
-		h264SEImsg->temporal_id[i] = readBits(3);
-		h264SEImsg->num_target_output_views_minus1[i] = readGolombUE();
-		for(int j = 0;j <= h264SEImsg->num_target_output_views_minus1[i];++j){
-			h264SEImsg->view_id[i][j] = readGolombUE();
-			readSEIMvcdOpViewInfo(h264SEImsg->view_movi[i][j]);
-		}
-		h264SEImsg->profile_level_info_present_flag[i] = readBits(1);
-		h264SEImsg->bitrate_info_present_flag[i] = readBits(1);
-		h264SEImsg->frm_rate_info_present_flag[i] = readBits(1);
-		if(!h264SEImsg->num_target_output_views_minus1[i]) h264SEImsg->view_dependency_info_present_flag[i] = readBits(1);
-		h264SEImsg->parameter_sets_info_src_op_id[i] = readBits(1);
-		h264SEImsg->bitstream_restriction_info_present_flag[i] = readBits(1);
-		if(h264SEImsg->profile_level_info_present_flag[i]) h264SEImsg->op_profile_level_idc[i] = readBits(24);
-		if(h264SEImsg->bitrate_info_present_flag[i]){
-			h264SEImsg->avg_bitrate[i] = readBits(16);
-			h264SEImsg->max_bitrate[i] = readBits(16);
-			h264SEImsg->max_bitrate_calc_window[i] = readBits(16);
-		}
-		if(h264SEImsg->frm_rate_info_present_flag[i]){
-			h264SEImsg->constant_frm_rate_idc[i] = readBits(2);
-			h264SEImsg->avg_frm_rate[i] = readBits(16);
-		}
-		if(h264SEImsg->view_dependency_info_present_flag[i]){
-			h264SEImsg->num_directly_dependant_views[i] = readGolombUE();
-			for(int j = 0;j < h264SEImsg->num_directly_dependant_views[i];++j){
-				h264SEImsg->directly_dependant_view_id[i][j] = readGolombUE();
-				readSEIMvcdOpViewInfo(h264SEImsg->directely_dependant_view_movi[i][j]);
-			}
-		} else h264SEImsg->view_dependency_info_src_op_id[i] = readGolombUE();
-		if(h264SEImsg->parameters_sets_info_present_flag[i]) {
-			h264SEImsg->num_seq_parameter_sets[i] = readGolombUE();
-			for(int j = 0;j <= h264SEImsg->num_seq_parameter_sets[i];++j){
-				h264SEImsg->seq_parameter_set_id_delta[i][j] = readGolombUE();
-			}
-			h264SEImsg->num_subset_seq_parameter_set_minus1[i] = readGolombUE();
-			for(int j = 0;j <= h264SEImsg->num_subset_seq_parameter_set_minus1[i];++j){
-				h264SEImsg->subset_seq_parameter_set_id_delta[i][j] = readGolombUE();
-			}
-			h264SEImsg->num_pic_parameter_set_minus1[i] = readGolombUE();
-			for(int j = 0;j <= h264SEImsg->num_pic_parameter_set_minus1[i];++j){
-				h264SEImsg->pic_parameter_set_id_delta[i][j] = readGolombUE();
-			}
-		} else h264SEImsg->parameter_sets_info_src_op_id[i] = readGolombUE();
-		if(h264SEImsg->bitstream_restriction_info_present_flag[i]){
-			h264SEImsg->motion_vector_over_pic_boundaries_flag[i] = readBits(1);
-			h264SEImsg->max_bytes_per_pic_denom[i] = readGolombUE();
-			h264SEImsg->max_bits_per_mb_denom[i] = readGolombUE();
-			h264SEImsg->log2_max_mv_length_horizontal[i] = readGolombUE();
-			h264SEImsg->log2_max_mv_length_vertical[i] = readGolombUE();
-			h264SEImsg->num_reorder_frames[i] = readGolombUE();
-			h264SEImsg->max_dec_frame_buffering[i] = readGolombUE();
-		}
-	}
-}
-
-void H264BitstreamReader::readSEIMvcdOpViewInfo(H264SEIMvcdViewScalabilityInfo::movi& movi){
-	movi.view_info_depth_view_present_flag = readBits(1);
-	if(movi.view_info_depth_view_present_flag) movi.mvcd_depth_view_flag = readBits(1);
-	movi.view_info_texture_view_present_flag = readBits(1);
-	if(movi.view_info_texture_view_present_flag) movi.mvcd_texture_view_flag = readBits(1);
 }

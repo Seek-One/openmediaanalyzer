@@ -158,6 +158,13 @@ set(APPLICATION_SOURCES
     src/GUIModel/QStreamModel.h
 )
 
+set(STRING_HELPERS_SOURCES
+    src/StringHelpers/StringFormatter.cpp
+    src/StringHelpers/StringFormatter.h
+    src/StringHelpers/UnitFieldList.cpp
+    src/StringHelpers/UnitFieldList.h
+)
+
 set(CODEC_SOURCES
     src/Codec/ByteBuffer.cpp
     src/Codec/ByteBuffer.h
@@ -241,6 +248,7 @@ set(CODEC_SOURCES
 )
 
 set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${CODEC_SOURCES})
+set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${STRING_HELPERS_SOURCES})
 
 
 set(APPLICATION_MOC_HEADERS
@@ -428,7 +436,7 @@ SET (TEST_SRC
 )
 
 set (TEST_EXE ${APPLICATION_EXE_NAME}-testsuite)
-add_executable (${TEST_EXE} ${TEST_SRC} ${CODEC_SOURCES} ${UNITTEST_MOC_OUTFILES})
+add_executable (${TEST_EXE} ${TEST_SRC} ${CODEC_SOURCES} ${STRING_HELPERS_SOURCES} ${UNITTEST_MOC_OUTFILES})
 
 set_target_properties(${TEST_EXE} PROPERTIES 
     COMPILE_FLAGS -DUNITTEST

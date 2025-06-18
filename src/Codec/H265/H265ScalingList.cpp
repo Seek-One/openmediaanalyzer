@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 
 #include "H265ScalingList.h"
+#include "../../StringHelpers/StringFormatter.h"
 
 static int32_t g_defaultIntraScalingList[64] = {
 	16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 17, 16, 17, 18,
@@ -54,20 +55,20 @@ H265ScalingList::H265ScalingList()
 	}
 }
 
-std::vector<std::string> H265ScalingList::dump_fields(){
-	std::vector<std::string> fields;
+UnitFieldList H265ScalingList::dump_fields(){
+	UnitFieldList fields = UnitFieldList("Scaling List");
 	for(int sizeId = 0;sizeId < 4;++sizeId){
 		for(int matrixId = 0;matrixId < 6;matrixId += (sizeId == 3 ? 3 : 1)){
-			fields.push_back(fmt::format("scaling_list_pred_mode_flag[{}][{}]:{}", sizeId, matrixId, scaling_list_pred_mode_flag[sizeId][matrixId]));
+			fields.addItem(DblIdxUnitField("scaling_list_pred_mode_flag", scaling_list_pred_mode_flag[sizeId][matrixId], sizeId, matrixId));
 			if(!scaling_list_pred_mode_flag[sizeId][matrixId]){
-				fields.push_back(fmt::format("  scaling_list_pred_matrix_id_delta[{}][{}]:{}", sizeId, matrixId, scaling_list_pred_matrix_id_delta[sizeId][matrixId]));
+				fields.addItem(DblIdxUnitField("scaling_list_pred_matrix_id_delta", scaling_list_pred_matrix_id_delta[sizeId][matrixId], sizeId, matrixId));
 			} else {
 				int coefNum = std::min(64, (1 << (4 + (sizeId << 1))));
 				if(sizeId > 1){
-					fields.push_back(fmt::format("  scaling_list_dc_coef_minus8[{}][{}]:{}", sizeId, matrixId, scaling_list_dc_coef_minus8[sizeId][matrixId]));
+					fields.addItem(DblIdxUnitField("scaling_list_dc_coef_minus8", sizeId, matrixId, scaling_list_dc_coef_minus8[sizeId][matrixId]));
 				}
 				for(int i = 0;i < coefNum;++i){
-					fields.push_back(fmt::format("    scaling_list_dc_coef_minus8[{}][{}][{}]:", i, sizeId, matrixId, scaling_list_delta_coef[i][sizeId][matrixId]));
+					fields.addItem(DblIdxUnitField(StringFormatter::formatString("scaling_list_delta_coef[%d]", i), scaling_list_delta_coef[i][sizeId][matrixId], sizeId, matrixId));
 				}
 			}
 		}

@@ -14,10 +14,10 @@ H264AUD::H264AUD(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 	primary_pic_type = 7; // All slices allowed
 }
 
-std::vector<std::string> H264AUD::dump_fields(){
-	std::vector<std::string> fields;
+UnitFieldList H264AUD::dump_fields(){
+	UnitFieldList fields("Access Unit Delimiter", H264NAL::dump_fields());
 	if(!completelyParsed) return fields;
-	fields.push_back(fmt::format("primary_pic_type:{}", primary_pic_type));
+	fields.addItem(UnitField("primary_pic_type", primary_pic_type));
 	return fields;
 }
 

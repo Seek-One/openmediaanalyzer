@@ -2,6 +2,8 @@
 #define TOOLKIT_CODEC_UTILS_H265_PROFILE_TIER_LEVEL_H_
 
 #include "H265Types.h"
+#include "../../StringHelpers/UnitFieldList.h"
+
 
 struct H265ProfileTierLevel {
 	H265ProfileTierLevel();
@@ -51,7 +53,7 @@ struct H265ProfileTierLevel {
 
 	std::vector<std::string> errors;
 	
-	std::vector<std::string> dump_fields();
+	UnitFieldList dump_fields();
 	void validate(uint8_t iProfilePresentFlag);
 };
 

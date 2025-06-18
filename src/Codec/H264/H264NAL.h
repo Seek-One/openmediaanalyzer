@@ -3,7 +3,9 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
+
+#include "../../StringHelpers/UnitFieldList.h"
+#include "../../StringHelpers/StringFormatter.h"
 
 struct H264NAL {
 	enum UnitType {
@@ -44,7 +46,7 @@ struct H264NAL {
 	std::vector<std::string> minorErrors;
 	std::vector<std::string> majorErrors;
 
-	virtual std::vector<std::string> dump_fields();
+	virtual UnitFieldList dump_fields();
 	virtual void validate();
 };
 

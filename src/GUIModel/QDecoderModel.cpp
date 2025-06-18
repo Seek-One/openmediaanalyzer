@@ -73,25 +73,13 @@ QDecoderModel::~QDecoderModel(){
     }
 }
 
-QStandardItem* QDecoderModel::modelItemFromFields(std::vector<std::string> fields, QString header){
-    QStandardItem* headerItem = new QStandardItem(header);
-    for(std::string field: fields){
-        QList<QStandardItem*> row;
-        std::stringstream fieldstream(field);
-        std::string fieldElement;
-        while(getline(fieldstream, fieldElement, ':')) row.push_back(new QStandardItem(fieldElement.c_str()));
-        headerItem->appendRow(row);
-    }
-    return headerItem;
-}
-
 void buildH264SPSView(QDecoderModel* pDecoderModel){
     QStandardItemModel* model = new QStandardItemModel(0, 2);
     model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
     model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H264SPS::SPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("SPS Unit #") + QString::number(entry.first)));
+        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
     }
     emit pDecoderModel->updateSPSInfoView(model);
 }
@@ -102,7 +90,7 @@ void buildH264PPSView(QDecoderModel* pDecoderModel){
     model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H264PPS::PPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("PPS Unit #") + QString::number(entry.first)));
+        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
     }
     emit pDecoderModel->updatePPSInfoView(model);
 }
@@ -113,7 +101,7 @@ void buildVPSView(QDecoderModel* pDecoderModel){
     model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265VPS::VPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("VPS Unit #") + QString::number(entry.first)));
+        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
     }
     emit pDecoderModel->updateVPSInfoView(model);
 }
@@ -124,7 +112,7 @@ void buildH265SPSView(QDecoderModel* pDecoderModel){
     model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265SPS::SPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("SPS Unit #") + QString::number(entry.first)));
+        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
     }
     emit pDecoderModel->updateSPSInfoView(model);
 }
@@ -135,7 +123,7 @@ void buildH265PPSView(QDecoderModel* pDecoderModel){
     model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
     QStandardItem* root = model->invisibleRootItem();
     for(auto entry : H265PPS::PPSMap){
-        root->appendRow(QDecoderModel::modelItemFromFields(entry.second->dump_fields(), QDecoderModel::tr("PPS Unit #") + QString::number(entry.first)));
+        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
     }
     emit pDecoderModel->updatePPSInfoView(model);
 }
@@ -417,22 +405,22 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
         for(auto& NALUnit : std::get<const H264AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H264NAL::UnitType_AUD:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Access Unit Delimiter")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H264NAL::UnitType_NonIDRFrame:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Non-IDR Picture")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H264NAL::UnitType_IDRFrame:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("IDR Picture")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H264NAL::UnitType_PPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Picture Parameter Set")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H264NAL::UnitType_SPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Sequence Parameter Set")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H264NAL::UnitType_SEI:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Supplemental Enhancement Information")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
             }
         }
@@ -440,67 +428,67 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
         for(auto& NALUnit : std::get<const H265AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H265NAL::UnitType_TRAIL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Trailing picture (N)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_TRAIL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Trailing picture (R)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_TSA_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Temporal sub-layer access picture (N)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_TSA_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Temporal sub-layer access picture (R)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_STSA_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Step-wise temporal sub-layer access picture (N)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_STSA_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Step-wise temporal sub-layer access picture (R)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_RADL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access decodable leading picture (N)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_RADL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access decodable leading picture (R)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_RASL_N:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access skipped leading picture (N)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_RASL_R:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Random access skipped leading picture (R)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_BLA_W_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (with LP)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_BLA_W_RADL:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (with RADL pictures)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_BLA_N_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Broken link access picture (no LP)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_IDR_W_RADL:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Instantaneous decoding refresh picture (with RADL pictures)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_IDR_N_LP:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Instantaneous decoding refresh picture (no LP)")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_CRA_NUT:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Clean random access picture")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_VPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Video parameter set")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_SPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Sequence parameter set")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_PPS:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Picture parameter set")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_SEI_PREFIX:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Prefix supplemental enhancement information")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
                 case H265NAL::UnitType_SEI_SUFFIX:
-                    model->appendRow(QDecoderModel::modelItemFromFields(NALUnit->dump_fields(), QDecoderModel::tr("Suffix supplemental enhancement information")));
+                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
             }
         }

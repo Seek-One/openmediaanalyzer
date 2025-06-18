@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <string>
 
+#include "../../StringHelpers/UnitFieldList.h"
+
 struct H265SubLayerHrdParameters {
 	H265SubLayerHrdParameters();
 
@@ -14,7 +16,7 @@ struct H265SubLayerHrdParameters {
 	std::vector<uint32_t> bit_rate_du_value_minus1;
 	std::vector<uint8_t> cbr_flag;
 
-	std::vector<std::string> dump_fields(uint8_t sub_pic_hrd_params_present_flag);
+	UnitFieldList dump_fields(uint8_t sub_pic_hrd_params_present_flag);
 	void validate();
 };
 
@@ -44,7 +46,7 @@ struct H265HrdParameters {
 
 	std::vector<std::string> errors;
 
-	std::vector<std::string> dump_fields(uint8_t commonInfPresentFlag);
+	UnitFieldList dump_fields(uint8_t commonInfPresentFlag);
 	void validate();
 };
 

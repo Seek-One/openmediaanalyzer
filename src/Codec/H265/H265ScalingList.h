@@ -2,6 +2,7 @@
 #define TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_
 
 #include "H265Types.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 struct H265ScalingList {
 	H265ScalingList();
@@ -18,7 +19,7 @@ struct H265ScalingList {
 	// ScalingList[2] -> 16x16
 	// ScalingList[3] -> 32x32
 
-	std::vector<std::string> dump_fields();
+	UnitFieldList dump_fields();
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_

@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "../../StringHelpers/UnitFieldList.h"
+
 struct H265ShortTermRefPicSet {
 	H265ShortTermRefPicSet();
 
@@ -30,7 +32,7 @@ struct H265ShortTermRefPicSet {
 	std::vector<uint8_t> UsedByCurrPicS1;
 	uint32_t NumDeltaPocs;
 
-	std::vector<std::string> dump_fields(uint32_t stRpsId, uint32_t num_short_term_ref_pic_sets);
+	UnitFieldList dump_fields(uint32_t stRpsId, uint32_t num_short_term_ref_pic_sets);
 };
 
 

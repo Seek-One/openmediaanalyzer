@@ -47,9 +47,7 @@ void QStatusView::folderPathSet(QFileSystemModel* pModel){
 }
 
 void QStatusView::streamLinkSet(const QString& URL){
-    QString trimmedURL = URL;
-    if(trimmedURL.startsWith("https://")) trimmedURL.remove(0, 8);
-    m_pInputSource->setText(tr("Source : ") + trimmedURL);
+    m_pInputSource->setText(tr("Source : ") + URL);
 }
 
 

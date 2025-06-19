@@ -110,7 +110,8 @@ void H265GOP::validate(){
         }
     }
     if(!missingFrameNumbers.empty()){
-        std::ostringstream skippedFramesStr = std::ostringstream() << "[GOP] Skipped frames detected : [" << (*missingFrameNumbers.begin());
+        std::ostringstream skippedFramesStr;
+        skippedFramesStr << "[GOP] Skipped frames detected : [" << (*missingFrameNumbers.begin());
         auto skippedFramesIt = missingFrameNumbers.begin();
         skippedFramesIt++;
         for(;skippedFramesIt != missingFrameNumbers.end();skippedFramesIt++) skippedFramesStr << (*skippedFramesIt) << ", ";

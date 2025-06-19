@@ -13,6 +13,7 @@ struct NALData {
 class H26XStream {
 public:
 	H26XStream();
+	virtual ~H26XStream() = default;
 
 	// Extract all information from NAL units (maybe slow)
 	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength) = 0;

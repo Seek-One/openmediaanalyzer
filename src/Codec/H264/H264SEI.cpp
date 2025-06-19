@@ -87,7 +87,7 @@ void H264SEIBufferingPeriod::validate(){
 		for(int SchedSelIdx = 0;SchedSelIdx <= pH264SPS->nal_cpb_cnt_minus1;++SchedSelIdx){
 			int CpbSize = (pH264SPS->nal_cpb_size_value_minus1[SchedSelIdx]+1)*(pow(2, 4+pH264SPS->nal_cpb_size_scale));
 			int BitRate = (pH264SPS->nal_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->nal_bit_rate_scale));
-			int delay_limit = 90000 * (CpbSize/BitRate);
+			uint32_t delay_limit = 90000 * (CpbSize/BitRate);
 			if(nal_initial_cpb_removal_delay[SchedSelIdx] == 0 || nal_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
 				errors.push_back(StringFormatter::formatString("[SEI Buffering period] nal_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, nal_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
@@ -98,7 +98,7 @@ void H264SEIBufferingPeriod::validate(){
 		for(int SchedSelIdx = 0;SchedSelIdx <= pH264SPS->vcl_cpb_cnt_minus1;++SchedSelIdx){
 			int CpbSize = (pH264SPS->vcl_cpb_size_value_minus1[SchedSelIdx]+1)*(pow(2, 4+pH264SPS->vcl_cpb_size_scale));
 			int BitRate = (pH264SPS->vcl_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->vcl_bit_rate_scale));
-			int delay_limit = 90000 * (CpbSize/BitRate);
+			uint32_t delay_limit = 90000 * (CpbSize/BitRate);
 			if(vcl_initial_cpb_removal_delay[SchedSelIdx] == 0 || vcl_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
 				errors.push_back(StringFormatter::formatString("[SEI Buffering period] vcl_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, vcl_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
@@ -202,7 +202,6 @@ UnitFieldList H264SEIFillerPayload::dump_fields(){
 }
 
 H264SEIUserDataUnregistered::~H264SEIUserDataUnregistered(){
-	user_data_payload_byte.clear();
 }
 
 UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
@@ -217,7 +216,7 @@ UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
 		if(len != 12) uuidStringStream << "-";
 	}
 	fields.addItem(StrUnitField("uuid_iso_iec_11578", uuidStringStream.str()));
-	for(int i = 0;i < user_data_payload_byte.size();++i){
+	for(uint32_t i = 0;i < user_data_payload_byte.size();++i){
 		fields.addItem(IdxUnitField("user_data_payload_byte", user_data_payload_byte[i], i));
 	}
 	return fields;
@@ -239,7 +238,7 @@ void H264SEIRecoveryPoint::validate(){
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
-	int MaxNumFrames = pow(2, 4+pSps->log2_max_frame_num_minus4);
+	uint32_t MaxNumFrames = pSps->MaxFrameNumber;
 	if(recovery_frame_cnt > MaxNumFrames-1){
 		errors.push_back(StringFormatter::formatString("[SEI Recovery point] recovery_frame_cnt value (%ld) not in valid range (0..{})", recovery_frame_cnt, MaxNumFrames-1));
 	}

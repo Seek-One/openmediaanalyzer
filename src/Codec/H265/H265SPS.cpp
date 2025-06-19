@@ -210,7 +210,7 @@ UnitFieldList H265SPSSCCExtension::dump_fields(uint32_t chroma_format_idc){
 		if(sps_palette_predictor_initializers_present_flag){
 			uint8_t numComps = (chroma_format_idc == 0) ? 1 : 3;
 			for(int comp = 0;comp < numComps;++comp){
-				for(int i = 0;i <= sps_num_palette_predictor_initializers_minus1;++i){
+				for(uint16_t i = 0;i <= sps_num_palette_predictor_initializers_minus1;++i){
 					sps_palette_predictor_initializers_present_flagField.addItem(DblIdxUnitField("sps_palette_predictor_initializer", sps_palette_predictor_initializer[comp][i], comp, i));
 				}
 			}
@@ -332,7 +332,7 @@ UnitFieldList H265SPS::dump_fields(){
 	fields.addItem(UnitField("bit_depth_chroma_minus8", bit_depth_chroma_minus8));
 	fields.addItem(UnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4));
 	fields.addItem(UnitField("sps_sub_layer_ordering_info_present_flag", sps_sub_layer_ordering_info_present_flag));
-	for(int i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1;i <= sps_max_sub_layers_minus1;++i){
+	for(uint8_t i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1;i <= sps_max_sub_layers_minus1;++i){
 		fields.addItem(IdxUnitField("sps_max_dec_pic_buffering_minus1", sps_max_dec_pic_buffering_minus1[i], i));
 		fields.addItem(IdxUnitField("sps_max_num_reorder_pics", sps_max_num_reorder_pics[i], i));
 		fields.addItem(IdxUnitField("sps_max_latency_increase_plus1", sps_max_latency_increase_plus1[i], i));
@@ -364,7 +364,7 @@ UnitFieldList H265SPS::dump_fields(){
 	}
 	fields.addItem(std::move(pcm_enabled_flagField));
 	ValueUnitFieldList num_short_term_ref_pic_setsField = ValueUnitFieldList("num_short_term_ref_pic_sets", num_short_term_ref_pic_sets);
-	for(int i = 0;i < num_short_term_ref_pic_sets;++i){
+	for(uint32_t i = 0;i < num_short_term_ref_pic_sets;++i){
 		num_short_term_ref_pic_setsField.addItem(std::move(short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets)));
 	}
 	fields.addItem(std::move(num_short_term_ref_pic_setsField));
@@ -372,7 +372,7 @@ UnitFieldList H265SPS::dump_fields(){
 	if(long_term_ref_pics_present_flag){
 		ValueUnitFieldList num_long_term_ref_pics_spsField = ValueUnitFieldList("num_long_term_ref_pics_sps",num_long_term_ref_pics_sps);
 		long_term_ref_pics_present_flagField.addItem(std::move(num_long_term_ref_pics_spsField));
-		for(int i = 0;i < num_long_term_ref_pics_sps;++i){
+		for(uint32_t i = 0;i < num_long_term_ref_pics_sps;++i){
 			num_long_term_ref_pics_spsField.addItem(IdxUnitField("lt_ref_pic_poc_lsb_sps", lt_ref_pic_poc_lsb_sps[i], i));
 			num_long_term_ref_pics_spsField.addItem(IdxUnitField("used_by_curr_pic_lt_sps_flag", used_by_curr_pic_lt_sps_flag[i], i));
 		}

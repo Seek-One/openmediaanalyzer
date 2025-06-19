@@ -39,18 +39,18 @@ private:
     QTreeView* m_pStreamInfoView;
 
     QStandardItem* m_pVideoCodec;
-    QStandardItem* m_pVideoContentBitrate;
     QStandardItem* m_pVideoResolution;
     QStandardItem* m_pVideoFrameRate;
     QStandardItem* m_pGOVLength;
+    QStandardItem* m_pVideoContentBitrate;
     QStandardItem* m_pCodedVideoSize;
     QStandardItem* m_pDecodedPicturesSize;
     QStandardItem* m_pFrameValidity;
 
-    QStandardItem* m_pAudioContentBitrate;
     QStandardItem* m_pAudioCodec;
+    QStandardItem* m_pAudioContentBitrate;
 
     QStandardItem* m_pContentType;
-    QStandardItem* m_pGlobalContentBitrate;
     QStandardItem* m_pProtocol;
+    QStandardItem* m_pGlobalContentBitrate;
 };

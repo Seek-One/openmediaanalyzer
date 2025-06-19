@@ -72,6 +72,8 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
             case ContentType_Audio:
                 audioBytes += contentTypeMatch.capturedStart();
                 break;
+            default:
+                break;
         }
         QString type = contentTypeMatch.captured(1);
         if(type == "video"){
@@ -99,6 +101,8 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
             case ContentType_Audio:
                 audioBytes += (byteSize - contentTypeMatch.capturedStart());
                 break;
+            default:
+                break;
         }
     } else {
          switch(inputData->m_contentType){
@@ -108,6 +112,8 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
                 break;
             case ContentType_Audio:
                 audioBytes += byteSize;
+                break;
+            default:   
                 break;
         }
     }
@@ -219,8 +225,8 @@ void QStreamModel::secondElapsed(){
 }
 
 QStreamWorker::QStreamWorker(const QString& URL, const QString& username, const QString& password):
-    m_running(true), m_URL(URL), m_username(username), m_password(password), 
-    m_codec(Codec_Unsupported), m_contentType(ContentType_Other) 
+m_codec(Codec_Unsupported), m_contentType(ContentType_Other), 
+    m_running(true), m_URL(URL), m_username(username), m_password(password)
 {}
 
 QStreamWorker::~QStreamWorker(){}

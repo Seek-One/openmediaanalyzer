@@ -41,15 +41,15 @@ UnitFieldList H265VPS::dump_fields(){
 	fields.addItem(UnitField("vps_temporal_id_nesting_flag", vps_temporal_id_nesting_flag));
 	fields.addItem(profile_tier_level.dump_fields());
 	fields.addItem(UnitField("vps_sub_layer_ordering_info_present_flag", vps_sub_layer_ordering_info_present_flag));
-	for(int i = vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1;i <= vps_max_sub_layers_minus1;++i){
+	for(uint8_t i = vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1;i <= vps_max_sub_layers_minus1;++i){
 		fields.addItem(IdxUnitField("vps_max_dec_pic_buffering_minus1", vps_max_dec_pic_buffering_minus1[i], i));
 		fields.addItem(IdxUnitField("vps_max_num_reorder_pics", vps_max_num_reorder_pics[i], i));
 		fields.addItem(IdxUnitField("vps_max_latency_increase_plus1", vps_max_latency_increase_plus1[i], i));
 	}
 	fields.addItem(UnitField("vps_max_layer_id", vps_max_layer_id));
 	ValueUnitFieldList vps_num_layer_sets_minus1Field = ValueUnitFieldList("vps_num_layer_sets_minus1", vps_num_layer_sets_minus1);
-	for(int i = 1;i <= vps_num_layer_sets_minus1;++i){
-		for(int j = 0;j <= vps_max_layer_id;++j){
+	for(uint16_t i = 1;i <= vps_num_layer_sets_minus1;++i){
+		for(uint8_t j = 0;j <= vps_max_layer_id;++j){
 			vps_num_layer_sets_minus1Field.addItem(DblIdxUnitField("layer_id_included_flag", layer_id_included_flag[i][j], i, j));
 		}
 	}
@@ -63,7 +63,7 @@ UnitFieldList H265VPS::dump_fields(){
 		if(vps_poc_proportional_to_timing_flag) vps_poc_proportional_to_timing_flagField.addItem(UnitField("vps_num_ticks_poc_diff_one_minus1", vps_num_ticks_poc_diff_one_minus1));
 		ValueUnitFieldList vps_num_hrd_parametersField = ValueUnitFieldList("vps_num_hrd_parameters", vps_num_hrd_parameters);
 		vps_timing_info_present_flagField.addItem(std::move(vps_num_hrd_parametersField));
-		for(int i = 0;i < vps_num_hrd_parameters;++i){
+		for(uint32_t i = 0;i < vps_num_hrd_parameters;++i){
 			vps_num_hrd_parametersField.addItem(IdxUnitField("hrd_layer_set_idx", hrd_layer_set_idx[i], i));
 			if(i > 0) vps_num_hrd_parametersField.addItem(IdxUnitField("cprms_present_flag", cprms_present_flag[i], i));
 			vps_num_hrd_parametersField.addItem(hrd_parameters[i].dump_fields(cprms_present_flag[i]));
@@ -85,7 +85,7 @@ void H265VPS::validate(){
 	minorErrors.insert(minorErrors.end(), profile_tier_level.errors.begin(), profile_tier_level.errors.end());
 	profile_tier_level.errors.clear();
 	if(!vps_base_layer_internal_flag && vps_sub_layer_ordering_info_present_flag) minorErrors.push_back("[VPS] vps_sub_layer_ordering_info_present_flag set (no base layer)");
-	for (int i = (vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1); i <= vps_max_sub_layers_minus1; ++i) {
+	for (uint8_t i = (vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1); i <= vps_max_sub_layers_minus1; ++i) {
 		if(!vps_base_layer_internal_flag){
 			if(vps_max_dec_pic_buffering_minus1[i] != 0) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_dec_pic_buffering_minus1[%d] value (%ld) not 0 (no base layer)", i, vps_max_dec_pic_buffering_minus1[i]));
 			if(vps_max_num_reorder_pics[i] != 0) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_num_reorder_pics[%d] value (%ld) not 0 (no base layer)", i, vps_max_num_reorder_pics[i]));
@@ -100,7 +100,7 @@ void H265VPS::validate(){
 		if (vps_poc_proportional_to_timing_flag) {
 			if(vps_num_ticks_poc_diff_one_minus1 == UINT32_MAX) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_ticks_poc_diff_one_minus1 value (%ld) not in valid range (0..4294967294)", vps_num_ticks_poc_diff_one_minus1));
 		}
-		if(vps_num_hrd_parameters > vps_num_layer_sets_minus1+1) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_hrd_parameters value (%ld) not in valid range (0..{})", vps_num_hrd_parameters, vps_num_layer_sets_minus1+1));
+		if(vps_num_hrd_parameters > vps_num_layer_sets_minus1+1u) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_hrd_parameters value (%ld) not in valid range (0..{})", vps_num_hrd_parameters, vps_num_layer_sets_minus1+1));
 		for (uint32_t i = 0; i < vps_num_hrd_parameters; ++i) {
 			if((!vps_base_layer_internal_flag && hrd_layer_set_idx[i] == 0) || hrd_layer_set_idx[i] > vps_num_layer_sets_minus1){
 				minorErrors.push_back(StringFormatter::formatString("[VPS] hrd_layer_set_idx[%d] value (%ld) not in valid range ({}..{})", i, hrd_layer_set_idx[i], (vps_base_layer_internal_flag ? 0 : 1), vps_num_layer_sets_minus1));

@@ -10,8 +10,9 @@
 #include "H265Stream.h"
 
 H265Stream::H265Stream():
-	firstPicture(true), endOfSequenceFlag(false), m_pCurrentAccessUnit(nullptr), m_pNextAccessUnit(nullptr), 
-	m_pActiveVPS(nullptr), m_pActiveSPS(nullptr), m_pActivePPS(nullptr)
+	firstPicture(true), endOfSequenceFlag(false), 
+	m_pActiveVPS(nullptr), m_pActiveSPS(nullptr), m_pActivePPS(nullptr),
+	m_pCurrentAccessUnit(nullptr), m_pNextAccessUnit(nullptr)
 {}
 
 H265Stream::~H265Stream(){
@@ -32,7 +33,7 @@ std::deque<H265GOP*> H265Stream::getGOPs() const
 
 uint32_t H265Stream::popFrontGOPs(uint32_t count){
 	uint32_t removedAccessUnits = 0;
-	for(int i = 0;i < count;++i) {
+	for(uint32_t i = 0;i < count;++i) {
 		removedAccessUnits += m_GOPs.front()->size();
 		m_GOPs.pop_front();
 	}
@@ -90,7 +91,7 @@ bool H265Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
 
 	bool bRes = true;
-	for (int i = 0; i < listNAL.size() && bRes; ++i) {
+	for (uint32_t i = 0; i < listNAL.size() && bRes; ++i) {
 		bRes = parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength);
 	}
 
@@ -108,11 +109,11 @@ void H265Stream::lastPacketParsed(){
 
 	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
 	lastGOP->minorErrors.clear();
-	for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+	for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
 
 	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
 	lastGOP->majorErrors.clear();
-	for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+	for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 }
 
 bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
@@ -205,11 +206,11 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 
 					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());
 					previousGOP->minorErrors.clear();
-					for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+					for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
 
 					majorErrors.insert(majorErrors.end(), previousGOP->majorErrors.begin(), previousGOP->majorErrors.end());
 					previousGOP->majorErrors.clear();
-					for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+					for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 				}
 				if(pSlice->isIDR()) m_GOPs.back()->hasIDR = true;
 			} 

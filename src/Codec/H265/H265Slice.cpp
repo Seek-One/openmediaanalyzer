@@ -17,13 +17,13 @@ UnitFieldList RefPicListsModification::dump_fields(const H265Slice& slice) const
 	UnitFieldList fields = UnitFieldList("Reference Picture Lists Modification");
 	ValueUnitFieldList ref_pic_list_modification_flag_l0Field = ValueUnitFieldList("ref_pic_list_modification_flag_l0", ref_pic_list_modification_flag_l0);
 	if(ref_pic_list_modification_flag_l0){
-		for(int i = 0;i <= slice.num_ref_idx_l0_active_minus1;++i) ref_pic_list_modification_flag_l0Field.addItem(IdxUnitField("list_entry_l0", list_entry_l0[i], i));
+		for(uint32_t i = 0;i <= slice.num_ref_idx_l0_active_minus1;++i) ref_pic_list_modification_flag_l0Field.addItem(IdxUnitField("list_entry_l0", list_entry_l0[i], i));
 	}
 	fields.addItem(std::move(ref_pic_list_modification_flag_l0Field));
 	if(slice.slice_type == H265Slice::SliceType_B){
 		ValueUnitFieldList ref_pic_list_modification_flag_l1Field = ValueUnitFieldList("ref_pic_list_modification_flag_l1", ref_pic_list_modification_flag_l1);
 		if(ref_pic_list_modification_flag_l0){
-			for(int i = 0;i <= slice.num_ref_idx_l1_active_minus1;++i) ref_pic_list_modification_flag_l1Field.addItem(IdxUnitField("list_entry_l1", list_entry_l1[i], i));
+			for(uint32_t i = 0;i <= slice.num_ref_idx_l1_active_minus1;++i) ref_pic_list_modification_flag_l1Field.addItem(IdxUnitField("list_entry_l1", list_entry_l1[i], i));
 		}
 		fields.addItem(std::move(ref_pic_list_modification_flag_l1Field));
 	}
@@ -32,10 +32,10 @@ UnitFieldList RefPicListsModification::dump_fields(const H265Slice& slice) const
 
 void RefPicListsModification::validate(const H265Slice& h265Slice){
 	uint32_t list_entry_limit = h265Slice.NumPicTotalCurr-1;
-	for(int i = 0;i < list_entry_l0.size();++i){
+	for(uint32_t i = 0;i < list_entry_l0.size();++i){
 		if(list_entry_l0[i] > list_entry_limit) minorErrors.push_back(StringFormatter::formatString("[Slice RPLM] list_entry_l0[%d] value (%ld) not in valid range (0..{})", i, list_entry_l0[i], list_entry_limit));
 	}
-	for(int i = 0;i < list_entry_l1.size();++i){
+	for(uint32_t i = 0;i < list_entry_l1.size();++i){
 		if(list_entry_l1[i] > list_entry_limit) minorErrors.push_back(StringFormatter::formatString("[Slice RPLM] list_entry_l1[%d] value (%ld) not in valid range (0..{})", i, list_entry_l1[i], list_entry_limit));
 	}
 }
@@ -66,7 +66,7 @@ UnitFieldList H265PredWeightTable::dump_fields(const H265Slice& h265Slice){
 	fields.addItem(UnitField("luma_log2_weight_denom", luma_log2_weight_denom));
 	H265SPS* h265SPS = h265Slice.getSPS();
 	if(h265SPS->ChromaArrayType != 0) fields.addItem(UnitField("delta_chroma_log2_weight_denom", delta_chroma_log2_weight_denom));
-	for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+	for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
 		IdxValueUnitFieldList luma_weight_l0_flagField = IdxValueUnitFieldList("luma_weight_l0_flag", luma_weight_l0_flag[i], i);
 		if(luma_weight_l0_flag[i]){
 			luma_weight_l0_flagField.addItem(IdxUnitField("delta_luma_weight_l0", delta_luma_weight_l0[i], i));
@@ -75,7 +75,7 @@ UnitFieldList H265PredWeightTable::dump_fields(const H265Slice& h265Slice){
 		fields.addItem(std::move(luma_weight_l0_flagField));
 	}
 	if(h265SPS->ChromaArrayType != 0){
-		for(int i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
+		for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
 			IdxValueUnitFieldList chroma_weight_l0_flagField = IdxValueUnitFieldList("chroma_weight_l0_flag", chroma_weight_l0_flag[i], i);
 			if(chroma_weight_l0_flag[i]){
 				for(int j = 0;j < 2;++j){
@@ -87,7 +87,7 @@ UnitFieldList H265PredWeightTable::dump_fields(const H265Slice& h265Slice){
 		}
 	}
 	if(h265Slice.slice_type == H265Slice::SliceType_B){
-		for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+		for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
 			IdxValueUnitFieldList luma_weight_l1_flagField = IdxValueUnitFieldList("luma_weight_l1_flag", luma_weight_l1_flag[i], i);
 			if(luma_weight_l1_flag[i]){
 				luma_weight_l1_flagField.addItem(IdxUnitField("delta_luma_weight_l0", delta_luma_weight_l1[i], i));
@@ -96,7 +96,7 @@ UnitFieldList H265PredWeightTable::dump_fields(const H265Slice& h265Slice){
 			fields.addItem(std::move(luma_weight_l1_flagField));
 		}
 		if(h265SPS->ChromaArrayType != 0){
-			for(int i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
+			for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
 				IdxValueUnitFieldList chroma_weight_l1_flagField = IdxValueUnitFieldList("chroma_weight_l1_flag", chroma_weight_l1_flag[i], i);
 				if(chroma_weight_l1_flag[i]){
 					for(int j = 0;j < 2;++j){
@@ -269,7 +269,7 @@ UnitFieldList H265Slice::dump_fields(){
 			if(h265SPS->long_term_ref_pics_present_flag){
 				if(h265SPS->num_long_term_ref_pics_sps > 0) fields.addItem(UnitField("num_long_term_sps", num_long_term_sps));
 				fields.addItem(UnitField("num_long_term_pics", num_long_term_pics));
-				for(int i = 0;i < num_long_term_sps + num_long_term_pics;++i){
+				for(uint32_t i = 0;i < num_long_term_sps + num_long_term_pics;++i){
 					if(i < num_long_term_sps){
 						if(num_long_term_sps) fields.addItem(IdxUnitField("lt_idx_sps", lt_idx_sps[i], i));
 					} else {
@@ -344,7 +344,7 @@ UnitFieldList H265Slice::dump_fields(){
 			ValueUnitFieldList num_entry_point_offsetsField = ValueUnitFieldList("num_entry_point_offsets", num_entry_point_offsets);
 			if(num_entry_point_offsets > 0){
 				num_entry_point_offsetsField.addItem(UnitField("offset_len_minus1", offset_len_minus1));
-				for(int i = 0;i < num_entry_point_offsets;++i){
+				for(uint32_t i = 0;i < num_entry_point_offsets;++i){
 					num_entry_point_offsetsField.addItem(IdxUnitField("entry_point_offset_minus1", entry_point_offset_minus1[i], i));
 				}
 			}
@@ -432,11 +432,11 @@ void H265Slice::validate(){
 	if(nuh_layer_id == 0 && num_long_term_pics > num_long_term_pics_limit){
 		minorErrors.push_back(StringFormatter::formatString("[Slice] num_long_term_pics value (%ld) not in valid range (0..{})", num_long_term_pics, num_long_term_pics_limit));
 	}
-	for(int i = 0;i < lt_idx_sps.size();++i){
+	for(uint32_t i = 0;i < lt_idx_sps.size();++i){
 		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1) minorErrors.push_back(StringFormatter::formatString("[Slice] lt_idx_sps[%d] value (%ld) not in valid range (0..{})", i, lt_idx_sps[i], pSps->num_long_term_ref_pics_sps-1));
 	}
 	uint32_t delta_poc_msb_cycle_lt_limit = 1 << (32 - pSps->log2_max_pic_order_cnt_lsb_minus4-4);
-	for(int i = 0;i < delta_poc_msb_cycle_lt.size();++i){
+	for(uint32_t i = 0;i < delta_poc_msb_cycle_lt.size();++i){
 		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) minorErrors.push_back(StringFormatter::formatString("[Slice] delta_poc_msb_cycle_lt[%d] value (%ld) not in valid range (0..{})", i, delta_poc_msb_cycle_lt[i], delta_poc_msb_cycle_lt_limit));
 	}
 	if(slice_type == SliceType_P || slice_type == SliceType_B){

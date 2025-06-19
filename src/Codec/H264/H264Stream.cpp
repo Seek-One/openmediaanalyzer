@@ -21,8 +21,8 @@ PictureOrderCount::PictureOrderCount(uint32_t iTopFieldOrderValue, uint32_t iBot
 }
 
 H264Stream::H264Stream():
-	m_sizeInMb(Size(-1, -1)), m_sizeUncropped(Size(-1, -1)), m_sizeCropped(Size(-1, -1)), 
-	m_pCurrentAccessUnit(nullptr), m_pActiveSPS(nullptr), m_pActivePPS(nullptr)
+	m_pActiveSPS(nullptr), m_pActivePPS(nullptr), m_pCurrentAccessUnit(nullptr),
+	m_sizeInMb(Size(-1, -1)), m_sizeUncropped(Size(-1, -1)), m_sizeCropped(Size(-1, -1))
 {
 	MbaffFrameFlag = 0;
 }
@@ -48,7 +48,7 @@ std::deque<H264GOP*> H264Stream::getGOPs() const
 
 uint32_t H264Stream::popFrontGOPs(uint32_t count){
 	uint32_t removedAccessUnits = 0;
-	for(int i = 0;i < count;++i) {
+	for(uint32_t i = 0;i < count;++i) {
 		removedAccessUnits += m_GOPs.front()->size();
 		m_GOPs.pop_front();
 	}
@@ -107,7 +107,7 @@ bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
 
 	bool bRes = true;
-	for (int i = 0; i < listNAL.size(); ++i) {
+	for (uint32_t i = 0; i < listNAL.size(); ++i) {
 		if(!parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength)) bRes = false;
 	}
 
@@ -129,11 +129,11 @@ void H264Stream::lastPacketParsed(){
 
 	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
 	lastGOP->minorErrors.clear();
-	for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+	for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
 
 	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
 	lastGOP->majorErrors.clear();
-	for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+	for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 }
 
 // returns true if curr marks the beginning of a new access unit
@@ -244,11 +244,11 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 
 					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());
 					previousGOP->minorErrors.clear();
-					for(int i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
+					for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
 
 					majorErrors.insert(majorErrors.end(), previousGOP->majorErrors.begin(), previousGOP->majorErrors.end());
 					previousGOP->majorErrors.clear();
-					for(int i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+					for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 				}
 				if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) m_GOPs.back()->hasIDR = true;
 			} 
@@ -462,9 +462,9 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 					prevPicOrderCntLsb = pPrevSlice->pic_order_cnt_lsb;
 				}
 			}
-			if((pCurrentSlice->pic_order_cnt_lsb < prevPicOrderCntLsb) && ((prevPicOrderCntLsb - pCurrentSlice->pic_order_cnt_lsb) >= (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			if((pCurrentSlice->pic_order_cnt_lsb < prevPicOrderCntLsb) && ((uint32_t)(prevPicOrderCntLsb - pCurrentSlice->pic_order_cnt_lsb) >= (pCurrentSPS->MaxPicOrderCntLsb/2))){
 				m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb + pCurrentSPS->MaxPicOrderCntLsb;
-			} else if ((pCurrentSlice->pic_order_cnt_lsb > prevPicOrderCntLsb) && ((pCurrentSlice->pic_order_cnt_lsb - prevPicOrderCntLsb) > (pCurrentSPS->MaxPicOrderCntLsb/2))){
+			} else if ((pCurrentSlice->pic_order_cnt_lsb > prevPicOrderCntLsb) && ((uint32_t)(pCurrentSlice->pic_order_cnt_lsb - prevPicOrderCntLsb) > (pCurrentSPS->MaxPicOrderCntLsb/2))){
 				m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb - pCurrentSPS->MaxPicOrderCntLsb;
 			} else m_pCurrentAccessUnit->PicOrderCntMsb = prevPicOrderCntMsb;
 			if(!pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->TopFieldOrderCnt = m_pCurrentAccessUnit->PicOrderCntMsb + pCurrentSlice->pic_order_cnt_lsb;
@@ -480,7 +480,7 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 				uint16_t picOrderCntCycleCnt = (absFrameNum-1)/pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle;
 				uint16_t frameNumInPicOrderCntCycle = (absFrameNum-1)%pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle;
 				expectedPicOrderCnt = picOrderCntCycleCnt*pCurrentSPS->ExpectedDeltaPerPicOrderCntCycle;
-				for(int i = 0;i <= frameNumInPicOrderCntCycle;++i) expectedPicOrderCnt *= pCurrentSPS->offset_for_ref_frame[i];
+				for(i = 0;i <= frameNumInPicOrderCntCycle;++i) expectedPicOrderCnt *= pCurrentSPS->offset_for_ref_frame[i];
 			}
 			if(pCurrentSlice->nal_ref_idc == 0) expectedPicOrderCnt += pCurrentSPS->offset_for_non_ref_pic;
 			if(!pCurrentSlice->field_pic_flag){
@@ -510,10 +510,6 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 }
 
 void H264Stream::computeCurrentAccessUnitRPL(){
-	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
-	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
-	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
-
 	computeRPLPictureNumbers();
 	computeRPLInit();	
 }
@@ -719,7 +715,6 @@ void H264Stream::markDecodedReferencePictures(){
 						break;
 					}
 					case 3:{
-						break;
 						uint16_t picNumX = pCurrentSlice->CurrPicNum - (pCurrentSlice->drpm.difference_of_pic_nums_minus1[i]+1);
 						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){
 							if((*pAccessUnitIt)->slice() && (*pAccessUnitIt)->slice()->CurrPicNum == picNumX) {
@@ -728,6 +723,7 @@ void H264Stream::markDecodedReferencePictures(){
 								break;
 							}
 						}
+						break;
 					}
 					case 4:{
 						for(auto pAccessUnitIt = pAccessUnits.rbegin();pAccessUnitIt != pAccessUnits.rend();++pAccessUnitIt){

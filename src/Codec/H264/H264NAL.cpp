@@ -10,7 +10,7 @@ H264NAL::H264NAL():
 {}
 
 H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, uint8_t* nalData):
-	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc), nal_size(nalSize+3), nal_data(nullptr), nal_unit_type(UnitType_Unspecified), completelyParsed(true)
+	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(UnitType_Unspecified), nal_size(nalSize+3), nal_data(nullptr), completelyParsed(true)
 {
 	if(nalData == nullptr) return;
 	nal_data = new uint8_t[nal_size];
@@ -44,6 +44,8 @@ void H264NAL::validate(){
 				break;
 			case UnitType_IDRFrame:
 				minorErrors.push_back("[NAL Header] IDR frame marked as unimportant");
+				break;
+			default:
 				break;
 		}
 	}

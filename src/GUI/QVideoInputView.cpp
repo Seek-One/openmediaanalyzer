@@ -10,7 +10,7 @@ QVideoInputView::QVideoInputView(QWidget* parent)
     m_pGOVLength(new QStandardItem()), m_pVideoContentBitrate(new QStandardItem()), 
     m_pCodedVideoSize(new QStandardItem()), m_pDecodedPicturesSize(new QStandardItem()), m_pFrameValidity(new QStandardItem()),
     m_pAudioCodec(new QStandardItem()), m_pAudioContentBitrate(new QStandardItem()),
-    m_pContentType(new QStandardItem()), m_pGlobalContentBitrate(new QStandardItem()), m_pProtocol(new QStandardItem())
+    m_pContentType(new QStandardItem()), m_pProtocol(new QStandardItem()), m_pGlobalContentBitrate(new QStandardItem())
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);

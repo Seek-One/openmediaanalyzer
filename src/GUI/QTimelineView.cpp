@@ -142,7 +142,7 @@ void QTimelineView::accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> p
 void QTimelineView::accessUnitsRemoved(uint32_t count){
     QScrollBar* hScrollBar = m_pScrollArea->horizontalScrollBar();
     bool clampScrollRight = hScrollBar->value() >= SCROLL_CLAMP_RIGHT_THRESHOLD * hScrollBar->maximum();
-    for(int i = 0;i < count;++i){
+    for(uint32_t i = 0;i < count;++i){
         QLayoutItem* item = m_pBarHBoxLayout->takeAt(1);
         if(item->widget()) item->widget()->deleteLater();
         item = m_pCounterHBoxLayout->takeAt(m_pCounterHBoxLayout->count()-2);

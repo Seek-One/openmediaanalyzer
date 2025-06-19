@@ -67,7 +67,7 @@ UnitFieldList H265ProfileTierLevel::dump_fields(){
 	}
 	fields.addItem(UnitField("general_level_idc", general_level_idc));
 	uint32_t maxNumSubLayersMinus1 = sub_layer_profile_present_flag.size();
-	for(int i = 0;i < maxNumSubLayersMinus1;++i){
+	for(uint32_t i = 0;i < maxNumSubLayersMinus1;++i){
 		IdxValueUnitFieldList sub_layer_profile_present_flagField = IdxValueUnitFieldList("sub_layer_profile_present_flag", sub_layer_profile_present_flag[i], i);
 		if(sub_layer_profile_present_flag[i]){
 			sub_layer_profile_present_flagField.addItem(IdxUnitField("sub_layer_profile_space", sub_layer_profile_space[i], i));

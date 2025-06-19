@@ -24,7 +24,7 @@ UnitFieldList H265PPSRangeExtension::dump_fields(){
 	if(chroma_qp_offset_list_enabled_flag){
 		chroma_qp_offset_list_enabled_flagField.addItem(UnitField("diff_cu_chroma_qp_offset_depth", diff_cu_chroma_qp_offset_depth));
 		chroma_qp_offset_list_enabled_flagField.addItem(UnitField("chroma_qp_offset_list_len_minus1", chroma_qp_offset_list_len_minus1));
-		for(int i = 0;i < chroma_qp_offset_list_len_minus1;++i){
+		for(uint8_t i = 0;i < chroma_qp_offset_list_len_minus1;++i){
 			chroma_qp_offset_list_enabled_flagField.addItem(IdxUnitField("cb_qp_offset_list", cb_qp_offset_list[i], i));
 			chroma_qp_offset_list_enabled_flagField.addItem(IdxUnitField("cr_qp_offset_list", cr_qp_offset_list[i], i));
 		}
@@ -49,7 +49,7 @@ H265PPSColourMappingOctants::H265PPSColourMappingOctants(){
 
 H265PPSColourMappingTable::H265PPSColourMappingTable(){
 	num_cm_ref_layers_minus1 = 0;
-	for(int i = 0;i < 64;++i) cm_ref_layer_id[i] = 0;
+	for(uint8_t i = 0;i < 64u;++i) cm_ref_layer_id[i] = 0;
 	cm_octant_depth = 0;
 	cm_y_part_num_log2 = 0;
 	luma_bit_depth_cm_input_minus8 = 0;
@@ -67,7 +67,7 @@ H265PPSMultilayerExtension::H265PPSMultilayerExtension(){
 	pps_infer_scaling_list_flag = 0;
 	pps_scaling_list_ref_layer_id = 0;
 	num_ref_loc_offsets = 0;
-	for(int i = 0;i < 64;++i){
+	for(uint8_t i = 0;i < 64u;++i){
 		scaled_ref_layer_left_offset[i] = 0;
 		scaled_ref_layer_top_offset[i] = 0;
 		scaled_ref_layer_right_offset[i] = 0;
@@ -91,7 +91,7 @@ UnitFieldList H265PPSMultilayerExtension::dump_fields(){
 	if(pps_infer_scaling_list_flag) pps_infer_scaling_list_flagField.addItem(UnitField("pps_scaling_list_ref_layer_id", pps_scaling_list_ref_layer_id));
 	fields.addItem(std::move(pps_infer_scaling_list_flagField));
 	fields.addItem(UnitField("num_ref_loc_offsets", num_ref_loc_offsets));
-	for(int i = 0;i < num_ref_loc_offsets;++i){
+	for(uint8_t i = 0;i < num_ref_loc_offsets;++i){
 		fields.addItem(IdxUnitField("ref_loc_offset_layer_id", ref_loc_offset_layer_id[i], i));
 		IdxValueUnitFieldList scaled_ref_layer_offset_present_flagField = IdxValueUnitFieldList("scaled_ref_layer_offset_present_flag", scaled_ref_layer_offset_present_flag[i], i);
 		if(scaled_ref_layer_offset_present_flag[i]){
@@ -133,7 +133,7 @@ H265PPS3DExtension::H265PPS3DExtension(){
 	dlts_present_flag = 0;
 	pps_depth_layers_minus1 = 0;
 	pps_bit_depth_for_depth_layers_minus8 = 0;
-	for(int i = 0;i < 64;++i){
+	for(uint8_t i = 0;i < 64u;++i){
 		dlt_flag[i] = 0;
 		dlt_pred_flag[i] = 0;
 		dlt_val_flags_present_flag[i] = 0;
@@ -146,7 +146,7 @@ UnitFieldList H265PPS3DExtension::dump_fields(){
 	if(dlts_present_flag){
 		dlts_present_flagField.addItem(UnitField("pps_depth_layers_minus1", pps_depth_layers_minus1));
 		dlts_present_flagField.addItem(UnitField("pps_bit_depth_for_depth_layers_minus8", pps_bit_depth_for_depth_layers_minus8));
-		for(int i = 0;i <= pps_bit_depth_for_depth_layers_minus8;++i){
+		for(uint8_t i = 0;i <= pps_bit_depth_for_depth_layers_minus8;++i){
 			IdxValueUnitFieldList dlt_flagField = IdxValueUnitFieldList("dlt_flag", dlt_flag[i], i);
 			dlts_present_flagField.addItem(std::move(dlt_flagField));
 			if(dlt_flag[i]){
@@ -158,7 +158,7 @@ UnitFieldList H265PPS3DExtension::dump_fields(){
 				} 
 				
 				if(dlt_val_flags_present_flag[i]){
-					for(int j = 0;j <= dlt_value_flag[i].size();++j) dlt_val_flags_present_flagField.addItem(DblIdxUnitField("dlt_value_flag", dlt_value_flag[i][j], i, j));
+					for(uint32_t j = 0;j < dlt_value_flag[i].size();++j) dlt_val_flags_present_flagField.addItem(DblIdxUnitField("dlt_value_flag", dlt_value_flag[i][j], i, j));
 				}
 			}
 		}
@@ -199,8 +199,8 @@ UnitFieldList H265PPSSCCExtension::dump_fields(){
 			pps_palette_predictor_initializers_present_flagField.addItem(std::move(monochrome_palette_flagField));
 			pps_palette_predictor_initializers_present_flagField.addItem(UnitField("luma_bit_depth_entry_minus8", luma_bit_depth_entry_minus8));
 			if(!monochrome_palette_flag) monochrome_palette_flagField.addItem(UnitField("chroma_bit_depth_entry_minus8", chroma_bit_depth_entry_minus8));
-			for(int comp = 0;comp < monochrome_palette_flag ? 1 : 3;++comp){
-				for(int i = 0;i < pps_num_palette_predictor_initializer;++i){
+			for(uint8_t comp = 0;comp < (monochrome_palette_flag ? 1 : 3);++comp){
+				for(uint32_t i = 0;i < pps_num_palette_predictor_initializer;++i){
 					pps_palette_predictor_initializers_present_flagField.addItem(StringFormatter::formatString("pps_palette_predictor_initializer", pps_palette_predictor_initializer[comp][i], comp, i));
 				}
 			}
@@ -295,8 +295,8 @@ UnitFieldList H265PPS::dump_fields(){
 		tiles_enabled_flagField.addItem(UnitField("num_tile_rows_minus1", num_tile_rows_minus1));
 		ValueUnitFieldList uniform_spacing_flagField = ValueUnitFieldList("uniform_spacing_flag", uniform_spacing_flag);
 		if(!uniform_spacing_flag){
-			for(int i = 0;i < num_tile_columns_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("column_width_minus1", column_width_minus1[i], i));
-			for(int i = 0;i < num_tile_rows_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("row_height_minus1", row_height_minus1[i], i));
+			for(uint32_t i = 0;i < num_tile_columns_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("column_width_minus1", column_width_minus1[i], i));
+			for(uint32_t i = 0;i < num_tile_rows_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("row_height_minus1", row_height_minus1[i], i));
 		}
 		tiles_enabled_flagField.addItem(std::move(uniform_spacing_flagField));
 		
@@ -367,5 +367,5 @@ void H265PPS::validate(){
 	if(tiles_enabled_flag && num_tile_columns_minus1 == 0 && num_tile_rows_minus1 == 0) minorErrors.push_back("[PPS] num_tile_columns_minus1 and num_tile_rows_minus1 both equal to 0 with set tiles_enabled_flag");
 	if(pps_beta_offset_div2 < -6 || pps_beta_offset_div2 > 6) minorErrors.push_back(StringFormatter::formatString("[PPS] pps_beta_offset_div2 value (%ld) not in valid range (-6..6)", pps_beta_offset_div2));
 	if(pps_tc_offset_div2 < -6 || pps_tc_offset_div2 > 6) minorErrors.push_back(StringFormatter::formatString("[PPS] pps_tc_offset_div2 value (%ld) not in valid range (-6..6)", pps_tc_offset_div2));
-	if(log2_parallel_merge_level_minus2 > pSps->CtbLog2SizeY-2) minorErrors.push_back(StringFormatter::formatString("[PPS] log2_parallel_merge_level_minus2 value (%ld) not in valid range (0..{})", log2_parallel_merge_level_minus2, pSps->CtbLog2SizeY-2));
+	if((uint32_t)log2_parallel_merge_level_minus2 > pSps->CtbLog2SizeY-2) minorErrors.push_back(StringFormatter::formatString("[PPS] log2_parallel_merge_level_minus2 value (%ld) not in valid range (0..{})", log2_parallel_merge_level_minus2, pSps->CtbLog2SizeY-2));
 }

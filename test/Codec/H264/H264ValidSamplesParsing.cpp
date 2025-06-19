@@ -15,7 +15,7 @@ void H264ValidSamplesParsing::loadStream(const QString& szDirName, H264Stream& s
 
 	QStringList listFrame = dirFrame.entryList(QDir::Files, QDir::Name);
 	QByteArray bitstream;
-	for (int i = 0; i < listFrame.size(); ++i){
+	for (uint32_t i = 0; i < listFrame.size(); ++i){
 		const QString& szFileFrame = listFrame[i];
 
 		QByteArray data = loadFrame(dirFrame, szFileFrame);
@@ -199,7 +199,7 @@ void H264ValidSamplesParsing::test_h264Sony4kBitstream(){
 		QVERIFY(pAccessUnit->slices().size() == 8);
 	}
 
-	for(int i = 0;i < pAccessUnits.size();++i){
+	for(uint32_t i = 0;i < pAccessUnits.size();++i){
 		std::vector<H264Slice*> pSlices = pAccessUnits[i]->slices();
 		QVERIFY(!pSlices.empty());
 		if(i%3 == 0) QVERIFY(pSlices.front()->slice_type == H264Slice::SliceType_I || pSlices.front()->slice_type == H264Slice::SliceType_P);

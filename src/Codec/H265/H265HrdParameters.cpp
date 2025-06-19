@@ -11,7 +11,7 @@ H265SubLayerHrdParameters::H265SubLayerHrdParameters()
 
 UnitFieldList H265SubLayerHrdParameters::dump_fields(uint8_t sub_pic_hrd_params_present_flag){
 	UnitFieldList fields = UnitFieldList("Sub-HRD Parameters");
-	for(int i = 0;i < bit_rate_du_value_minus1.size();++i){
+	for(uint32_t i = 0;i < bit_rate_du_value_minus1.size();++i){
 		fields.addItem(IdxUnitField("bit_rate_value_minus1", bit_rate_value_minus1[i], i));
 		fields.addItem(IdxUnitField("cpb_size_value_minus1", cpb_size_value_minus1[i], i));
 		if(sub_pic_hrd_params_present_flag){
@@ -62,7 +62,7 @@ UnitFieldList H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
 			fields.addItem(UnitField("dpb_output_delay_length_minus1", dpb_output_delay_length_minus1));
 		}
 	}
-	for(int i = 0;i < fixed_pic_rate_general_flag.size();++i){
+	for(uint32_t i = 0;i < fixed_pic_rate_general_flag.size();++i){
 		IdxValueUnitFieldList fixed_pic_rate_general_flagField = IdxValueUnitFieldList("fixed_pic_rate_general_flag", fixed_pic_rate_general_flag[i], i);
 		IdxValueUnitFieldList fixed_pic_rate_within_cvs_flagField = IdxValueUnitFieldList("fixed_pic_rate_within_cvs_flag", fixed_pic_rate_within_cvs_flag[i], i);
 		if(!fixed_pic_rate_general_flag[i]) {
@@ -79,7 +79,7 @@ UnitFieldList H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
 }
 
 void H265HrdParameters::validate(){
-	for(int i = 0;i < fixed_pic_rate_general_flag.size();++i){
+	for(uint32_t i = 0;i < fixed_pic_rate_general_flag.size();++i){
 		if(fixed_pic_rate_within_cvs_flag[i]) {
 			if(elemental_duration_in_tc_minus1[i] > 2047) {
 				errors.push_back(StringFormatter::formatString("[HRD parameters] elemental_duration_in_tc_minus1[%d] value (%ld) not in valid range (0..2047)", i, elemental_duration_in_tc_minus1[i]));

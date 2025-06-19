@@ -76,8 +76,8 @@ std::vector<H264Slice*> H264AccessUnit::slices() const{
 H264Slice* H264AccessUnit::primary_coded_slice() const{
     for(auto& NALUnit : NALUnits){
         if(H264Slice::isSlice(NALUnit.get())){
-            H264Slice* slice = reinterpret_cast<H264Slice*>(NALUnit.get());
-            if(slice->redundant_pic_cnt == 0) return slice;
+            H264Slice* pSlice = reinterpret_cast<H264Slice*>(NALUnit.get());
+            if(pSlice->redundant_pic_cnt == 0) return pSlice;
         }
     }
     return nullptr;
@@ -112,7 +112,7 @@ void H264AccessUnit::validate(){
         }
     }
 
-    for(int i = 0;i < NALUnits.size();++i){
+    for(uint32_t i = 0;i < NALUnits.size();++i){
         if(NALUnits[i]->nal_unit_type == H264NAL::UnitType_SEI){
             if(i+1 < NALUnits.size()){
                 if(NALUnits[i+1]->nal_unit_type != H264NAL::UnitType_SEI && !H264Slice::isSlice(NALUnits[i+1].get())){
@@ -120,7 +120,7 @@ void H264AccessUnit::validate(){
                 }
             }
             H264SEI* SEIUnit = reinterpret_cast<H264SEI*>(NALUnits[i].get());
-            for(int j = 0;j < SEIUnit->messages.size();++j){
+            for(uint32_t j = 0;j < SEIUnit->messages.size();++j){
                 if(SEIUnit->messages[j]->payloadType == SEI_BUFFERING_PERIOD && j != 0){
                     minorErrors.push_back("SEI buffering period message not leading SEI unit");
                 }
@@ -129,7 +129,7 @@ void H264AccessUnit::validate(){
     }
 
     int lastSliceRedundantPicCnt = -1;
-    for(int i = 0;i < NALUnits.size();++i){
+    for(uint32_t i = 0;i < NALUnits.size();++i){
         if(H264Slice::isSlice(NALUnits[i].get())){
             H264Slice* pSlice = reinterpret_cast<H264Slice*>(NALUnits[i].get());
             if(pSlice->getPPS() && !pSlice->getPPS()->redundant_pic_cnt_present_flag){

@@ -22,7 +22,7 @@ void H265GOP::setAccessUnitDecodability(){
         case H265Slice::SliceType_I:
         case H265Slice::SliceType_P: {
             accessUnits.back()->decodable = true;
-            int previousNonBFrameIndex = size()-1;
+            uint32_t previousNonBFrameIndex = size()-1;
             for(int i = size()-2;i >= 0 && previousNonBFrameIndex == size()-1;--i){
                 switch(accessUnits[i]->slice()->slice_type){
                     case H265Slice::SliceType_B:
@@ -31,6 +31,8 @@ void H265GOP::setAccessUnitDecodability(){
                     case H265Slice::SliceType_I:
                     case H265Slice::SliceType_P:
                         previousNonBFrameIndex = i;
+                        break;
+                    default:
                         break;
                 }
             }
@@ -43,6 +45,8 @@ void H265GOP::setAccessUnitDecodability(){
         }
         case H265Slice::SliceType_B:
             break; // future frames required
+        default:
+            break;
     }
 }
 
@@ -71,7 +75,6 @@ std::vector<H265AccessUnit*> H265GOP::getAccessUnits() const {
 void H265GOP::validate(){
     uint16_t prevFrameNumber = 0;
     bool encounteredIFrame = false;
-    bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
     uint16_t minFrameNumber = 0;
     if(accessUnits.front()->slice()) minFrameNumber = maxFrameNumber = accessUnits.front()->slice()->slice_pic_order_cnt_lsb;
@@ -82,7 +85,6 @@ void H265GOP::validate(){
         if(accessUnit->empty() || !accessUnit->slice()) continue;
         const H265Slice* pSlice = accessUnit->slice();
         if(!pSlice->getPPS() || !pSlice->getSPS() || !pSlice->getVPS()) continue;
-        noSPSorPPS = false;
         if(pSlice->slice_pic_order_cnt_lsb > maxFrameNumber) maxFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_pic_order_cnt_lsb < minFrameNumber) minFrameNumber = pSlice->slice_pic_order_cnt_lsb;
         if(pSlice->slice_type == H265Slice::SliceType_I) encounteredIFrame = true;
@@ -91,7 +93,7 @@ void H265GOP::validate(){
             if(pSlice->slice_pic_order_cnt_lsb > lastNonBFrameNumber) majorErrors.push_back("[GOP] Out of order frames detected");
         } else {
             lastNonBFrameNumber = pSlice->slice_pic_order_cnt_lsb;
-            if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
+            if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (uint32_t)(prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
                 majorErrors.push_back("[GOP] Out of order frames detected");
             }
         }

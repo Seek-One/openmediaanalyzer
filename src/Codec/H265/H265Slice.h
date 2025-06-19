@@ -118,7 +118,7 @@ struct H265Slice : public H265NAL {
 	// Derived variables
 	int32_t PicOrderCntVal;
 	uint32_t PicOrderCntMsb;
-	uint32_t SliceQpY;
+	int32_t SliceQpY;
 	uint8_t IdrPicFlag;
 	uint8_t IRAPPicture;
 	uint8_t NoRaslOutputFlag;

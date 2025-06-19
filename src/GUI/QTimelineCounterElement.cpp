@@ -4,7 +4,7 @@
 #include "QTimelineCounterElement.h"
 
 QTimelineCounterElement::QTimelineCounterElement(uint16_t value, QWidget* parent)
-    : m_value(value), QWidget(parent)
+    : QWidget(parent), m_value(value)
 {
     setFixedWidth(15);
     update();

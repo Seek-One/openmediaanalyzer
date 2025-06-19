@@ -5,7 +5,7 @@
 
 QStatusView::QStatusView(QWidget* parent):
     QWidget(parent), 
-    m_pVideoStatus(new QLabel(this)), m_pInputSource(new QLabel(this))
+    m_pInputSource(new QLabel(this)), m_pVideoStatus(new QLabel(this))
 {
     QGridLayout* pGridLayout = new QGridLayout(this);
     setLayout(pGridLayout);

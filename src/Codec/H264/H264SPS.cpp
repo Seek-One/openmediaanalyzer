@@ -179,7 +179,7 @@ UnitFieldList H264SPS::dump_fields(){
 		pic_order_cnt_typeField.addItem(UnitField("offset_for_non_ref_pic", offset_for_non_ref_pic));
 		pic_order_cnt_typeField.addItem(UnitField("offset_for_top_to_bottom_field", offset_for_top_to_bottom_field));
 		pic_order_cnt_typeField.addItem(UnitField("num_ref_frames_in_pic_order_cnt_cycle", num_ref_frames_in_pic_order_cnt_cycle));
-		for(int i = 0;i < num_ref_frames_in_pic_order_cnt_cycle;++i) pic_order_cnt_typeField.addItem(IdxUnitField("offset_for_ref_frame", offset_for_ref_frame[i], i));
+		for(uint32_t i = 0;i < num_ref_frames_in_pic_order_cnt_cycle;++i) pic_order_cnt_typeField.addItem(IdxUnitField("offset_for_ref_frame", offset_for_ref_frame[i], i));
 	}
 	fields.addItem(std::move(pic_order_cnt_typeField));
 

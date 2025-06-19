@@ -78,9 +78,9 @@ UnitFieldList H264PPS::dump_fields(){
 	if(num_slice_groups_minus1 > 0){
 		ValueUnitFieldList slice_group_map_typeField = ValueUnitFieldList("slice_group_map_type", slice_group_map_type);
 		if(slice_group_map_type == 0){
-			for(int i = 0;i <= num_slice_groups_minus1;++i) slice_group_map_typeField.addItem(IdxUnitField("run_length_minus1", run_length_minus1[i], i));
+			for(uint32_t i = 0;i <= num_slice_groups_minus1;++i) slice_group_map_typeField.addItem(IdxUnitField("run_length_minus1", run_length_minus1[i], i));
 		} else if(slice_group_map_type == 2){
-			for(int i = 0;i < num_slice_groups_minus1;++i) {
+			for(uint32_t i = 0;i < num_slice_groups_minus1;++i) {
 				slice_group_map_typeField.addItem(IdxUnitField("top_left", top_left[i], i));
 				slice_group_map_typeField.addItem(IdxUnitField("bottom_right", bottom_right[i], i));
 			}
@@ -89,7 +89,7 @@ UnitFieldList H264PPS::dump_fields(){
 			slice_group_map_typeField.addItem(UnitField("slice_group_change_rate_minus1", slice_group_change_rate_minus1));
 		} else if(slice_group_map_type == 6) {
 			ValueUnitFieldList pic_size_in_map_units_minus1Field = ValueUnitFieldList("pic_size_in_map_units_minus1", pic_size_in_map_units_minus1);
-			for(int i = 0;i <= pic_size_in_map_units_minus1;++i) pic_size_in_map_units_minus1Field.addItem(IdxUnitField("slice_group_id", slice_group_id[i], i));
+			for(uint32_t i = 0;i <= pic_size_in_map_units_minus1;++i) pic_size_in_map_units_minus1Field.addItem(IdxUnitField("slice_group_id", slice_group_id[i], i));
 			slice_group_map_typeField.addItem(std::move(pic_size_in_map_units_minus1Field));
 		}
 		num_slice_groups_minus1Field.addItem(std::move(slice_group_map_typeField));
@@ -135,7 +135,7 @@ void H264PPS::validate(){
 	if (num_slice_groups_minus1 > 0) {
 		switch(slice_group_map_type){
 			case 0:
-				for (int iGroup = 0; iGroup <= num_slice_groups_minus1; iGroup++) {
+				for (uint32_t iGroup = 0; iGroup <= num_slice_groups_minus1; iGroup++) {
 					if(run_length_minus1[iGroup] > h264SPS->PicSizeInMapUnits-1){
 						minorErrors.push_back(StringFormatter::formatString("[PPS] run_length_minus1[%d] value (%ld) not in valid range (0..{})", iGroup, run_length_minus1[iGroup], h264SPS->PicSizeInMapUnits-1));
 					}
@@ -143,7 +143,7 @@ void H264PPS::validate(){
 				break;
 			case 1: break;
 			case 2:
-				for (int iGroup = 0; iGroup < num_slice_groups_minus1; iGroup++) {
+				for (uint32_t iGroup = 0; iGroup < num_slice_groups_minus1; iGroup++) {
 					if(top_left[iGroup] > bottom_right[iGroup]){
 						minorErrors.push_back(StringFormatter::formatString("[PPS] top_left[%d] value (%ld) should be less than or equal to bottom_right[%d] value (%ld)", iGroup, top_left[iGroup], iGroup, bottom_right[iGroup]));
 					}
@@ -163,7 +163,7 @@ void H264PPS::validate(){
 				if(pic_size_in_map_units_minus1 != h264SPS->PicSizeInMapUnits-1){
 					minorErrors.push_back(StringFormatter::formatString("[PPS] pic_size_in_map_units_minus1 value (%ld) should be equal to {}", pic_size_in_map_units_minus1, h264SPS->PicSizeInMapUnits-1));
 				}
-				for (unsigned i = 0; i <= pic_size_in_map_units_minus1; i++) {
+				for (uint32_t i = 0; i <= pic_size_in_map_units_minus1; i++) {
 					if(slice_group_id[i] > num_slice_groups_minus1){
 						minorErrors.push_back(StringFormatter::formatString("[PPS] slice_group_id[%d] value (%ld) not in valid range (0..{})", i, slice_group_id[i], num_slice_groups_minus1));
 					}

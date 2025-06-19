@@ -4,7 +4,7 @@
 #include "QAccessUnitElement.h"
 
 QAccessUnitElement::QAccessUnitElement(QWidget* parent)
-    : QWidget(parent), m_selected(false), m_hovered(false)
+    : QWidget(parent), m_hovered(false), m_selected(false)
 {
     setFixedWidth(15);
     setMouseTracking(true);

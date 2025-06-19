@@ -17,13 +17,13 @@
 #include "QDecoderModel.h"
 
 QDecoderModel::QDecoderModel():
-    m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), m_tabIndex(0), 
+    m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), 
     m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
     m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
+    m_frameCount(0), m_pFrameRateTimer(new QTimer(this)),
+    m_tabIndex(0), m_liveContent(true),
     m_memoryLimitSet(MEMORY_LIMIT_SET_BY_DEFAULT), m_durationLimitSet(DURATION_LIMIT_SET_BY_DEFAULT), m_GOPCountLimitSet(GOP_COUNT_LIMIT_SET_BY_DEFAULT),
-    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
-    m_liveContent(true),
-    m_frameCount(0), m_pFrameRateTimer(new QTimer(this))
+    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE)
 {
     connect(m_pFrameRateTimer, &QTimer::timeout, this, &QDecoderModel::frameRateUpdater);
     if(!m_pH264Codec) {
@@ -422,6 +422,8 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
                 case H264NAL::UnitType_SEI:
                     model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
+                default:
+                    continue;
             }
         }
     } else  if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
@@ -490,6 +492,8 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
                 case H265NAL::UnitType_SEI_SUFFIX:
                     model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
                     break;
+                default:
+                    continue;
             }
         }
     } 
@@ -860,7 +864,7 @@ void QDecoderModel::discardH264GOPs(){
             ++removedGOPs;
         }
     }
-    for(int i = 0;i < removedGOPs;++i) {
+    for(uint32_t i = 0;i < removedGOPs;++i) {
         m_firstGOPSliceTimestamp.remove(m_previousGOPModels.front().front()->m_id);
         m_previousGOPModels.pop_front();
     }
@@ -892,7 +896,7 @@ void QDecoderModel::discardH265GOPs(){
             ++removedGOPs;
         }
     }
-    for(int i = 0;i < removedGOPs;++i) {
+    for(uint32_t i = 0;i < removedGOPs;++i) {
         m_firstGOPSliceTimestamp.remove(m_previousGOPModels.front().front()->m_id);
         m_previousGOPModels.pop_front();
     }
@@ -939,7 +943,6 @@ void QDecoderModel::validateCurrentGOP(){
 void QDecoderModel::validateH264GOPFrames(){
     uint16_t prevFrameNumber = 0;
     bool encounteredIFrame = false;
-    bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){        
         const H264AccessUnit* pAccessUnit = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit);
@@ -952,7 +955,6 @@ void QDecoderModel::validateH264GOPFrames(){
             pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }
-        noSPSorPPS = false;
         if(pAccessUnit->hasMajorErrors()){
             pAccessUnitModel->m_status = QAccessUnitModel::Status_INVALID_STRUCTURE;
             continue;
@@ -974,7 +976,6 @@ void QDecoderModel::validateH264GOPFrames(){
 void QDecoderModel::validateH265GOPFrames(){
     uint16_t prevFrameNumber = 0;
     bool encounteredIFrame = false;
-    bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
     uint16_t lastNonBFrameNumber = 0;
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : m_currentGOPModel){        
@@ -988,7 +989,6 @@ void QDecoderModel::validateH265GOPFrames(){
             pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_PPS_OR_SPS_MISSING;
             continue;
         }
-        noSPSorPPS = false;
         if(!encounteredIFrame && pSlice->slice_type != H265Slice::SliceType_I) {
             pAccessUnitModel->m_status = QAccessUnitModel::Status_REFERENCED_IFRAME_MISSING;
             continue;
@@ -1001,7 +1001,7 @@ void QDecoderModel::validateH265GOPFrames(){
             if(pSlice->slice_pic_order_cnt_lsb > lastNonBFrameNumber) pAccessUnitModel->m_status = QAccessUnitModel::Status_OUT_OF_ORDER;
         } else {
             lastNonBFrameNumber = pSlice->slice_pic_order_cnt_lsb;
-            if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
+            if(pSlice->slice_pic_order_cnt_lsb < prevFrameNumber && (uint32_t)(prevFrameNumber + 1)%pSlice->getSPS()->computeMaxFrameNumber() != pSlice->slice_pic_order_cnt_lsb) {
                 pAccessUnitModel->m_status = QAccessUnitModel::Status_OUT_OF_ORDER;
             }
         }

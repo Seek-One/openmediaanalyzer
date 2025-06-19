@@ -125,10 +125,10 @@ private:
     QImage* getQImageFromH265Frame(const AVFrame* pFrame);
     qsizetype pictureMemoryUsageMB();
 
-    QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
-    QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
+    QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
+    QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
     
     QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
     std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
@@ -154,8 +154,8 @@ private:
     bool m_memoryLimitSet;
     bool m_durationLimitSet;
     bool m_GOPCountLimitSet;
-    int m_pictureMemoryLimit;
-    int m_durationLimit;
-    int m_GOPCountLimit;
+    uint32_t m_pictureMemoryLimit;
+    uint32_t m_durationLimit;
+    uint32_t m_GOPCountLimit;
     QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;
 };

@@ -141,9 +141,9 @@ void H265AccessUnit::validate(){
         }
     }
     // order-related checks
-    int lastVCLIndex = NALUnits.size();
-    for(int i = 0;i < NALUnits.size();++i) if(NALUnits[i]->isSlice()) lastVCLIndex = i;
-    for(int i = lastVCLIndex+1;i < NALUnits.size();++i){
+    uint32_t lastVCLIndex = NALUnits.size();
+    for(uint32_t i = 0;i < NALUnits.size();++i) if(NALUnits[i]->isSlice()) lastVCLIndex = i;
+    for(uint32_t i = lastVCLIndex+1;i < NALUnits.size();++i){
         switch(NALUnits[i]->nal_unit_type){
             case H265NAL::UnitType_VPS:
             case H265NAL::UnitType_SPS:

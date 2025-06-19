@@ -207,7 +207,7 @@ H264SEIUserDataUnregistered::~H264SEIUserDataUnregistered(){
 UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
 	UnitFieldList fields = UnitFieldList("User Data Unregistered");
 	int index = 31;
-	std::ostringstream uuidStringStream = std::ostringstream();
+	std::ostringstream uuidStringStream;
 	for(int len : {8, 4, 4, 4, 12}){
 		for(int i = 0;i < len;++i){
 			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578 >> index*4)&& 0xFF);

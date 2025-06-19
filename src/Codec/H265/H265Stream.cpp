@@ -235,7 +235,8 @@ void H265Stream::checkPrevRefPicList(H265AccessUnit* pCurrentAccessUnit, H265Sli
 		if(seenPOC.find(previousShortTermRefFramePOC) == seenPOC.end()) missingPOC.insert(previousShortTermRefFramePOC);
 	}
 	if(!missingPOC.empty()){
-        std::ostringstream missingPOCStr = std::ostringstream() << "[Slice] Missing reference frames : [" << (*missingPOC.begin());
+        std::ostringstream missingPOCStr;
+		missingPOCStr << "[Slice] Missing reference frames : [" << (*missingPOC.begin());
         auto missingPOCIt = missingPOC.begin();
         missingPOCIt++;
         for(;missingPOCIt != missingPOC.end();missingPOCIt++) missingPOCStr << (*missingPOCIt) << ", ";

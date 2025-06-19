@@ -75,7 +75,7 @@ set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
 set(WITH_SWRESAMPLE ON BOOL "Enable build with swresample library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
 set(WITH_VDPAU ON BOOL "Enable build with VDPAU API")
-# set(WITH_DRM ON CACHE BOOL "Enable build with drm library")
+set(WITH_DRM ON CACHE BOOL "Enable build with drm library")
 
 # Define output variable
 set (PACKAGE_DEPS)

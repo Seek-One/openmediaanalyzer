@@ -34,6 +34,6 @@ data/app.qrc
 data/logos/icon.rc
 data/theme/icons
 data/*.desktop
-CPackOptions.cmake
 platforms/debian/postinst
 platforms/debian/prerm
+*.cmake

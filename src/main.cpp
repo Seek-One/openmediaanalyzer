@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     parser.process(app);
 
     QTranslator translator;
-    if (translator.load(QLocale("fr"), "", "", "ts")) app.installTranslator(&translator);
+    if (translator.load(QLocale("fr"), "", "", ".")) app.installTranslator(&translator);
     QWindowMain* pWindowMain = new QWindowMain();
     if(pWindowMain) pWindowMain->show();
 

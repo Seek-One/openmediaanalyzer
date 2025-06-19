@@ -51,7 +51,7 @@ set(WITH_PTHREAD ON CACHE BOOL "Enable build with pthread library")
 
 # GUI
 set(WITH_QT ON CACHE BOOL "Enable build with qt library")
-set(QT6_COMPONENTS Core Gui Widgets LinguistTools Test)
+set(QT6_COMPONENTS Core Gui Widgets Test)
 
 if(WIN32)
 	set(QT_PLATFORMS_COMPONENTS qwindows qminimal)

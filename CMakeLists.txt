@@ -75,7 +75,7 @@ set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
 set(WITH_SWRESAMPLE ON BOOL "Enable build with swresample library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
 set(WITH_VDPAU ON BOOL "Enable build with VDPAU API")
-set(WITH_DRM ON CACHE BOOL "Enable build with drm library")
+# set(WITH_DRM ON CACHE BOOL "Enable build with drm library")
 
 # Define output variable
 set (PACKAGE_DEPS)
@@ -414,7 +414,7 @@ target_link_libraries (${APPLICATION_EXE_NAME}
     ${VDPAU_LIBRARIES} 
     ${X11_LIBRARIES}
     lzma
-    ${LIBDRM_LIBRARIES}
+    ${Libdrm_LIBRARIES}
 )
 
 install(TARGETS ${APPLICATION_EXE_NAME} DESTINATION ${INSTALL_PATH_BIN})

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include <fmt/core.h>
 
 #include "../H26X/H26XMath.h"
 #include "H265AccessUnit.h"

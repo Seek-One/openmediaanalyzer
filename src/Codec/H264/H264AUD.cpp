@@ -1,5 +1,4 @@
 #include <cstring>
-#include <fmt/core.h>
 
 #include "H264AUD.h"
 

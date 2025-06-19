@@ -1,5 +1,4 @@
 #include <string>
-#include <fmt/core.h>
 
 #include "H265ShortTermRefPicSet.h"
 

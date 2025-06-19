@@ -1,7 +1,6 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
-#include <fmt/core.h>
 
 #include "H265NAL.h"
 #include "H265Slice.h"

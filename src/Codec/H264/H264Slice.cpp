@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstring>
-#include <fmt/core.h>
 
 #include "H264PPS.h"
 #include "H264SPS.h"

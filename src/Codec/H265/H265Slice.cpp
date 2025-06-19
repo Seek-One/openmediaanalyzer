@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fmt/core.h>
 #include <algorithm>
 
 #include "H265PPS.h"

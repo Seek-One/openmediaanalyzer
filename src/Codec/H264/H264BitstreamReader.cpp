@@ -1,6 +1,5 @@
 #include <cstring>
 #include <cmath>
-#include <fmt/core.h>
 #include <algorithm>
 #include <iostream>
 

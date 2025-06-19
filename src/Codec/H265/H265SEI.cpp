@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstring>
-#include <fmt/core.h>
 
 #include "H265SEI.h"
 

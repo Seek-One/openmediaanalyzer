@@ -1,4 +1,3 @@
-#include <fmt/core.h>
 #include <algorithm>
 #include <unordered_set>
 

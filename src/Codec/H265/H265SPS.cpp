@@ -1,4 +1,3 @@
-#include <fmt/core.h>
 #include <algorithm>
 
 #include "H265VPS.h"

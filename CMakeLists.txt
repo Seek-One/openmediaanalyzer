@@ -399,7 +399,6 @@ add_executable (${APPLICATION_EXE_NAME}
 )
 
 include_directories(${INSTALL_PATH_LIB})
-message("${AVUTIL_LIBRARIES}E")
 target_link_libraries (${APPLICATION_EXE_NAME}
 	${QT_LIBRARIES}
 	${QT_QTMAIN_LIBRARY}

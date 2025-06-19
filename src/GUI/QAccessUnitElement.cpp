@@ -43,14 +43,16 @@ void QAccessUnitElement::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void QAccessUnitElement::enterEvent(QEvent* event) {
+void QAccessUnitElement::enterEvent(QEnterEvent* event) {
     m_hovered = true;
     update();
+    QWidget::enterEvent(event);
 }
 
 void QAccessUnitElement::leaveEvent(QEvent* event) {
     m_hovered = false;
     update();
+    QWidget::leaveEvent(event);
 }
 
 void QAccessUnitElement::updateBar(){

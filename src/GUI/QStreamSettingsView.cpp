@@ -24,7 +24,7 @@ QStreamSettingsView::QStreamSettingsView(QWidget* parent)
     pDiscardStrategyContainer->setLayout(pDiscardStrategyLayout);
 
 
-    QCheckBox* pMemoryLimitCheckbox = new QCheckBox(tr("Memory limit"), pDiscardStrategyContainer);
+    QCheckBox* pMemoryLimitCheckbox = new QCheckBox(tr("Encoded Stream Memory limit"), pDiscardStrategyContainer);
     QCheckBox* pDurationLimitCheckbox = new QCheckBox(tr("Fixed video duration"), pDiscardStrategyContainer);
     QCheckBox* pGOPCountLimitCheckbox = new QCheckBox(tr("Fixed GOP count"), pDiscardStrategyContainer);
     QSpinBox* pMemoryLimitSpinbox = new QSpinBox(pDiscardStrategyContainer);

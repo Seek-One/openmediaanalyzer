@@ -24,7 +24,7 @@ QDecoderModel::QDecoderModel():
     m_frameCount(0), m_pFrameRateTimer(new QTimer(this)),
     m_tabIndex(0), m_liveContent(true),
     m_memoryLimitSet(MEMORY_LIMIT_SET_BY_DEFAULT), m_durationLimitSet(DURATION_LIMIT_SET_BY_DEFAULT), m_GOPCountLimitSet(GOP_COUNT_LIMIT_SET_BY_DEFAULT),
-    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
+    m_codedMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
     m_pPictureThread(nullptr), m_pPictureWorker(nullptr)
 {
     connect(m_pFrameRateTimer, &QTimer::timeout, this, &QDecoderModel::frameRateUpdater);
@@ -235,7 +235,7 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
             emitH264PPSErrors();
             break;
     }
-    updateH264StatusBar();
+    updateH264Metrics();
 }
 
 void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
@@ -310,7 +310,7 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
             emitH265PPSErrors();
             break;
     }
-    updateH265StatusBar();
+    updateH265Metrics();
 }
 
 void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
@@ -586,7 +586,7 @@ void QDecoderModel::GOPCountLimitToggled(bool activated){
 }
 
 void QDecoderModel::memoryLimitUpdated(int val){
-    m_pictureMemoryLimit = std::clamp(val, MEMORY_LIMIT_MIN, MEMORY_LIMIT_MAX);
+    m_codedMemoryLimit = std::clamp(val, MEMORY_LIMIT_MIN, MEMORY_LIMIT_MAX);
 }
 
 void QDecoderModel::durationLimitUpdated(int val){
@@ -612,8 +612,8 @@ void QDecoderModel::folderLoaded(){
             return QString(err.c_str());
         });
         decodeH264GOP(m_currentGOPModel);
-        updateH264StatusBarValidity();
-        updateH264StatusBarStatus();
+        updateH264Validity();
+        updateH264Status();
         buildH264PPSView(this);
         buildH264SPSView(this);
         switch(m_tabIndex){
@@ -639,8 +639,8 @@ void QDecoderModel::folderLoaded(){
             return QString(err.c_str());
         });
         decodeH265GOP(m_currentGOPModel);
-        updateH265StatusBarValidity();
-        updateH265StatusBarStatus();
+        updateH265Validity();
+        updateH265Status();
         buildH265PPSView(this);
         buildH265SPSView(this);
         buildVPSView(this);
@@ -836,7 +836,7 @@ void QDecoderModel::discardH264GOPs(){
         removedGOPs += GOPs.size()-1-m_GOPCountLimit;
     }
     if(m_memoryLimitSet){
-        while(pictureMemoryUsageMB() > m_pictureMemoryLimit) {
+        while((encodedH264StreamMemoryUsage()/1e6) > m_codedMemoryLimit) {
             emit removeTimelineUnits(m_pH264Stream->popFrontGOPs(1));
             ++removedGOPs;
         }
@@ -868,7 +868,7 @@ void QDecoderModel::discardH265GOPs(){
         removedGOPs += GOPs.size()-1-m_GOPCountLimit;
     }
     if(m_memoryLimitSet){
-        while(pictureMemoryUsageMB() > m_pictureMemoryLimit) {
+        while((encodedH265StreamMemoryUsage()/1e6) > m_codedMemoryLimit) {
             emit removeTimelineUnits(m_pH265Stream->popFrontGOPs(1));
             ++removedGOPs;
         }
@@ -997,7 +997,7 @@ void QDecoderModel::validateH265GOPFrames(){
     }
 }
 
-void QDecoderModel::updateH264StatusBarStatus(){
+void QDecoderModel::updateH264Status(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
     if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H264GOP* pGOP){
         return pGOP->hasMajorErrors();
@@ -1008,7 +1008,7 @@ void QDecoderModel::updateH264StatusBarStatus(){
     else updateStatus(StreamStatus::StreamStatus_OK);
 }
 
-void QDecoderModel::updateH264StatusBarValidity(){
+void QDecoderModel::updateH264Validity(){
     std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
     uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H264GOP* GOP){
         std::vector<H264AccessUnit*> pAccessUnits = GOP->getAccessUnits();
@@ -1022,22 +1022,14 @@ void QDecoderModel::updateH264StatusBarValidity(){
     emit updateValidity(valid, total);
 }
 
-void QDecoderModel::updateH264StatusBarSize(){
-    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
-        return acc + GOP->byteSize();
-    });
-    emit updateCodedSize(size);
-}
-
-void QDecoderModel::updateH264StatusBar(){
-    updateH264StatusBarStatus();
-    updateH264StatusBarValidity();
-    updateH264StatusBarSize();
+void QDecoderModel::updateH264Metrics(){
+    updateH264Status();
+    updateH264Validity();
+    emit updateCodedSize(encodedH264StreamMemoryUsage());
     emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
-void QDecoderModel::updateH265StatusBarStatus(){
+void QDecoderModel::updateH265Status(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
     if(!m_majorStreamErrors.empty() || std::any_of(GOPs.begin(), GOPs.end(), [](H265GOP* pGOP){
         return pGOP->hasMajorErrors();
@@ -1048,7 +1040,7 @@ void QDecoderModel::updateH265StatusBarStatus(){
     else updateStatus(StreamStatus::StreamStatus_OK);
 }
 
-void QDecoderModel::updateH265StatusBarValidity(){
+void QDecoderModel::updateH265Validity(){
     std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
     uint32_t valid = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint32_t acc, const H265GOP* GOP){
         std::vector<H265AccessUnit*> pAccessUnits = GOP->getAccessUnits();
@@ -1062,18 +1054,10 @@ void QDecoderModel::updateH265StatusBarValidity(){
     emit updateValidity(valid, total);
 }
 
-void QDecoderModel::updateH265StatusBarSize(){
-    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
-    uint64_t size = std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
-        return acc + GOP->byteSize();
-    });
-    emit updateCodedSize(size);
-}
-
-void QDecoderModel::updateH265StatusBar(){
-    updateH265StatusBarStatus();
-    updateH265StatusBarValidity();
-    updateH265StatusBarSize();
+void QDecoderModel::updateH265Metrics(){
+    updateH265Status();
+    updateH265Validity();
+    emit updateCodedSize(encodedH265StreamMemoryUsage());
     emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
@@ -1243,6 +1227,20 @@ qsizetype QDecoderModel::pictureMemoryUsageMB(){
     });
     totalImageSize /= 1e6;
     return totalImageSize;
+}
+
+qsizetype QDecoderModel::encodedH264StreamMemoryUsage(){
+    std::deque<H264GOP*> GOPs = m_pH264Stream->getGOPs();
+    return std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H264GOP* GOP){
+        return acc + GOP->byteSize();
+    });
+}
+
+qsizetype QDecoderModel::encodedH265StreamMemoryUsage(){
+    std::deque<H265GOP*> GOPs = m_pH265Stream->getGOPs();
+    return std::accumulate(GOPs.begin(), GOPs.end(), 0, [](uint64_t acc, const H265GOP* GOP){
+        return acc + GOP->byteSize();
+    });
 }
 
 QPictureWorker::QPictureWorker():

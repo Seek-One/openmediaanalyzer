@@ -117,15 +117,15 @@ private:
     void validateH264GOPFrames();
     void validateH265GOPFrames();
 
-    void updateH264StatusBarSize();
-    void updateH264StatusBarValidity();
-    void updateH264StatusBarStatus();
-    void updateH264StatusBar();
-    void updateH265StatusBarSize();
-    void updateH265StatusBarValidity();
-    void updateH265StatusBarStatus();
-    void updateH265StatusBar();
+    void updateH264Validity();
+    void updateH264Status();
+    void updateH264Metrics();
+    void updateH265Validity();
+    void updateH265Status();
+    void updateH265Metrics();
     qsizetype pictureMemoryUsageMB();
+    qsizetype encodedH264StreamMemoryUsage();
+    qsizetype encodedH265StreamMemoryUsage();
 
     bool m_isLiveStream;
 
@@ -146,7 +146,7 @@ private:
     bool m_memoryLimitSet;
     bool m_durationLimitSet;
     bool m_GOPCountLimitSet;
-    uint32_t m_pictureMemoryLimit;
+    uint32_t m_codedMemoryLimit;
     uint32_t m_durationLimit;
     uint32_t m_GOPCountLimit;
     QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;

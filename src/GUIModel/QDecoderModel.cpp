@@ -145,6 +145,7 @@ void QDecoderModel::newVideoStream(bool isLiveStream){
     connect(this, &QDecoderModel::decodeH264Slice, m_pPictureWorker, &QPictureWorker::decodeH264AccessUnit);
     connect(this, &QDecoderModel::decodeH265Slice, m_pPictureWorker, &QPictureWorker::decodeH265AccessUnit);
     connect(m_pPictureWorker, &QPictureWorker::pictureReady, this, &QDecoderModel::pictureReceived);
+    connect(m_pPictureWorker, &QPictureWorker::updateResolution, this, &QDecoderModel::updateResolution);
 
     m_pPictureThread->start();
 }

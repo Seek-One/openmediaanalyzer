@@ -314,7 +314,14 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
 
 void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
     if(m_requestedFrames.empty()) return;
-    m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
+    if(m_isLiveStream && m_liveContent){
+        for(QSharedPointer<QAccessUnitModel>& pAccessUnitModel : m_currentGOPModel){
+            if(pAccessUnitModel->m_id == m_requestedFrames.front()->m_id){
+                m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
+                break;
+            }
+        }
+    }
     if((m_isLiveStream && m_liveContent) || (m_pSelectedFrameModel && m_requestedFrames.front()->m_id == m_pSelectedFrameModel->m_id)) emit updateVideoFrameViewImage(pPicture);
     m_requestedFrames.pop();
     if(!m_isLiveStream && m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
@@ -902,7 +909,7 @@ void QDecoderModel::decodeH265GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP)
         emit decodeH265Slice(pAccessUnitModel);
         pAccessUnitModel->decoded = true;
     }
-    if(!m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    if(!m_isLiveStream && !m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 }
 
 /* Checks for structure errors in the current GOP.

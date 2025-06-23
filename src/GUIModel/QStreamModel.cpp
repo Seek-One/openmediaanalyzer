@@ -163,7 +163,7 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker*
 
 void QStreamModel::streamLoaded(const QString& URL, const QString& username, const QString& password){
     emit stopProcessing();
-    emit loadStreamStart();
+    emit loadStreamStart(true);
     m_pThread = new QThread();
     m_pWorker = new QStreamWorker(URL, username, password);
     m_pWorker->moveToThread(m_pThread);

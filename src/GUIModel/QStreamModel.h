@@ -36,7 +36,7 @@ public:
 signals:
     void loadH264Packet(uint8_t* fileContent, quint32 fileSize);
     void loadH265Packet(uint8_t* fileContent, quint32 fileSize);
-    void loadStreamStart();
+    void loadStreamStart(bool isLiveStream);
     void stopProcessing();
     void updateStreamBitrates(uint64_t videoBytesLastSecond, uint64_t audioBytesLastSecond, uint64_t globalBytesLastSecond);
     void updateVideoCodec(const QString& codec);

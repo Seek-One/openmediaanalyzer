@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QTimer>
 #include <queue>
+#include <QThread>
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -22,6 +23,7 @@ extern "C" {
 class QVideoInputView;
 class H264Stream;
 class H265Stream;
+class QPictureWorker;
 
 class QDecoderModel : public QObject
 {
@@ -47,6 +49,9 @@ signals:
     void addTimelineUnits(QVector<QSharedPointer<QAccessUnitModel>> accessUnits);
     void removeTimelineUnits(uint32_t count);
 
+    void decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    void decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+
     void updateVPSInfoView(QStandardItemModel* pModel);
     void updateSPSInfoView(QStandardItemModel* pModel);
     void updatePPSInfoView(QStandardItemModel* pModel);
@@ -66,7 +71,7 @@ signals:
     void setLiveContent(bool activated);
 
 public slots:
-    void reset();
+    void newVideoStream(bool isLiveStream);
     void startFrameRateTimer();
     void stopFrameRateTimer();
     void frameRateUpdater();
@@ -75,6 +80,8 @@ public slots:
     void h264PacketLoaded(uint8_t* fileContent, quint32 fileSize);
     void h265FileLoaded(uint8_t* fileContent, quint32 fileSize);
     void h265PacketLoaded(uint8_t* fileContent, quint32 fileSize);
+
+    void pictureReceived(QSharedPointer<QImage> pPicture);
 
     void frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void folderLoaded();
@@ -118,32 +125,17 @@ private:
     void updateH265StatusBarValidity();
     void updateH265StatusBarStatus();
     void updateH265StatusBar();
-
-    void decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
-    void decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
-    QImage* getQImageFromH264Frame(const AVFrame* pFrame);
-    QImage* getQImageFromH265Frame(const AVFrame* pFrame);
     qsizetype pictureMemoryUsageMB();
+
+    bool m_isLiveStream;
 
     H264Stream* m_pH264Stream;
     H265Stream* m_pH265Stream;
     QSharedPointer<QAccessUnitModel> m_pSelectedFrameModel;
     QVector<QSharedPointer<QAccessUnitModel>> m_currentGOPModel;
-    
-    QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
-    std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
+
     QVector<QVector<QSharedPointer<QAccessUnitModel>>> m_previousGOPModels;
     QVector<QSharedPointer<QAccessUnitModel>> m_selectedDecodedGOPModel;
-    
-    const AVCodec* m_pH264Codec;
-    AVCodecContext* m_pH264CodecCtx;
-    SwsContext* m_pH264SwsCtx;
-    const AVCodec* m_pH265Codec;
-    AVCodecContext* m_pH265CodecCtx;
-    SwsContext* m_pH265SwsCtx;
-    int m_frameWidth;
-    int m_frameHeight; 
-    int m_pixelFormat;
 
     uint m_frameCount;
     QTimer* m_pFrameRateTimer;
@@ -158,4 +150,39 @@ private:
     uint32_t m_durationLimit;
     uint32_t m_GOPCountLimit;
     QMap<QUuid, QDateTime> m_firstGOPSliceTimestamp;
+
+    QThread* m_pPictureThread;
+    QPictureWorker* m_pPictureWorker;
+
+    QMap<QUuid, QSharedPointer<QImage>> m_decodedFrames;
+    std::queue<QSharedPointer<QAccessUnitModel>> m_requestedFrames;
+};
+
+class QPictureWorker : public QObject {
+    Q_OBJECT
+public:
+    QPictureWorker();
+    ~QPictureWorker();
+
+signals:
+    void pictureReady(QSharedPointer<QImage> pPicture);
+    void updateResolution(int width, int height);
+
+public slots:
+    void decodeH264AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+    void decodeH265AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel);
+
+private:
+    QImage* getQImageFromH264Frame(const AVFrame* pFrame);
+    QImage* getQImageFromH265Frame(const AVFrame* pFrame);
+
+    const AVCodec* m_pH264Codec;
+    AVCodecContext* m_pH264CodecCtx;
+    SwsContext* m_pH264SwsCtx;
+    const AVCodec* m_pH265Codec;
+    AVCodecContext* m_pH265CodecCtx;
+    SwsContext* m_pH265SwsCtx;
+    int m_frameWidth;
+    int m_frameHeight; 
+    int m_pixelFormat;
 };

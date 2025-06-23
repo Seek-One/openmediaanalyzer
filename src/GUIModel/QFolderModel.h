@@ -17,7 +17,7 @@ signals:
     void updateVideoInputView(QFileSystemModel* model);
     void loadH264File(uint8_t* fileContent, quint32 fileSize);
     void loadH265File(uint8_t* fileContent, quint32 fileSize);
-    void loadFolderStart();
+    void loadFolderStart(bool isLiveStream);
     void loadFolderEnd();
 
 public slots:

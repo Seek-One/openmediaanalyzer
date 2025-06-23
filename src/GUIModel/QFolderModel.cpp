@@ -47,7 +47,7 @@ void QFolderModel::processFile(const QString& filePath){
 
 void QFolderModel::processDirectory(const QString& directoryPath){
     QDir dir(directoryPath);
-    emit loadFolderStart();
+    emit loadFolderStart(false);
     for(const QString& file : dir.entryList(QDir::Files | QDir::NoDotAndDotDot)){
         processFile(QString(directoryPath + "/" + file));
     }

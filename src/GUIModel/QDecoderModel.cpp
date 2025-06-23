@@ -1,5 +1,7 @@
 #include <QDebug>
 #include <QUuid>
+#include <QGuiApplication>
+#include <QCursor>
 #include <sstream>
 #include <set>
 #include <algorithm>
@@ -17,41 +19,15 @@
 #include "QDecoderModel.h"
 
 QDecoderModel::QDecoderModel():
+    m_isLiveStream(false),
     m_pH264Stream(nullptr), m_pH265Stream(nullptr), m_pSelectedFrameModel(nullptr), 
-    m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
-    m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr),
     m_frameCount(0), m_pFrameRateTimer(new QTimer(this)),
     m_tabIndex(0), m_liveContent(true),
     m_memoryLimitSet(MEMORY_LIMIT_SET_BY_DEFAULT), m_durationLimitSet(DURATION_LIMIT_SET_BY_DEFAULT), m_GOPCountLimitSet(GOP_COUNT_LIMIT_SET_BY_DEFAULT),
-    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE)
+    m_pictureMemoryLimit(MEMORY_LIMIT_DEFAULT_VALUE), m_durationLimit(DURATION_LIMIT_DEFAULT_VALUE), m_GOPCountLimit(GOP_COUNT_LIMIT_DEFAUT_VALUE),
+    m_pPictureThread(nullptr), m_pPictureWorker(nullptr)
 {
     connect(m_pFrameRateTimer, &QTimer::timeout, this, &QDecoderModel::frameRateUpdater);
-    if(!m_pH264Codec) {
-        qDebug() << "Couldn't find H264 decoder";
-        return;
-    }
-    if(!m_pH265Codec) {
-        qDebug() << "Couldn't find H265 decoder";
-        return;
-    }
-    m_pH264CodecCtx = avcodec_alloc_context3(m_pH264Codec);
-    if(!m_pH264CodecCtx){
-        qDebug() << "Couldn't allocate H264 codec context";
-        return;
-    }
-    m_pH265CodecCtx = avcodec_alloc_context3(m_pH265Codec);
-    if(!m_pH264CodecCtx){
-        qDebug() << "Couldn't allocate H265 codec context";
-        return;
-    }
-    if(avcodec_open2(m_pH264CodecCtx, m_pH264Codec, nullptr) < 0){
-        qDebug() << "Couldn't open H264 codec";
-        return;
-    }
-    if(avcodec_open2(m_pH265CodecCtx, m_pH265Codec, nullptr) < 0){
-        qDebug() << "Couldn't open H265 codec";
-        return;
-    }
 }
 
 QDecoderModel::~QDecoderModel(){
@@ -61,16 +37,6 @@ QDecoderModel::~QDecoderModel(){
     m_majorStreamErrors.clear();
     m_decodedFrames.clear();
     while(!m_requestedFrames.empty()) m_requestedFrames.pop();
-    avcodec_free_context(&m_pH264CodecCtx);
-    if(m_pH264SwsCtx){
-        sws_freeContext(m_pH264SwsCtx);
-        m_pH264SwsCtx = nullptr;
-    }
-    avcodec_free_context(&m_pH265CodecCtx);
-    if(m_pH265SwsCtx){
-        sws_freeContext(m_pH265SwsCtx);
-        m_pH265SwsCtx = nullptr;
-    }
 }
 
 void buildH264SPSView(QDecoderModel* pDecoderModel){
@@ -128,7 +94,9 @@ void buildH265PPSView(QDecoderModel* pDecoderModel){
     emit pDecoderModel->updatePPSInfoView(model);
 }
 
-void QDecoderModel::reset(){
+void QDecoderModel::newVideoStream(bool isLiveStream){
+    m_isLiveStream = isLiveStream;
+
     if(m_pH264Stream) delete m_pH264Stream;
     m_pH264Stream = new H264Stream();
     if(m_pH265Stream) delete m_pH265Stream;
@@ -155,34 +123,30 @@ void QDecoderModel::reset(){
     emit updateCodedSize(0);
     emit updateDecodedSize(0);
     emit updateVideoFrameViewText("");
-    if(m_pH264SwsCtx){
-        sws_freeContext(m_pH264SwsCtx);
-        m_pH264SwsCtx = nullptr;
+
+    if(m_pPictureThread && m_pPictureWorker){
+        m_pPictureThread->disconnect();
+        m_pPictureWorker->disconnect();
+
+        m_pPictureThread->quit();
+        m_pPictureThread->wait();
+
+        delete m_pPictureThread;
+        m_pPictureThread = nullptr;
+        m_pPictureWorker = nullptr;
     }
-    avcodec_free_context(&m_pH264CodecCtx);
-    m_pH264CodecCtx = avcodec_alloc_context3(m_pH264Codec);
-    if(!m_pH264CodecCtx){
-        qDebug() << "Couldn't allocate codec context";
-        return;
-    }
-    if(avcodec_open2(m_pH264CodecCtx, m_pH264Codec, nullptr) < 0){
-        qDebug() << "Couldn't open codec";
-        return;
-    }
-    if(m_pH265SwsCtx){
-        sws_freeContext(m_pH265SwsCtx);
-        m_pH265SwsCtx = nullptr;
-    }
-    avcodec_free_context(&m_pH265CodecCtx);
-    m_pH265CodecCtx = avcodec_alloc_context3(m_pH265Codec);
-    if(!m_pH265CodecCtx){
-        qDebug() << "Couldn't allocate codec context";
-        return;
-    }
-    if(avcodec_open2(m_pH265CodecCtx, m_pH265Codec, nullptr) < 0){
-        qDebug() << "Couldn't open codec";
-        return;
-    }
+
+    m_pPictureThread = new QThread();
+    m_pPictureWorker = new QPictureWorker();
+
+    m_pPictureWorker->moveToThread(m_pPictureThread);
+
+    connect(m_pPictureThread, &QThread::finished, m_pPictureWorker, &QPictureWorker::deleteLater);
+    connect(this, &QDecoderModel::decodeH264Slice, m_pPictureWorker, &QPictureWorker::decodeH264AccessUnit);
+    connect(this, &QDecoderModel::decodeH265Slice, m_pPictureWorker, &QPictureWorker::decodeH265AccessUnit);
+    connect(m_pPictureWorker, &QPictureWorker::pictureReady, this, &QDecoderModel::pictureReceived);
+
+    m_pPictureThread->start();
 }
 
 void QDecoderModel::startFrameRateTimer(){
@@ -346,6 +310,14 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
             break;
     }
     updateH265StatusBar();
+}
+
+void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
+    if(m_requestedFrames.empty()) return;
+    m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
+    if((m_isLiveStream && m_liveContent) || (m_pSelectedFrameModel && m_requestedFrames.front()->m_id == m_pSelectedFrameModel->m_id)) emit updateVideoFrameViewImage(pPicture);
+    m_requestedFrames.pop();
+    if(!m_isLiveStream && m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
 QStringList minorErrorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit){
@@ -512,12 +484,10 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
     }
     emit updateFrameInfoView(model);
     if(!pAccessUnitModel) return;
-    if(m_liveContent){
-        for(QSharedPointer<QAccessUnitModel> pCurrentGOPAccessUnitModel : m_currentGOPModel){
-            if(pAccessUnitModel->m_id == pCurrentGOPAccessUnitModel->m_id){
-                emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
-                return;
-            }
+    for(QSharedPointer<QAccessUnitModel> pCurrentGOPAccessUnitModel : m_currentGOPModel){
+        if(pAccessUnitModel->m_id == pCurrentGOPAccessUnitModel->m_id){
+            emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
+            return;
         }
     }
     for(QSharedPointer<QAccessUnitModel> pSelectedGOPAccessUnitModel : m_selectedDecodedGOPModel){
@@ -545,11 +515,12 @@ void QDecoderModel::frameSelected(QSharedPointer<QAccessUnitModel> pAccessUnitMo
 
     for(QSharedPointer<QAccessUnitModel> pSelectedGOPAccessUnitModel : m_selectedDecodedGOPModel) pSelectedGOPAccessUnitModel->decoded = false;
 
-    m_liveContent = false;
-    emit setLiveContent(false);
+    if(m_isLiveStream){
+        m_liveContent = false;
+        emit setLiveContent(false);
+    }
     if(m_selectedDecodedGOPModel.front()->isH264()) decodeH264GOP(m_selectedDecodedGOPModel);
     else if(m_selectedDecodedGOPModel.front()->isH265()) decodeH265GOP(m_selectedDecodedGOPModel);
-    emit updateVideoFrameViewImage(m_decodedFrames[pAccessUnitModel->m_id]);
 }
 
 void QDecoderModel::framesTabOpened(){
@@ -684,13 +655,11 @@ void QDecoderModel::folderLoaded(){
     m_previousGOPModels.push_back(QVector<QSharedPointer<QAccessUnitModel>>());
     for(QSharedPointer<QAccessUnitModel> pPrevGOPAccessUnitModel : m_currentGOPModel) {
         m_previousGOPModels.back().push_back(pPrevGOPAccessUnitModel);
-        m_decodedFrames.remove(pPrevGOPAccessUnitModel->m_id);
     }
     m_currentGOPModel.clear();
     if(m_pSelectedFrameModel) emit updateErrorView(tr("Access unit errors"), minorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit), majorErrorListFromAccessUnit(m_pSelectedFrameModel->m_pAccessUnit));
     else emitStreamErrors();
     emit updateTimelineUnits();
-    emit updateDecodedSize(pictureMemoryUsageMB());
 }
 
 void QDecoderModel::streamStopped(){
@@ -906,16 +875,19 @@ void QDecoderModel::decodeH264GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP)
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : GOP){
         if(std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->hasMajorErrors()) continue;
         if(!m_decodedFrames.contains(pAccessUnitModel->m_id) && std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable && !pAccessUnitModel->decoded){
-            decodeH264Slice(pAccessUnitModel);
+            m_requestedFrames.push(pAccessUnitModel);
+            emit decodeH264Slice(pAccessUnitModel);
+            pAccessUnitModel->decoded = true;
         }
     }
+    if(!m_isLiveStream && !m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 }
 
 void QDecoderModel::decodeH265GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP){
     QVector<QSharedPointer<QAccessUnitModel>> pDecodableAccessUnitModels, pSortedAccessUnitModelsToDecode;
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : GOP){
         if(std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->hasMajorErrors()) continue;
-        if(!m_decodedFrames.contains(pAccessUnitModel->m_id)  && std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable && !pAccessUnitModel->decoded){
+        if(!m_decodedFrames.contains(pAccessUnitModel->m_id) && std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->decodable && !pAccessUnitModel->decoded){
             pSortedAccessUnitModelsToDecode.push_back(pAccessUnitModel);
             pDecodableAccessUnitModels.push_back(pAccessUnitModel);
         }
@@ -926,7 +898,11 @@ void QDecoderModel::decodeH265GOP(QVector<QSharedPointer<QAccessUnitModel>> GOP)
         return lhs->m_displayedFrameNum.value() < rhs->m_displayedFrameNum.value();
     });
     for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pSortedAccessUnitModelsToDecode) m_requestedFrames.push(pAccessUnitModel);
-    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) decodeH265Slice(pAccessUnitModel);
+    for(QSharedPointer<QAccessUnitModel> pAccessUnitModel : pDecodableAccessUnitModels) {
+        emit decodeH265Slice(pAccessUnitModel);
+        pAccessUnitModel->decoded = true;
+    }
+    if(!m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 }
 
 /* Checks for structure errors in the current GOP.
@@ -1094,7 +1070,7 @@ void QDecoderModel::updateH265StatusBar(){
 }
 
 // https://stackoverflow.com/questions/68048292/converting-an-avframe-to-qimage-with-conversion-of-pixel-format
-QImage* QDecoderModel::getQImageFromH264Frame(const AVFrame* pFrame) {
+QImage* QPictureWorker::getQImageFromH264Frame(const AVFrame* pFrame) {
     if (!m_pH264SwsCtx || m_frameWidth != pFrame->width || m_frameHeight != pFrame->height || m_pixelFormat != pFrame->format) {
         if (m_pH264SwsCtx) {
             sws_freeContext(m_pH264SwsCtx);
@@ -1146,7 +1122,7 @@ QImage* QDecoderModel::getQImageFromH264Frame(const AVFrame* pFrame) {
     return pImage;
 }
 
-QImage* QDecoderModel::getQImageFromH265Frame(const AVFrame* pFrame) {
+QImage* QPictureWorker::getQImageFromH265Frame(const AVFrame* pFrame) {
     if (!m_pH265SwsCtx || m_frameWidth != pFrame->width || m_frameHeight != pFrame->height || m_pixelFormat != pFrame->format) {
         if (m_pH265SwsCtx) {
             sws_freeContext(m_pH265SwsCtx);
@@ -1199,7 +1175,7 @@ QImage* QDecoderModel::getQImageFromH265Frame(const AVFrame* pFrame) {
 
 
 
-void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
+void QPictureWorker::decodeH264AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     if(!std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->slice()) return;
     AVPacket* pPacket = av_packet_alloc();
     pPacket->size = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
@@ -1214,14 +1190,10 @@ void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
         qDebug() << "Couldn't allocate frame";
         return;
     }
-    m_requestedFrames.push(pAccessUnitModel);
-    
+
     int receivedFrame = avcodec_receive_frame(m_pH264CodecCtx, pFrame);
-    while(receivedFrame == 0 && !m_requestedFrames.empty()){
-        while(std::get<const H264AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
-        m_decodedFrames[m_requestedFrames.front()->m_id] = QSharedPointer<QImage>(getQImageFromH264Frame(pFrame));
-        if(m_liveContent) emit updateVideoFrameViewImage(m_decodedFrames[m_requestedFrames.front()->m_id] );
-        m_requestedFrames.pop();
+    while(receivedFrame == 0){
+        emit pictureReady(QSharedPointer<QImage>(getQImageFromH264Frame(pFrame)));
         receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }
     pAccessUnitModel->decoded = true;
@@ -1230,8 +1202,8 @@ void QDecoderModel::decodeH264Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     avformat_network_deinit();
 }
 
-void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
-    if(!std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->slice() || pAccessUnitModel->decoded) return;
+void QPictureWorker::decodeH265AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
+    if(!std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->slice()) return;
     AVPacket* pPacket = av_packet_alloc();
     pPacket->size = std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
     pPacket->data = pAccessUnitModel->serialize();
@@ -1248,15 +1220,9 @@ void QDecoderModel::decodeH265Slice(QSharedPointer<QAccessUnitModel> pAccessUnit
     
     int receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     while(receivedFrame == 0){
-        while(std::get<const H265AccessUnit*>(m_requestedFrames.front()->m_pAccessUnit)->hasMajorErrors()) m_requestedFrames.pop();
-        m_decodedFrames[m_requestedFrames.front()->m_id] = QSharedPointer<QImage>(getQImageFromH265Frame(pFrame));
-        if(m_liveContent) {
-            emit updateVideoFrameViewImage(m_decodedFrames[m_requestedFrames.front()->m_id]);
-        }
-        m_requestedFrames.pop();
+        emit pictureReady(QSharedPointer<QImage>(getQImageFromH265Frame(pFrame)));
         receivedFrame = avcodec_receive_frame(m_pH265CodecCtx, pFrame);
     }
-    pAccessUnitModel->decoded = true;
     av_frame_free(&pFrame); 
     avformat_network_deinit();
 }
@@ -1269,4 +1235,49 @@ qsizetype QDecoderModel::pictureMemoryUsageMB(){
     });
     totalImageSize /= 1e6;
     return totalImageSize;
+}
+
+QPictureWorker::QPictureWorker():
+    m_pH264Codec(avcodec_find_decoder(AV_CODEC_ID_H264)), m_pH264SwsCtx(nullptr),
+    m_pH265Codec(avcodec_find_decoder(AV_CODEC_ID_H265)), m_pH265SwsCtx(nullptr)
+{
+    if(!m_pH264Codec) {
+        qDebug() << "Couldn't find H264 decoder";
+        return;
+    }
+    if(!m_pH265Codec) {
+        qDebug() << "Couldn't find H265 decoder";
+        return;
+    }
+    m_pH264CodecCtx = avcodec_alloc_context3(m_pH264Codec);
+    if(!m_pH264CodecCtx){
+        qDebug() << "Couldn't allocate H264 codec context";
+        return;
+    }
+    m_pH265CodecCtx = avcodec_alloc_context3(m_pH265Codec);
+    if(!m_pH264CodecCtx){
+        qDebug() << "Couldn't allocate H265 codec context";
+        return;
+    }
+    if(avcodec_open2(m_pH264CodecCtx, m_pH264Codec, nullptr) < 0){
+        qDebug() << "Couldn't open H264 codec";
+        return;
+    }
+    if(avcodec_open2(m_pH265CodecCtx, m_pH265Codec, nullptr) < 0){
+        qDebug() << "Couldn't open H265 codec";
+        return;
+    }
+}
+
+QPictureWorker::~QPictureWorker(){
+    avcodec_free_context(&m_pH264CodecCtx);
+    if(m_pH264SwsCtx){
+        sws_freeContext(m_pH264SwsCtx);
+        m_pH264SwsCtx = nullptr;
+    }
+    avcodec_free_context(&m_pH265CodecCtx);
+    if(m_pH265SwsCtx){
+        sws_freeContext(m_pH265SwsCtx);
+        m_pH265SwsCtx = nullptr;
+    }
 }

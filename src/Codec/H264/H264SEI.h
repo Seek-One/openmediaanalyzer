@@ -79,7 +79,7 @@ struct H264SEIFillerPayload : public H264SEIMessage {
 
 struct H264SEIUserDataUnregistered : public H264SEIMessage {
 	~H264SEIUserDataUnregistered();
-	__uint128_t uuid_iso_iec_11578;
+	unsigned long long uuid_iso_iec_11578;
 	std::vector<uint8_t> user_data_payload_byte;
 	UnitFieldList dump_fields() override;
 };

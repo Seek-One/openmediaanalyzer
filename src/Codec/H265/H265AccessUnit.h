@@ -2,6 +2,7 @@
 #define TOOLKIT_CODEC_UTILS_H265ACCESS_UNIT_H_
 
 #include <cstdint>
+#include <string>
 #include <vector>
 #include <memory>
 #include <optional>

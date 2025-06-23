@@ -10,7 +10,7 @@
 #include "H264SPS.h"
 #include "H264AUD.h"
 #include "H264SEI.h"
-#include "H264Utils.h"
+#include "../H26X/H26XUtils.h"
 
 // Default scaling_lists according to Table 7-2
 static const uint8_t default_4x4_intra[16] = {
@@ -412,7 +412,7 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 {
 	h264Slice.IdrPicFlag = h264Slice.nal_unit_type == H264NAL::UnitType_IDRFrame;
 	h264Slice.first_mb_in_slice = readGolombUE();
-	h264Slice.slice_type = H264Utils::getSliceType(readGolombUE());
+	h264Slice.slice_type = H264Slice::getSliceType(readGolombUE());
 	
 	h264Slice.pic_parameter_set_id = readGolombUE();
 	

@@ -12,7 +12,6 @@
 #include "H264SEI.h"
 #include "H264AUD.h"
 #include "H264Stream.h"
-#include "H264Utils.h"
 
 PictureOrderCount::PictureOrderCount(uint32_t iTopFieldOrderValue, uint32_t iBottomFieldOrderValue)
 {
@@ -21,8 +20,7 @@ PictureOrderCount::PictureOrderCount(uint32_t iTopFieldOrderValue, uint32_t iBot
 }
 
 H264Stream::H264Stream():
-	m_pActiveSPS(nullptr), m_pActivePPS(nullptr), m_pCurrentAccessUnit(nullptr),
-	m_sizeInMb(Size(-1, -1)), m_sizeUncropped(Size(-1, -1)), m_sizeCropped(Size(-1, -1))
+	m_pActiveSPS(nullptr), m_pActivePPS(nullptr), m_pCurrentAccessUnit(nullptr)
 {
 	MbaffFrameFlag = 0;
 }
@@ -87,21 +85,6 @@ std::vector<H264AccessUnit*> H264Stream::getAccessUnits() const
 	return pAccessUnits;
 }
 
-const Size& H264Stream::getMbsPictureSize() const
-{
-	return m_sizeInMb;
-}
-
-const Size& H264Stream::getUncroppedPictureSize() const
-{
-	return m_sizeUncropped;
-}
-
-const Size& H264Stream::getPictureSize() const
-{
-	return m_sizeCropped;
-}
-
 bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
@@ -109,10 +92,6 @@ bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 	bool bRes = true;
 	for (uint32_t i = 0; i < listNAL.size(); ++i) {
 		if(!parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength)) bRes = false;
-	}
-
-	if (bRes) {
-		computeSizes();
 	}
 
 	return bRes;
@@ -285,49 +264,6 @@ bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 			break;
 	}
 	return true;
-}
-
-void H264Stream::computeSizes() {
-	if(m_GOPs.empty()) return;
-	if(m_GOPs.back()->accessUnits.empty()) return;
-	H264Slice* pSlice = m_GOPs.back()->accessUnits[0]->slice();
-	if (!pSlice) {
-		// std::cerr << "[H264::Stream] No slices found to compute picture size in macro blocks\n";
-		return;
-	}
-
-	H264PPS* pPps = pSlice->getPPS();
-	if(!pPps) return;
-	H264SPS* pSps = pSlice->getSPS();
-	if(!pSps) return;
-	// All of equation reference are taken form Rec. ITU-T H.264 (06/2019)
-	// Compute luma width
-	// uint32_t PicWidthInMbs = m_sps.pic_width_in_mbs_minus1 + 1; // (7-13)
-
-	// Compute luma height
-	// uint32_t PicHeightInMapUnits = m_sps.pic_height_in_map_units_minus1 + 1; // (7-16)
-	// uint32_t FrameHeightInMbs = (2 - m_sps.frame_mbs_only_flag) * PicHeightInMapUnits; // (7-18)
-	uint32_t PicHeightInMbs = pSps->FrameHeightInMbs / (1 + pSlice->field_pic_flag); // (7-26)
-
-	m_sizeInMb = Size(pSps->PicWidthInMbs, PicHeightInMbs);
-
-	uint32_t PicWidthInSamplesL = pSps->PicWidthInMbs * 16; // (7-14)
-	uint32_t PicHeightInSamplesL = PicHeightInMbs * 16; // (7-27)
-
-	// Uncropped size
-	m_sizeUncropped = Size((int)PicWidthInSamplesL, (int)PicHeightInSamplesL);
-
-	// If the image was cropped
-	if (pSps->frame_cropping_flag) {
-		int iWidth = (PicWidthInSamplesL - (pSps->CropUnitX * pSps->frame_crop_right_offset + 1)) - (pSps->CropUnitX * pSps->frame_crop_left_offset) + 1;
-		int iHeight = ((16 * PicHeightInMbs) - (pSps->CropUnitY * pSps->frame_crop_bottom_offset + 1)) - (pSps->CropUnitY * pSps->frame_crop_top_offset) + 1;
-
-		m_sizeCropped = Size(iWidth, iHeight);
-	} else {
-		m_sizeCropped = m_sizeUncropped;
-	}
-
-	return;
 }
 
 void H264Stream::validateFrameNum(H264Slice* pSlice){

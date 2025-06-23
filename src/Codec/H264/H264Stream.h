@@ -7,7 +7,6 @@
 #include <memory>
 #include <list>
 
-#include "../Size.h"
 #include "../H26X/H26XStream.h"
 
 #include "H264AccessUnit.h"
@@ -39,13 +38,6 @@ public:
 	std::list<H264AccessUnit*> getLastAccessUnits(uint32_t count) const;
 	std::vector<H264AccessUnit*> getAccessUnits() const;
 
-	// Size in macroblocks
-	const Size& getMbsPictureSize() const;
-	// Size without cropping
-	const Size& getUncroppedPictureSize() const;
-	// Real picture size
-	const Size& getPictureSize() const;
-
 	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength) override;
 	void lastPacketParsed();
 
@@ -62,8 +54,6 @@ private:
 
 	inline int computeSubWidthC() const;
 	inline int computeSubHeightC() const;
-
-	void computeSizes();
 
 	void validateFrameNum(H264Slice* pSlice);
 	void newAccessUnit();
@@ -82,10 +72,6 @@ private:
 	std::deque<std::unique_ptr<H264GOP>> m_GOPs;
 	H264AccessUnit* m_pCurrentAccessUnit;
 
-	// Useful size
-	Size m_sizeInMb; // Size in macro blocks
-	Size m_sizeUncropped; // Uncropped size
-	Size m_sizeCropped; // Real size (with crop)
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264_STREAM_H_

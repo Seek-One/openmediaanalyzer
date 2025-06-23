@@ -72,20 +72,6 @@ std::vector<H265AccessUnit*> H265Stream::getAccessUnits() const
 	return pAccessUnits;
 }
 
-
-Size H265Stream::getUncroppedPictureSize() const
-{
-	return Size(m_pActiveSPS->pic_width_in_luma_samples, m_pActiveSPS->pic_height_in_luma_samples);
-}
-
-Size H265Stream::getPictureSize() const
-{
-	Size size;
-	size.width =  (m_pActiveSPS->pic_width_in_luma_samples - ((m_pActiveSPS->SubWidthC * m_pActiveSPS->conf_win_right_offset) + 1)) - (m_pActiveSPS->conf_win_left_offset * m_pActiveSPS->SubWidthC) + 1;
-	size.height = (m_pActiveSPS->pic_height_in_luma_samples - ((m_pActiveSPS->SubHeightC * m_pActiveSPS->conf_win_bottom_offset) + 1)) - (m_pActiveSPS->SubHeightC * m_pActiveSPS->conf_win_top_offset) + 1;
-	return size;
-}
-
 bool H265Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);

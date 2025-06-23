@@ -167,24 +167,6 @@ set(STRING_HELPERS_SOURCES
 )
 
 set(CODEC_SOURCES
-    src/Codec/ByteBuffer.cpp
-    src/Codec/ByteBuffer.h
-    src/Codec/datatypecc.cpp
-    src/Codec/datatypecc.h
-    src/Codec/fourcc.cpp
-    src/Codec/fourcc.h
-    src/Codec/FrameBuffer.cpp
-    src/Codec/FrameBuffer.h
-    src/Codec/FrameDataType.cpp
-    src/Codec/FrameDataType.h
-    src/Codec/FrameMonitor.cpp
-    src/Codec/FrameMonitor.h
-    src/Codec/Size.cpp
-    src/Codec/Size.h
-    src/Codec/Timeval.cpp
-    src/Codec/Timeval.h
-    src/Codec/twocc.cpp
-    src/Codec/twocc.h
     src/Codec/H26X/H26XBitstreamReader.cpp
     src/Codec/H26X/H26XBitstreamReader.h
     src/Codec/H26X/H26XMath.cpp
@@ -213,8 +195,6 @@ set(CODEC_SOURCES
     src/Codec/H264/H264SEI.h
     src/Codec/H264/H264Stream.cpp
     src/Codec/H264/H264Stream.h
-    src/Codec/H264/H264Utils.cpp
-    src/Codec/H264/H264Utils.h
     src/Codec/H265/H265AccessUnit.cpp
     src/Codec/H265/H265AccessUnit.h
     src/Codec/H265/H265BitstreamReader.cpp
@@ -242,7 +222,6 @@ set(CODEC_SOURCES
     src/Codec/H265/H265Stream.cpp
     src/Codec/H265/H265Stream.h
     src/Codec/H265/H265Types.h
-    src/Codec/H265/H265Utils.cpp
     src/Codec/H265/H265Utils.h
     src/Codec/H265/H265VPS.cpp
     src/Codec/H265/H265VPS.h

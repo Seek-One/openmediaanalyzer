@@ -100,6 +100,33 @@ bool H264Slice::isSlice(H264NAL* NALUnit){
 	return NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame;
 }
 
+H264Slice::SliceType H264Slice::getSliceType(int value) {
+	switch(value) {
+		case 0:
+		case 5:
+			return H264Slice::SliceType_P;
+
+		case 1:
+		case 6:
+			return H264Slice::SliceType_B;
+
+		case 2:
+		case 7:
+			return H264Slice::SliceType_I;
+
+		case 3:
+		case 8:
+			return H264Slice::SliceType_SP;
+
+		case 4:
+		case 9:
+			return H264Slice::SliceType_SI;
+
+		default:
+			return H264Slice::SliceType_Unspecified;
+	}
+}
+
 UnitFieldList H264Slice::dump_fields(){
 	UnitFieldList fields = UnitFieldList("Slice", H264NAL::dump_fields());
 	if(!completelyParsed) return fields;

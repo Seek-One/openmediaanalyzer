@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "../H26X/H26XStream.h"
-#include "../Size.h"
 
 #include "H265NAL.h"
 #include "H265PPS.h"
@@ -28,11 +27,6 @@ public:
 	uint32_t accessUnitCount() const;
 	std::list<H265AccessUnit*> getLastAccessUnits(uint32_t count) const;
 	std::vector<H265AccessUnit*> getAccessUnits() const;
-
-	// Size without cropping
-	Size getUncroppedPictureSize() const;
-	// Real picture size
-	Size getPictureSize() const;
 
 	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength);
 	void lastPacketParsed();

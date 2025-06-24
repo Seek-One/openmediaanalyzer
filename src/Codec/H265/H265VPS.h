@@ -5,9 +5,8 @@
 #include <unordered_map>
 
 #include "H265ProfileTierLevel.h"
+#include "H265HrdParameters.h"
 #include "H265NAL.h"
-
-struct H265HrdParameters;
 
 struct H265VPS : public H265NAL {
 	H265VPS();

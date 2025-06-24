@@ -2,13 +2,13 @@
 #define TOOLKIT_CODEC_UTILS_H265_SLICE_H_
 
 #include <list>
+#include <array>
 
-#include "H265ShortTermRefPicSet.h"
 #include "H265NAL.h"
-#include "H265PPS.h"
-#include "H265SPS.h"
-#include "H265VPS.h"
 
+struct H265PPS;
+struct H265SPS;
+struct H265VPS;
 struct H265Slice;
 struct H265AccessUnit;
 

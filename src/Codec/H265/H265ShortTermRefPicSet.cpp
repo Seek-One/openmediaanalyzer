@@ -1,5 +1,7 @@
 #include <string>
 
+#include "../../StringHelpers/UnitFieldList.h"
+
 #include "H265ShortTermRefPicSet.h"
 
 H265ShortTermRefPicSet::H265ShortTermRefPicSet()

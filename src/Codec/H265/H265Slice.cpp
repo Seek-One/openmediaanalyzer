@@ -4,6 +4,8 @@
 #include "H265PPS.h"
 #include "H265SPS.h"
 #include "H265VPS.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265Slice.h"
 

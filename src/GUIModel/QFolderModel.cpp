@@ -1,6 +1,5 @@
 #include <QDebug>
 #include <fstream>
-#include <unistd.h>
 
 #include "../GUI/QVideoInputView.h"
 

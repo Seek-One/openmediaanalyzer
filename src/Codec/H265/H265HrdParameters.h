@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-#include "../../StringHelpers/UnitFieldList.h"
+class UnitFieldList;
 
 struct H265SubLayerHrdParameters {
 	H265SubLayerHrdParameters();

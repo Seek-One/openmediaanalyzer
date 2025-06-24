@@ -2,7 +2,8 @@
 #define TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_
 
 #include "H265Types.h"
-#include "../../StringHelpers/UnitFieldList.h"
+
+class UnitFieldList;
 
 struct H265ScalingList {
 	H265ScalingList();

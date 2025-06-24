@@ -1,7 +1,9 @@
 #include <string>
 
-#include "H265ScalingList.h"
 #include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
+
+#include "H265ScalingList.h"
 
 static int32_t g_defaultIntraScalingList[64] = {
 	16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 17, 16, 17, 18,

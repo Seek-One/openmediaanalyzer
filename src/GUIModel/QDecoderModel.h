@@ -1,14 +1,15 @@
 #pragma once
 
-#include <vector>
 #include <QObject>
 #include <QFileSystemModel>
 #include <QStandardItemModel>
 #include <QImage>
+#include <QUuid>
 #include <QDateTime>
 #include <QTimer>
-#include <queue>
 #include <QThread>
+#include <vector>
+#include <queue>
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -18,9 +19,7 @@ extern "C" {
     #include <libswscale/swscale.h>
 }
 
-#include "QAccessUnitModel.h"
-
-class QVideoInputView;
+class QAccessUnitModel;
 class H264Stream;
 class H265Stream;
 class QPictureWorker;

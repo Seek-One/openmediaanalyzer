@@ -1,4 +1,8 @@
 #include "Codec/H265/H265AccessUnit.h"
+#include "Codec/H265/H265VPS.h"
+#include "Codec/H265/H265SPS.h"
+#include "Codec/H265/H265PPS.h"
+#include "Codec/H265/H265Slice.h"
 
 #include "H265ValidSamplesParsing.h"
 

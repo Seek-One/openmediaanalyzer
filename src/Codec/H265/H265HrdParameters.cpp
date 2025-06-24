@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265HrdParameters.h"
 

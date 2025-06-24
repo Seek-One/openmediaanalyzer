@@ -1,6 +1,8 @@
 #include <QDebug>
 #include <QPainter>
 
+#include "../GUIModel/QAccessUnitModel.h"
+
 #include "QAccessUnitElement.h"
 
 QAccessUnitElement::QAccessUnitElement(QWidget* parent)

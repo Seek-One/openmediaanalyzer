@@ -9,11 +9,13 @@
 #include "../H26X/H26XStream.h"
 
 #include "H265NAL.h"
-#include "H265PPS.h"
-#include "H265Slice.h"
-#include "H265SPS.h"
-#include "H265VPS.h"
-#include "H265GOP.h"
+
+struct H265PPS;
+struct H265Slice;
+struct H265SPS;
+struct H265VPS;
+struct H265GOP;
+struct H265AccessUnit;
 
 #define ERR_MSG_LIMIT 8
 

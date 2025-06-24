@@ -1,7 +1,8 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "H265HrdParameters.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265VPS.h"
 

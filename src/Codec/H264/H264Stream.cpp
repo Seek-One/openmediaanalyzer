@@ -5,12 +5,12 @@
 #include "H264BitstreamReader.h"
 #include "H264GOP.h"
 #include "H264AccessUnit.h"
-#include "H264NAL.h"
+#include "H264SPS.h"
 #include "H264PPS.h"
 #include "H264Slice.h"
-#include "H264SPS.h"
 #include "H264SEI.h"
 #include "H264AUD.h"
+
 #include "H264Stream.h"
 
 PictureOrderCount::PictureOrderCount(uint32_t iTopFieldOrderValue, uint32_t iBottomFieldOrderValue)

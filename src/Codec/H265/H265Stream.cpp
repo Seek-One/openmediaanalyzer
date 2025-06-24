@@ -6,6 +6,8 @@
 
 #include "H265BitstreamReader.h"
 #include "H265AccessUnit.h"
+#include "H265GOP.h"
+#include "H265SEI.h"
 
 #include "H265Stream.h"
 

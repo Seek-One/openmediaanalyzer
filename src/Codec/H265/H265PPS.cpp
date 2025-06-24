@@ -2,6 +2,8 @@
 #include <algorithm>
 
 #include "H265SPS.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265PPS.h"
 

@@ -1,5 +1,7 @@
 #include <cstring>
 
+#include "../../StringHelpers/UnitFieldList.h"
+
 #include "H264AUD.h"
 
 H264AUD::H264AUD():

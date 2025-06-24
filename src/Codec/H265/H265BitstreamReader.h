@@ -4,14 +4,13 @@
 #include <cstdint>
 
 #include "../H26X/H26XBitstreamReader.h"
-
-#include "H265NAL.h"
 #include "H265PPS.h"
-#include "H265ScalingList.h"
-#include "H265Slice.h"
 #include "H265SPS.h"
 #include "H265VPS.h"
-#include "H265SEI.h"
+#include "H265Slice.h"
+
+struct H265ScalingList;
+struct H265SEI;
 
 class H265BitstreamReader: public H26XBitstreamReader {
 public:

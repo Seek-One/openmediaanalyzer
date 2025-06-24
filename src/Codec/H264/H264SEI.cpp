@@ -4,6 +4,8 @@
 #include <cmath>
 
 #include "H264SPS.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H264SEI.h"
 

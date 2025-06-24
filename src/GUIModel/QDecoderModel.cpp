@@ -6,15 +6,25 @@
 #include <set>
 #include <algorithm>
 
+#include "QAccessUnitModel.h"
 #include "../GUI/QVideoInputView.h"
 #include "../GUI/QStreamSettingsView.h"
 #include "../Codec/H264/H264Stream.h"
+#include "../Codec/H264/H264AccessUnit.h"
 #include "../Codec/H264/H264GOP.h"
+#include "../Codec/H264/H264SPS.h"
+#include "../Codec/H264/H264PPS.h"
 #include "../Codec/H264/H264Slice.h"
 #include "../Codec/H264/H264AUD.h"
 #include "../Codec/H264/H264SEI.h"
 #include "../Codec/H265/H265Stream.h"
 #include "../Codec/H265/H265AccessUnit.h"
+#include "../Codec/H265/H265GOP.h"
+#include "../Codec/H265/H265VPS.h"
+#include "../Codec/H265/H265SPS.h"
+#include "../Codec/H265/H265PPS.h"
+#include "../Codec/H265/H265Slice.h"
+#include "../StringHelpers/UnitFieldList.h"
 
 #include "QDecoderModel.h"
 

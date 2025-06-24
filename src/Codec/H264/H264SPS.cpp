@@ -1,8 +1,10 @@
 #include <cstring>
 #include <iostream>
 
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
+
 #include "H264SPS.h"
-#include "H264NAL.h"
 
 H264SPS::H264SPS():
 	H264SPS(0, 0, 0, nullptr)

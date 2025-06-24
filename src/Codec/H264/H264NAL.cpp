@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 
+#include "../../StringHelpers/UnitFieldList.h"
 #include "../H26X/H26XUtils.h"
 
 #include "H264NAL.h"

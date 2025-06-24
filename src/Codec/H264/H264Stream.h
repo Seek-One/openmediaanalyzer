@@ -9,14 +9,14 @@
 
 #include "../H26X/H26XStream.h"
 
-#include "H264AccessUnit.h"
 #include "H264NAL.h"
-#include "H264PPS.h"
-#include "H264Slice.h"
-#include "H264SPS.h"
 
 #define ERR_MSG_LIMIT 8
 
+struct H264AccessUnit;
+struct H264PPS;
+struct H264SPS;
+struct H264Slice;
 struct H264GOP;
 
 struct PictureOrderCount {

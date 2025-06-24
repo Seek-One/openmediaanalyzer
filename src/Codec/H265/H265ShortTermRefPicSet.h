@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "../../StringHelpers/UnitFieldList.h"
+class UnitFieldList;
 
 struct H265ShortTermRefPicSet {
 	H265ShortTermRefPicSet();

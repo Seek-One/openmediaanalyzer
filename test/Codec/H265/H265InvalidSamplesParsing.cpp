@@ -1,5 +1,9 @@
 #include "Codec/H26X/H26XBitstreamReader.h"
+#include "Codec/H265/H265GOP.h"
 #include "Codec/H265/H265AccessUnit.h"
+#include "Codec/H265/H265SPS.h"
+#include "Codec/H265/H265PPS.h"
+#include "Codec/H265/H265Slice.h"
 #include "Codec/H265/H265SEI.h"
 
 #include "H265InvalidSamplesParsing.h"

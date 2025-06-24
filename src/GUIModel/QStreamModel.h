@@ -4,11 +4,8 @@
 #include <QFileSystemModel>
 #include <QTimer>
 
-#include "QAccessUnitModel.h"
-
 Q_DECLARE_METATYPE(QList<QString>)
 
-class QVideoInputView;
 class QStreamWorker;
 
 enum ContentType {

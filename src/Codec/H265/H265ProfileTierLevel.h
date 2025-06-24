@@ -1,9 +1,11 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265_PROFILE_TIER_LEVEL_H_
 #define TOOLKIT_CODEC_UTILS_H265_PROFILE_TIER_LEVEL_H_
 
-#include "H265Types.h"
-#include "../../StringHelpers/UnitFieldList.h"
+#include <string>
 
+#include "H265Types.h"
+
+class UnitFieldList;
 
 struct H265ProfileTierLevel {
 	H265ProfileTierLevel();

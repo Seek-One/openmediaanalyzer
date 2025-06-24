@@ -3,8 +3,6 @@
 #include <QObject>
 #include <QFileSystemModel>
 
-class QVideoInputView;
-
 class QFolderModel : public QObject
 {
     Q_OBJECT

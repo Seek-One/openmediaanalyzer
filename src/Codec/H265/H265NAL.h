@@ -5,8 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "../../StringHelpers/UnitFieldList.h"
-#include "../../StringHelpers/StringFormatter.h"
+class UnitFieldList;
 
 struct H265NAL {
 	enum UnitType {

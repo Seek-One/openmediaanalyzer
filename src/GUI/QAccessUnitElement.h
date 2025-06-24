@@ -3,8 +3,6 @@
 #include <QWidget>
 #include <QMouseEvent>
 
-#include "../GUIModel/QAccessUnitModel.h"
-
 class QAccessUnitModel;
 
 class QAccessUnitElement : public QWidget

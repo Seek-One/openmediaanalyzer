@@ -3,9 +3,9 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
-#include "../../StringHelpers/UnitFieldList.h"
-#include "../../StringHelpers/StringFormatter.h"
+class UnitFieldList;
 
 struct H264NAL {
 	enum UnitType {

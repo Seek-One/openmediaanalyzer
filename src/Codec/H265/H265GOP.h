@@ -7,7 +7,6 @@
 #include <optional>
 
 struct H265AccessUnit;
-struct H265Slice;
 
 struct H265GOP {
     H265GOP();

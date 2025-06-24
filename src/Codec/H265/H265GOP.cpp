@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "H265AccessUnit.h"
+#include "H265SPS.h"
 #include "H265Slice.h"
 
 #include "H265GOP.h"

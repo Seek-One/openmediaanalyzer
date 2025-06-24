@@ -1,6 +1,10 @@
 #include "Codec/H26X/H26XBitstreamReader.h"
 #include "Codec/H264/H264SEI.h"
 #include "Codec/H264/H264GOP.h"
+#include "Codec/H264/H264SPS.h"
+#include "Codec/H264/H264PPS.h"
+#include "Codec/H264/H264Slice.h"
+#include "Codec/H264/H264AccessUnit.h"
 
 #include "H264InvalidSamplesParsing.h"
 

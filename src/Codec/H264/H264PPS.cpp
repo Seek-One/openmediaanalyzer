@@ -1,6 +1,8 @@
 #include <cstring>
 
 #include "H264SPS.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H264PPS.h"
 

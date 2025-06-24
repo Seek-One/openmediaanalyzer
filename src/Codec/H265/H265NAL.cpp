@@ -1,6 +1,8 @@
 #include <cstring>
 
-#include "H265Utils.h"
+#include "../H26X/H26XUtils.h"
+#include "../../StringHelpers/StringFormatter.h"
+#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265NAL.h"
 

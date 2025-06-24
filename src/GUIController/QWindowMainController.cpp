@@ -88,6 +88,7 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
 
     connect(this, &QWindowMainController::toggleStreamSettingsView, m_pWindowMain, &QWindowMain::streamSettingsViewToggled);
 
+    qRegisterMetaType<QSharedPointer<QAccessUnitModel>>("QSharedPointer<QAccessUnitModel>");
     qRegisterMetaType<uint64_t>("uint64_t");
 }
 

@@ -3,8 +3,6 @@
 
 #include <cstdint>
 
-#include "H264SEI.h"
-
 #include "../H26X/H26XBitstreamReader.h"
 
 struct H264NAL;
@@ -12,6 +10,7 @@ struct H264PPS;
 struct H264Slice;
 struct H264SPS;
 struct H264AUD;
+struct H264SEI;
 
 
 class H264BitstreamReader: public H26XBitstreamReader {

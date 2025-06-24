@@ -1137,65 +1137,15 @@ if(WITH_GTKMM)
 	endif(GTKmm_FOUND)
 endif(WITH_GTKMM)
 
-# Add drm library
-option(WITH_DRM "Enable build with drm library" OFF)
-if(WITH_DRM)
-	find_package (Libdrm)
-	if(DRM_FOUND)
-		set(USE_DRM 1)
-	endif(DRM_FOUND)
-endif(WITH_DRM)
-
-# Add swresample library
-option(WITH_SWRESAMPLE "Enable build with drm library" OFF)
-if(WITH_SWRESAMPLE)
-	find_package (SWResample)
-	if(SWRESAMPLE_FOUND)
-		set(USE_SWRESAMPLE 1)
-	endif(SWRESAMPLE_FOUND)
-endif(WITH_SWRESAMPLE)
-
-# Add avutil library
-option(WITH_AVUTIL "Enable build with avutil library" OFF)
-if(WITH_AVUTIL)
-	find_package (AVUtil)
-	if(AVUTIL_FOUND)
-		set(USE_AVUTIL 1)
-	endif(AVUTIL_FOUND)
-endif(WITH_AVUTIL)
-
-# Add z library
-option(WITH_ZLIB "Enable build with z library" OFF)
-if(WITH_ZLIB)
-	find_package (ZLIB REQUIRED)
-	if(ZLIB_FOUND)
-		set(USE_ZLIB 1)
-	endif(ZLIB_FOUND)
-endif(WITH_ZLIB)
-
-list(APPEND CMAKE_PREFIX_PATH
-  /usr/local
-  /opt/homebrew
-)
-
-# Add lzma library
-option(WITH_LZMA "Enable build with lzma library" OFF)
-if(WITH_LZMA)
-	find_package (LibLZMA REQUIRED)
-	if(LibLZMA_FOUND)
-		set(USE_LZMA 1)
-	endif(LibLZMA_FOUND)
-endif(WITH_LZMA)
-
 #####################
 ### Hardwares modules
 #####################
 
 # Add VDPAU (linux only) - Codec/filter/GUI
 option(WITH_VDPAU "Enable build with VDPAU API" OFF)
-if(WITH_VDPAU AND UNIX AND NOT APPLE)
-	find_package (VDPAU REQUIRED)
-	find_package (X11 REQUIRED)
+if(WITH_VDPAU AND UNIX)
+	find_package (VDPAU)
+	find_package (X11)
 	if(VDPAU_FOUND AND X11_FOUND)
 		set(USE_VDPAU 1)
 		include_directories (${VDPAU_INCLUDE_DIRS} ${X11_INCLUDE_DIR})

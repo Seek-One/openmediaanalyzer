@@ -70,15 +70,9 @@ endif()
 
 set(WITH_AVCODEC ON CACHE BOOL "Enable build with avcodec library")
 set(WITH_AVFORMAT ON CACHE BOOL "Enable build with avformat library")
-set(WITH_AVUTIL ON CACHE BOOL "Enable build with avutil library")
-set(WITH_ZLIB ON BOOL "Enable build with z library")
-set(WITH_LZMA ON BOOL "Enable build with lzma library")
 set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
-set(WITH_SWRESAMPLE ON BOOL "Enable build with swresample library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
-set(WITH_VDPAU ON BOOL "Enable build with VDPAU API")
-set(WITH_DRM ON CACHE BOOL "Enable build with drm library")
-set(WITH_OPENSSL ON BOOL "Enable build with openssl library")
+
 
 # Define output variable
 set (PACKAGE_DEPS)
@@ -381,21 +375,13 @@ add_executable (${APPLICATION_EXE_NAME}
 )
 include_directories(${INSTALL_PATH_LIB})
 target_link_libraries (${APPLICATION_EXE_NAME}
-	${QT_LIBRARIES}
-	${QT_QTMAIN_LIBRARY}
-    ${CURL_LIBRARIES}
-    ${AVFORMAT_LIBRARIES}
-    ${AVCODEC_LIBRARIES}
-    ${SWSCALE_LIBRARIES}
-    ${AVUTIL_LIBRARIES}
     ${PTHREAD_LIBRARIES}
-    ${SWRESAMPLE_LIBRARIES}
-    ZLIB::ZLIB
-    ${LIBLZMA_LIBRARIES}
-    ${VDPAU_LIBRARIES} 
-    ${X11_LIBRARIES}
-    ${Libdrm_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
+    ${QT_LIBRARIES}
+    ${QT_QTMAIN_LIBRARY}
+    ${CURL_LIBRARIES}
+    ${AVCODEC_LIBRARIES}
+    ${AVFORMAT_LIBRARIES}
+    ${SWSCALE_LIBRARIES}
 )
 
 install(TARGETS ${APPLICATION_EXE_NAME} DESTINATION ${INSTALL_PATH_BIN})

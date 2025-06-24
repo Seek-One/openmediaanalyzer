@@ -73,8 +73,8 @@ UnitFieldList H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
 		if(fixed_pic_rate_within_cvs_flag[i]) fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("elemental_duration_in_tc_minus1", elemental_duration_in_tc_minus1[i], i));
 		else fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("low_delay_hrd_flag", low_delay_hrd_flag[i], i));
 		if(!low_delay_hrd_flag[i]) fields.addItem(IdxUnitField("cpb_cnt_minus1", cpb_cnt_minus1[i], i));
-		if(nal_hrd_parameters_present_flag) fields.addItem(std::move(nal_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag)));
-		if(vcl_hrd_parameters_present_flag) fields.addItem(std::move(vcl_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag)));
+		if(nal_hrd_parameters_present_flag) fields.addItem(nal_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag));
+		if(vcl_hrd_parameters_present_flag) fields.addItem(vcl_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag));
 	}
 	return fields;
 }

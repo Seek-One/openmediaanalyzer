@@ -104,7 +104,7 @@ UnitFieldList H265VuiParameters::dump_fields(){
 	fields.addItem(std::move(vui_timing_info_present_flagField));
 	ValueUnitFieldList vui_hrd_parameters_present_flagField = ValueUnitFieldList("vui_hrd_parameters_present_flag", vui_hrd_parameters_present_flag);
 	if(vui_hrd_parameters_present_flag){
-		vui_hrd_parameters_present_flagField.addItem(std::move(hrd_parameters.dump_fields(1)));
+		vui_hrd_parameters_present_flagField.addItem(hrd_parameters.dump_fields(1));
 	}
 	fields.addItem(std::move(vui_hrd_parameters_present_flagField));
 	return fields;
@@ -314,7 +314,7 @@ UnitFieldList H265SPS::dump_fields(){
 	fields.addItem(UnitField("sps_video_parameter_set_id", sps_video_parameter_set_id));
 	fields.addItem(UnitField("sps_max_sub_layers_minus1", sps_max_sub_layers_minus1));
 	fields.addItem(UnitField("sps_temporal_id_nesting_flag", sps_temporal_id_nesting_flag));
-	fields.addItem(std::move(profile_tier_level.dump_fields()));
+	fields.addItem(profile_tier_level.dump_fields());
 
 	fields.addItem(UnitField("sps_seq_parameter_set_id", sps_seq_parameter_set_id));
 	ValueUnitFieldList chroma_format_idcField = ValueUnitFieldList("chroma_format_idc", chroma_format_idc);
@@ -367,7 +367,7 @@ UnitFieldList H265SPS::dump_fields(){
 	fields.addItem(std::move(pcm_enabled_flagField));
 	ValueUnitFieldList num_short_term_ref_pic_setsField = ValueUnitFieldList("num_short_term_ref_pic_sets", num_short_term_ref_pic_sets);
 	for(uint32_t i = 0;i < num_short_term_ref_pic_sets;++i){
-		num_short_term_ref_pic_setsField.addItem(std::move(short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets)));
+		num_short_term_ref_pic_setsField.addItem(short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets));
 	}
 	fields.addItem(std::move(num_short_term_ref_pic_setsField));
 	ValueUnitFieldList long_term_ref_pics_present_flagField = ValueUnitFieldList("long_term_ref_pics_present_flag", long_term_ref_pics_present_flag);
@@ -383,7 +383,7 @@ UnitFieldList H265SPS::dump_fields(){
 	fields.addItem(UnitField("sps_temporal_mvp_enabled_flag", sps_temporal_mvp_enabled_flag));
 	fields.addItem(UnitField("strong_intra_smoothing_enabled_flag", strong_intra_smoothing_enabled_flag));
 	ValueUnitFieldList vui_parameters_present_flagField = ValueUnitFieldList("vui_parameters_present_flag", vui_parameters_present_flag);
-	if(vui_parameters_present_flag) vui_parameters_present_flagField.addItem(std::move(vui_parameters.dump_fields()));
+	if(vui_parameters_present_flag) vui_parameters_present_flagField.addItem(vui_parameters.dump_fields());
 	fields.addItem(std::move(vui_parameters_present_flagField));
 	
 	ValueUnitFieldList sps_extension_flagField = ValueUnitFieldList("sps_extension_flag", sps_extension_flag);
@@ -394,10 +394,10 @@ UnitFieldList H265SPS::dump_fields(){
 	ValueUnitFieldList sps_scc_extension_flagField = ValueUnitFieldList("sps_scc_extension_flag", sps_scc_extension_flag);
 	
 	fields.addItem(std::move(sps_extension_flagField));
-	if(sps_range_extension_flag)sps_range_extension_flagField.addItem(std::move(sps_range_extension.dump_fields()));
-	if(sps_multilayer_extension_flag) sps_multilayer_extension_flagField.addItem(std::move(sps_multilayer_extension.dump_fields()));
-	if(sps_3d_extension_flag) sps_3d_extension_flagField.addItem(std::move(sps_3d_extension.dump_fields()));
-	if(sps_scc_extension_flag) sps_scc_extension_flagField.addItem(std::move(sps_scc_extension.dump_fields(chroma_format_idc)));
+	if(sps_range_extension_flag)sps_range_extension_flagField.addItem(sps_range_extension.dump_fields());
+	if(sps_multilayer_extension_flag) sps_multilayer_extension_flagField.addItem(sps_multilayer_extension.dump_fields());
+	if(sps_3d_extension_flag) sps_3d_extension_flagField.addItem(sps_3d_extension.dump_fields());
+	if(sps_scc_extension_flag) sps_scc_extension_flagField.addItem(sps_scc_extension.dump_fields(chroma_format_idc));
 
 	if(sps_extension_flag){
 		sps_extension_flagField.addItem(std::move(sps_range_extension_flagField));

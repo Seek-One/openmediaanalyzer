@@ -175,7 +175,7 @@ UnitFieldList H264SPS::dump_fields(){
 	
 	fields.addItem(UnitField("log2_max_frame_num_minus4", log2_max_frame_num_minus4));
 	ValueUnitFieldList pic_order_cnt_typeField = ValueUnitFieldList("pic_order_cnt_type", pic_order_cnt_type);
-	if(pic_order_cnt_type == 0) pic_order_cnt_typeField.addItem(std::move(UnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4)));
+	if(pic_order_cnt_type == 0) pic_order_cnt_typeField.addItem(UnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4));
 	else if(pic_order_cnt_type == 1){
 		pic_order_cnt_typeField.addItem(UnitField("delta_pic_order_always_zero_flag", delta_pic_order_always_zero_flag));
 		pic_order_cnt_typeField.addItem(UnitField("offset_for_non_ref_pic", offset_for_non_ref_pic));

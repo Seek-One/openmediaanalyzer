@@ -459,10 +459,10 @@ void H264Stream::computeRPLPictureNumbers(){
 		if(pAccessUnit->rpm == RPM_ShortTermReference){
 			if(pAccessUnit->FrameNum > pCurrentSlice->frame_num) pAccessUnit->FrameNumWrap = pAccessUnit->FrameNum - pCurrentSPS->MaxFrameNumber;
 			else pAccessUnit->FrameNumWrap = pAccessUnit->FrameNum;
-			if(pCurrentSlice->field_pic_flag) pAccessUnit->PicNum = 2 * pAccessUnit->FrameNumWrap + (pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0;
+			if(pCurrentSlice->field_pic_flag) pAccessUnit->PicNum = 2 * pAccessUnit->FrameNumWrap + ((pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0);
 			else pAccessUnit->PicNum = pAccessUnit->FrameNumWrap;
 		} else { // Long-term reference
-			if(pCurrentSlice->field_pic_flag) pAccessUnit->LongTermPicNum = 2 * pAccessUnit->LongTermFrameIdx + (pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0;
+			if(pCurrentSlice->field_pic_flag) pAccessUnit->LongTermPicNum = 2 * pAccessUnit->LongTermFrameIdx + ((pCurrentSlice->bottom_field_flag == pAccessUnit->slice()->bottom_field_flag) ? 1 : 0);
 			else pAccessUnit->LongTermPicNum = pAccessUnit->LongTermFrameIdx;
 		}
 	}

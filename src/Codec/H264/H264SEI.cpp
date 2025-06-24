@@ -212,7 +212,7 @@ UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
 	std::ostringstream uuidStringStream;
 	for(int len : {8, 4, 4}){
 		for(int i = 0;i < len;++i){
-			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578_msb >> index*4)&& 0xFF);
+			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578_msb >> index*4) & 0xFF);
 			index--;
 		}
 		if(len != 12) uuidStringStream << "-";
@@ -220,7 +220,7 @@ UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
 	index = 15;
 	for(int len : {4, 12}){
 		for(int i = 0;i < len;++i){
-			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578_lsb >> index*4)&& 0xFF);
+			uuidStringStream << std::hex << (int)((uuid_iso_iec_11578_lsb >> index*4) & 0xFF);
 			index--;
 		}
 		if(len != 12) uuidStringStream << "-";

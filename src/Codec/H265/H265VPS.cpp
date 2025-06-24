@@ -94,7 +94,7 @@ void H265VPS::validate(){
 		}
 	}
 	if(vps_max_layer_id > 62) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_layer_id value (%ld) not in valid range (0..62)", vps_max_layer_id));
-	if(vps_max_layer_id > 1023) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_layer_sets_minus1 value (%ld) not in valid range (0..1023)", vps_num_layer_sets_minus1));
+	if(vps_num_layer_sets_minus1 > 1023) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_layer_sets_minus1 value (%ld) not in valid range (0..1023)", vps_num_layer_sets_minus1));
 	if (vps_timing_info_present_flag) {
 		if(vps_num_units_in_tick == 0) minorErrors.push_back("[VPS] vps_num_units_in_tick not greater than 0");
 		if(vps_time_scale == 0) minorErrors.push_back("[VPS] vps_time_scale not greater than 0");

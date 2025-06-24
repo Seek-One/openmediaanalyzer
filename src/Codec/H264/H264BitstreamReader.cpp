@@ -823,21 +823,21 @@ void H264BitstreamReader::readSEIPicTiming(H264SEI& h264SEI, const H264SPS& acti
 	}
 }
 
-void H264BitstreamReader::readSEIFillerPayload(H264SEI& h264SEI, uint payloadSize){
+void H264BitstreamReader::readSEIFillerPayload(H264SEI& h264SEI, uint64_t payloadSize){
 	H264SEIFillerPayload* h264SEImsg = new H264SEIFillerPayload();
 	h264SEI.messages.push_back(h264SEImsg);
 	h264SEImsg->payloadType = SEI_FILLER_PAYLOAD;
 	skipBits(8*payloadSize);
 }
 
-void H264BitstreamReader::readSEIUserDataUnregistered(H264SEI& h264SEI, uint payloadSize){
+void H264BitstreamReader::readSEIUserDataUnregistered(H264SEI& h264SEI, uint64_t payloadSize){
 	H264SEIUserDataUnregistered* h264SEImsg = new H264SEIUserDataUnregistered();
 	h264SEI.messages.push_back(h264SEImsg);
 	h264SEImsg->payloadType = SEI_USER_DATA_UNREGISTERED;
-	h264SEImsg->uuid_iso_iec_11578 = (__uint128_t)readBits(32) << 96;
-	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | ((__uint128_t)readBits(32) << 64);
-	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | ((__uint128_t)readBits(32) << 32);
-	h264SEImsg->uuid_iso_iec_11578 = h264SEImsg->uuid_iso_iec_11578 | readBits(32);
+	h264SEImsg->uuid_iso_iec_11578_msb = (uint64_t)readBits(32) << 32;
+	h264SEImsg->uuid_iso_iec_11578_msb = h264SEImsg->uuid_iso_iec_11578_msb | ((uint64_t)readBits(32));
+	h264SEImsg->uuid_iso_iec_11578_lsb = (uint64_t)readBits(32) << 32;
+	h264SEImsg->uuid_iso_iec_11578_lsb = h264SEImsg->uuid_iso_iec_11578_lsb | ((uint64_t)readBits(32));
 	for(uint32_t i = 16;i < payloadSize;++i) h264SEImsg->user_data_payload_byte.push_back(readBits(8));
 }
 

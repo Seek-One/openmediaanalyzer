@@ -31,8 +31,8 @@ private:
 	void readDecRefPicMarking(H264Slice& h264Slice);
 	void readSEIBufferingPeriod(H264SEI& h264SEI);
 	void readSEIPicTiming(H264SEI& h264SEI, const H264SPS& activeSPS);
-	void readSEIFillerPayload(H264SEI& h264SEI, uint payloadSize);
-	void readSEIUserDataUnregistered(H264SEI& h264SEI, uint payloadSize);
+	void readSEIFillerPayload(H264SEI& h264SEI, uint64_t payloadSize);
+	void readSEIUserDataUnregistered(H264SEI& h264SEI, uint64_t payloadSize);
     void readSEIRecoveryPoint(H264SEI& h264SEI, const H264SPS &activeSPS);
 	void readSEIFullFrameFreeze(H264SEI& h264SEI);
 };

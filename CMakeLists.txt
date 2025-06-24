@@ -72,7 +72,7 @@ set(WITH_AVCODEC ON CACHE BOOL "Enable build with avcodec library")
 set(WITH_AVFORMAT ON CACHE BOOL "Enable build with avformat library")
 set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
-
+set(WITH_OPENSSL ON BOOL "Enable build with openssl library")
 
 # Define output variable
 set (PACKAGE_DEPS)
@@ -379,6 +379,7 @@ target_link_libraries (${APPLICATION_EXE_NAME}
     ${QT_LIBRARIES}
     ${QT_QTMAIN_LIBRARY}
     ${CURL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
     ${AVCODEC_LIBRARIES}
     ${AVFORMAT_LIBRARIES}
     ${SWSCALE_LIBRARIES}

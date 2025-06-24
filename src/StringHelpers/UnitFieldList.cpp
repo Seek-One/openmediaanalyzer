@@ -115,7 +115,7 @@ UnitFieldList::UnitFieldList(const std::string name, UnitFieldList&& fieldList):
 
 std::string UnitFieldList::toStdString(uint16_t indent) const {
     std::ostringstream strBuilder;
-    strBuilder << StringFormatter::formatString("%s%s:\n", std::string(indent, ' '), field);
+    strBuilder << StringFormatter::formatString("%s%s:\n", std::string(indent, ' ').c_str(), field.c_str());
     for(const std::shared_ptr<UnitFieldListItem>& item : items){
         strBuilder << item->toStdString(indent+1);
     }
@@ -136,7 +136,7 @@ ValueUnitFieldList::ValueUnitFieldList(const std::string name, int64_t val):
 
 std::string ValueUnitFieldList::toStdString(uint16_t indent) const {
     std::ostringstream strBuilder;
-    strBuilder << StringFormatter::formatString("%s%s: %ld\n", std::string(indent, ' '), field.c_str(), value);
+    strBuilder << StringFormatter::formatString("%s%s: %ld\n", std::string(indent, ' ').c_str(), field.c_str(), value);
     for(const std::shared_ptr<UnitFieldListItem>& item : items){
         strBuilder << item->toStdString(indent+1);
     }
@@ -158,7 +158,7 @@ IdxValueUnitFieldList::IdxValueUnitFieldList(const std::string name, int64_t val
 
 std::string IdxValueUnitFieldList::toStdString(uint16_t indent) const {
     std::ostringstream strBuilder;
-    strBuilder << StringFormatter::formatString("%s%s[%hu]: %ld\n", std::string(indent, ' '), field.c_str(), index, value);
+    strBuilder << StringFormatter::formatString("%s%s[%hu]: %ld\n", std::string(indent, ' ').c_str(), field.c_str(), index, value);
     for(const std::shared_ptr<UnitFieldListItem>& item : items){
         strBuilder << item->toStdString(indent+1);
     }

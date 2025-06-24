@@ -72,6 +72,7 @@ set(WITH_AVCODEC ON CACHE BOOL "Enable build with avcodec library")
 set(WITH_AVFORMAT ON CACHE BOOL "Enable build with avformat library")
 set(WITH_AVUTIL ON CACHE BOOL "Enable build with avutil library")
 set(WITH_ZLIB ON BOOL "Enable build with z library")
+set(WITH_LZMA ON BOOL "Enable build with lzma library")
 set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
 set(WITH_SWRESAMPLE ON BOOL "Enable build with swresample library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
@@ -378,7 +379,6 @@ add_executable (${APPLICATION_EXE_NAME}
 	${RCS_TS_OUTFILES}
 	${qm_FILES}
 )
-
 include_directories(${INSTALL_PATH_LIB})
 target_link_libraries (${APPLICATION_EXE_NAME}
 	${QT_LIBRARIES}
@@ -391,9 +391,9 @@ target_link_libraries (${APPLICATION_EXE_NAME}
     ${PTHREAD_LIBRARIES}
     ${SWRESAMPLE_LIBRARIES}
     ZLIB::ZLIB
+    ${LIBLZMA_LIBRARIES}
     ${VDPAU_LIBRARIES} 
     ${X11_LIBRARIES}
-    lzma
     ${Libdrm_LIBRARIES}
     ${OPENSSL_LIBRARIES}
 )

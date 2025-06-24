@@ -1173,6 +1173,15 @@ if(WITH_ZLIB)
 	endif(ZLIB_FOUND)
 endif(WITH_ZLIB)
 
+# Add lzma library
+option(WITH_LZMA "Enable build with lzma library" OFF)
+if(WITH_LZMA)
+	find_package (LibLZMA REQUIRED)
+	if(LibLZMA_FOUND)
+		set(USE_LZMA 1)
+	endif(LibLZMA_FOUND)
+endif(WITH_LZMA)
+
 #####################
 ### Hardwares modules
 #####################

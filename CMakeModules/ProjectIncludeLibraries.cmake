@@ -1173,6 +1173,11 @@ if(WITH_ZLIB)
 	endif(ZLIB_FOUND)
 endif(WITH_ZLIB)
 
+list(APPEND CMAKE_PREFIX_PATH
+  /usr/local
+  /opt/homebrew
+)
+
 # Add lzma library
 option(WITH_LZMA "Enable build with lzma library" OFF)
 if(WITH_LZMA)
@@ -1188,7 +1193,7 @@ endif(WITH_LZMA)
 
 # Add VDPAU (linux only) - Codec/filter/GUI
 option(WITH_VDPAU "Enable build with VDPAU API" OFF)
-if(WITH_VDPAU AND UNIX)
+if(WITH_VDPAU AND UNIX AND NOT APPLE)
 	find_package (VDPAU REQUIRED)
 	find_package (X11 REQUIRED)
 	if(VDPAU_FOUND AND X11_FOUND)

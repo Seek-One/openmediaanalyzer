@@ -1164,6 +1164,15 @@ if(WITH_AVUTIL)
 	endif(AVUTIL_FOUND)
 endif(WITH_AVUTIL)
 
+# Add z library
+option(WITH_ZLIB "Enable build with z library" OFF)
+if(WITH_ZLIB)
+	find_package (ZLIB REQUIRED)
+	if(ZLIB_FOUND)
+		set(USE_ZLIB 1)
+	endif(ZLIB_FOUND)
+endif(WITH_ZLIB)
+
 #####################
 ### Hardwares modules
 #####################

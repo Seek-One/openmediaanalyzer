@@ -71,6 +71,7 @@ endif()
 set(WITH_AVCODEC ON CACHE BOOL "Enable build with avcodec library")
 set(WITH_AVFORMAT ON CACHE BOOL "Enable build with avformat library")
 set(WITH_AVUTIL ON CACHE BOOL "Enable build with avutil library")
+set(WITH_ZLIB ON BOOL "Enable build with z library")
 set(WITH_SWSCALE ON CACHE BOOL "Enable build with swscale library")
 set(WITH_SWRESAMPLE ON BOOL "Enable build with swresample library")
 set(WITH_CURL ON CACHE BOOL "Enable build with libcurl")
@@ -389,7 +390,7 @@ target_link_libraries (${APPLICATION_EXE_NAME}
     ${AVUTIL_LIBRARIES}
     ${PTHREAD_LIBRARIES}
     ${SWRESAMPLE_LIBRARIES}
-    z
+    ZLIB::ZLIB
     ${VDPAU_LIBRARIES} 
     ${X11_LIBRARIES}
     lzma

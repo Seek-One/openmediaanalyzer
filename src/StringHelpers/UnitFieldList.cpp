@@ -22,7 +22,7 @@ UnitField::UnitField(const std::string name, const int64_t val):
 {}
 
 std::string UnitField::toStdString(uint16_t indent) const{
-    return StringFormatter::formatString("%s: %ld", field, value);
+    return StringFormatter::formatString("%s: %ld", field.c_str(), value);
 }
 
 QList<QStandardItem*> UnitField::toQtStandardItemRow() const{
@@ -37,12 +37,12 @@ IdxUnitField::IdxUnitField(const std::string name, const int64_t val, uint16_t i
 {}
 
 std::string IdxUnitField::toStdString(uint16_t indent) const{
-    return StringFormatter::formatString("%s[%hu]: %ld", field, index, value);
+    return StringFormatter::formatString("%s[%hu]: %ld", field.c_str(), index, value);
 }
 
 QList<QStandardItem*> IdxUnitField::toQtStandardItemRow() const{
     QList<QStandardItem*> row;
-    row.append(new QStandardItem(StringFormatter::formatString("%s[%hu]", field, index).c_str()));
+    row.append(new QStandardItem(StringFormatter::formatString("%s[%hu]", field.c_str(), index).c_str()));
     row.append(new QStandardItem(QString::number(value)));
     return row;
 }
@@ -52,12 +52,12 @@ DblIdxUnitField::DblIdxUnitField(const std::string name, const int64_t val, uint
 {}
 
 std::string DblIdxUnitField::toStdString(uint16_t indent) const{
-    return StringFormatter::formatString("%s[%hu][%hu]: %ld", field, index1, index2, value);
+    return StringFormatter::formatString("%s[%hu][%hu]: %ld", field.c_str(), index1, index2, value);
 }
 
 QList<QStandardItem*> DblIdxUnitField::toQtStandardItemRow() const{
     QList<QStandardItem*> row;
-    row.append(new QStandardItem(StringFormatter::formatString("%s[%hu][%hu]", field, index1, index2).c_str()));
+    row.append(new QStandardItem(StringFormatter::formatString("%s[%hu][%hu]", field.c_str(), index1, index2).c_str()));
     row.append(new QStandardItem(QString::number(value)));
     return row;
 }
@@ -68,7 +68,7 @@ StrUnitField::StrUnitField(const std::string name, const std::string val):
 }
 
 std::string StrUnitField::toStdString(uint16_t indent) const{
-    return StringFormatter::formatString("%s: %s", field, value);
+    return StringFormatter::formatString("%s: %s", field.c_str(), value.c_str());
 }
 
 QList<QStandardItem*> StrUnitField::toQtStandardItemRow() const{

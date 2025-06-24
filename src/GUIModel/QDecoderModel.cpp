@@ -332,7 +332,7 @@ void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
                 break;
             }
         }
-    } else if(!m_isLiveStream) m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
+    } else m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
     if((m_isLiveStream && m_liveContent) || (m_pSelectedFrameModel && m_requestedFrames.front()->m_id == m_pSelectedFrameModel->m_id)) emit updateVideoFrameViewImage(pPicture);
     m_requestedFrames.pop();
     if(!m_isLiveStream && m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));

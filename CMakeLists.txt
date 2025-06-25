@@ -223,8 +223,18 @@ set(CODEC_SOURCES
     src/Codec/H265/H265VPS.h
 )
 
+set(STREAM_SOURCES
+    src/Stream/HTTPClient.cpp
+    src/Stream/HTTPClient.h
+    src/Stream/RTSPClient.cpp
+    src/Stream/RTSPClient.h
+    src/Stream/StreamClient.cpp
+    src/Stream/StreamClient.h
+)
+
 set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${CODEC_SOURCES})
 set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${STRING_HELPERS_SOURCES})
+set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${STREAM_SOURCES})
 
 
 set(APPLICATION_MOC_HEADERS

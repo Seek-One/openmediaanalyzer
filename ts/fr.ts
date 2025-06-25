@@ -130,20 +130,8 @@
 <context>
     <name>QStreamWorker</name>
     <message>
-        <source>Incomplete header response</source>
-        <translation>En-tête de réponse incomplet</translation>
-    </message>
-    <message>
-        <source>Server replied with the following : </source>
-        <translation>Le serveur a répondu avec le message suivant : </translation>
-    </message>
-    <message>
-        <source>Multipart stream expected</source>
-        <translation>Flux multi-parties attendu</translation>
-    </message>
-    <message>
-        <source>No stream data found</source>
-        <translation>Aucun flux de données trouvé</translation>
+        <source>Invalid or unsupported protocol</source>
+        <translation>Protocole invalide ou non supporté</translation>
     </message>
 </context>
 <context>

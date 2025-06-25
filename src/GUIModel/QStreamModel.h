@@ -4,23 +4,13 @@
 #include <QFileSystemModel>
 #include <QTimer>
 
+#define HTTPS_PREFIX "https://"
+#define HTTP_PREFIX "http://"
+#define RTSP_PREFIX "rtsp://"
+
 Q_DECLARE_METATYPE(QList<QString>)
 
 class QStreamWorker;
-
-enum ContentType {
-    ContentType_Other,
-    ContentType_Video,
-    ContentType_Image,
-    ContentType_Audio
-};
-
-enum Codec {
-    Codec_Unsupported,
-    Codec_H264,
-    Codec_H265,
-    Codec_MJPEG
-};
 
 class QStreamModel : public QObject
 {
@@ -64,10 +54,6 @@ class QStreamWorker : public QObject {
 public:
     QStreamWorker(const QString& URL, const QString& username, const QString& password);
     ~QStreamWorker();
-    
-    QVector<uint8_t> m_buffer;
-    Codec m_codec;
-    ContentType m_contentType;
 
 public slots:
     void process();
@@ -85,9 +71,9 @@ signals:
     void updateProtocol(const QString& protocol);
     void updateContentType(const QString& contentType);
     void updateValidURLs(const QString& URL);
+    void stopStream();
 
 private:
-    bool m_running;
     const QString& m_URL;
     const QString& m_username;
     const QString& m_password;

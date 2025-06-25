@@ -1,13 +1,14 @@
 #include <QDebug>
-#include <QCoreApplication>
 #include <QThread>
-#include <QMessageBox>
 #include <QSettings>
+#include <QMessageBox>
 #include <curl/curl.h>
 #include <fstream>
 
 #include "../Codec/H26X/H26XUtils.h"
 #include "../GUI/QVideoInputView.h"
+#include "../Stream/HTTPClient.h"
+#include "../Stream/RTSPClient.h"
 
 #include "QStreamModel.h"
 
@@ -21,144 +22,6 @@ QStreamModel::QStreamModel():
 QStreamModel::~QStreamModel(){
     emit stopProcessing();
     if(m_pBitrateTimer) m_pBitrateTimer->deleteLater();
-}
-
-size_t receiveHeader(char* contents, size_t size, size_t nmemb, QStreamWorker* inputData){
-    size_t totalSize = size*nmemb;
-    QString responseStr = QString((char*)contents);
-    QRegularExpression responseRegEx = QRegularExpression("(HTTP/\\d+\\.\\d+) ((\\d+) [\\S ]+)");
-    QRegularExpressionMatch responseMatch = responseRegEx.match(responseStr);
-
-    QRegularExpression multipartRegEx = QRegularExpression("[Cc]ontent-[Tt]ype: (\\w+)");
-    QRegularExpressionMatch multipartMatch = multipartRegEx.match(responseStr);
-    if(!responseMatch.hasMatch() && !multipartMatch.hasMatch()) return totalSize;
-    if(responseMatch.hasMatch()){
-        if(responseMatch.lastCapturedIndex() != 3) {
-            emit inputData->error(QStreamWorker::tr("Incomplete header response"));
-            return 0;
-        }
-        int responseCode = responseMatch.captured(3).toInt();
-        if(responseCode != 200){
-            emit inputData->error(QStreamWorker::tr("Server replied with the following : ") + responseMatch.captured(2));
-            return 0;
-        }
-        emit inputData->updateProtocol(responseMatch.captured(1));
-    } else if(multipartMatch.hasMatch()){
-        if(multipartMatch.captured(1) != "multipart"){
-            emit inputData->error(QStreamWorker::tr("Multipart stream expected"));
-            return 0;
-        }
-    }
-    return totalSize;
-}
-
-
-size_t receiveResponse(void* contents, size_t size, size_t nmemb, QStreamWorker* inputData){
-    size_t byteSize = size*nmemb;
-    uint8_t* stream = (uint8_t*)contents;
-    uint64_t videoBytes = 0;
-    uint64_t audioBytes = 0;
-    
-    QString responseStr = QString((char*)contents);
-    QRegularExpression contentTypeRegEx = QRegularExpression("Content-type: (\\w+)/([\\w\\-\\+\\.]+)");
-    QRegularExpressionMatch contentTypeMatch = contentTypeRegEx.match(responseStr);
-    if(contentTypeMatch.hasMatch()){
-        emit inputData->updateContentType(contentTypeMatch.captured(1) + "/" + contentTypeMatch.captured(2));
-        switch(inputData->m_contentType){
-            case ContentType_Video:
-            case ContentType_Image:
-                videoBytes += contentTypeMatch.capturedStart();
-                break;
-            case ContentType_Audio:
-                audioBytes += contentTypeMatch.capturedStart();
-                break;
-            default:
-                break;
-        }
-        QString type = contentTypeMatch.captured(1);
-        if(type == "video"){
-            inputData->m_contentType = ContentType_Video;
-            QString codec = contentTypeMatch.captured(2);
-            if(codec == "H264") inputData->m_codec = Codec_H264;
-            else if(codec == "H265") inputData->m_codec = Codec_H265;
-            else inputData->m_codec = Codec_Unsupported;
-            emit inputData->updateVideoCodec(codec);
-        } else if (type == "image"){
-            inputData->m_contentType = ContentType_Image;
-            QString imgType = contentTypeMatch.captured(2);
-            if(imgType == "jpeg") inputData->m_codec = Codec_MJPEG;
-            else inputData->m_codec = Codec_Unsupported;
-        } else if (type == "audio") {
-            inputData->m_contentType = ContentType_Audio;
-            emit inputData->updateAudioCodec(contentTypeMatch.captured(2));
-        }
-        else inputData->m_contentType = ContentType_Other;
-        switch(inputData->m_contentType){
-            case ContentType_Video:
-            case ContentType_Image:
-                videoBytes += (byteSize - contentTypeMatch.capturedStart());
-                break;
-            case ContentType_Audio:
-                audioBytes += (byteSize - contentTypeMatch.capturedStart());
-                break;
-            default:
-                break;
-        }
-    } else {
-         switch(inputData->m_contentType){
-            case ContentType_Video:
-            case ContentType_Image:
-                videoBytes += byteSize;
-                break;
-            case ContentType_Audio:
-                audioBytes += byteSize;
-                break;
-            default:   
-                break;
-        }
-    }
-    emit inputData->receiveBytes(videoBytes, audioBytes, byteSize);
-    if(inputData->m_contentType != ContentType_Video && inputData->m_contentType != ContentType_Image) return byteSize;
-
-    // locate potential start code in byte stream
-    size_t startCodePosition = byteSize;
-    for(size_t i = 0;i + 3 < byteSize;++i){
-        if(stream[i] == 0x00 && stream[i+1] == 0x00){
-            if(stream[i+2] == 0x01 || (stream[i+2] == 0x00 && stream[i+3] == 0x01)){
-                startCodePosition = i;
-                break;
-            }
-        }
-    }
-
-    // start code found : append all data preceding it and send it to decoding
-    if(startCodePosition != byteSize){ 
-        // non-empty buffer : previous batch getting completed
-        if(!inputData->m_buffer.empty()){
-            for(size_t i = 0; i < startCodePosition;++i) inputData->m_buffer.push_back(stream[i]);
-            uint8_t* allocatedStream = new uint8_t[inputData->m_buffer.size()];
-            memcpy(allocatedStream, inputData->m_buffer.data(), inputData->m_buffer.size());
-            switch(inputData->m_codec){
-                case Codec_H264:
-                    emit inputData->loadH264Packet(allocatedStream, inputData->m_buffer.size());
-                    break;
-                case Codec_H265:
-                    emit inputData->loadH265Packet(allocatedStream, inputData->m_buffer.size());
-                    break;
-                default:
-                    emit inputData->detectUnsupportedVideoCodec();
-            }
-            inputData->m_buffer.clear();
-
-            // data 
-            for(size_t i = startCodePosition; i < byteSize;++i) inputData->m_buffer.push_back(stream[i]);
-        } else { // empty buffer : first batch of the entire stream
-            for(size_t i = startCodePosition; i < byteSize;++i) inputData->m_buffer.push_back(stream[i]);
-        }
-    } else { // no start code : append all data to the current batch if there is one
-        if(!inputData->m_buffer.empty()) for(size_t i = 0; i < byteSize;++i) inputData->m_buffer.push_back(stream[i]);
-    }
-    return byteSize;
 }
 
 void QStreamModel::streamLoaded(const QString& URL, const QString& username, const QString& password){
@@ -224,73 +87,57 @@ void QStreamModel::secondElapsed(){
     m_globalBytes = 0;
 }
 
-QStreamWorker::QStreamWorker(const QString& URL, const QString& username, const QString& password):
-m_codec(Codec_Unsupported), m_contentType(ContentType_Other), 
-    m_running(true), m_URL(URL), m_username(username), m_password(password)
+QStreamWorker::QStreamWorker(const QString& URL, const QString& username, const QString& password): 
+    m_URL(URL), m_username(username), m_password(password)
 {}
 
 QStreamWorker::~QStreamWorker(){}
 
 void QStreamWorker::process(){
-    CURL* curlE = curl_easy_init();
-    if(!curlE){
-        qDebug() << "Couldn't initialize curl easy handle";
+    QString fullURL = m_URL;
+    fullURL.remove(QRegularExpression("\\w+://"));
+    if(!m_username.isEmpty() || !m_password.isEmpty()) fullURL.prepend(QString("%1:%2@").arg(m_username, m_password));
+    StreamClient* pStreamClient;
+    if(m_URL.startsWith(HTTP_PREFIX)){
+        pStreamClient = new HTTPClient(fullURL.prepend(HTTP_PREFIX));
+    } else if (m_URL.startsWith(HTTPS_PREFIX)){
+        pStreamClient = new HTTPClient(fullURL.prepend(HTTPS_PREFIX));
+    } else if (m_URL.startsWith(RTSP_PREFIX)){
+        pStreamClient = new RTSPClient(fullURL.prepend(RTSP_PREFIX));
+    } else {
+        emit error(tr("Invalid or unsupported protocol"));
         return;
     }
-    QString URL = m_URL;
-    QString httpsPrefix = "https://";
-    QString httpPrefix = "https://";
-    if(m_URL.startsWith(httpsPrefix)) URL.remove(0, httpsPrefix.size());
-    else if (m_URL.startsWith(httpPrefix)) URL.remove(0, httpPrefix.size());
-    QString fullURL; 
-    if(m_username.isEmpty() && m_password.isEmpty()) fullURL = QString("https://%1").arg(URL);
-    else fullURL = QString("https://%1:%2@%3").arg(m_username, m_password, URL);
-    curl_easy_setopt(curlE, CURLOPT_URL, fullURL.toStdString().c_str());
-    curl_easy_setopt(curlE, CURLOPT_HEADERFUNCTION, receiveHeader);
-    curl_easy_setopt(curlE, CURLOPT_HEADERDATA, this);
-    curl_easy_setopt(curlE, CURLOPT_WRITEFUNCTION, receiveResponse);
-    curl_easy_setopt(curlE, CURLOPT_WRITEDATA, this);
-    curl_easy_setopt(curlE, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(curlE, CURLOPT_SSL_VERIFYHOST, 0L);
-
-    CURLM* curlM = curl_multi_init();
-    if(!curlM){
-        qDebug() << "Couldn't initialize curl multi handle";
-        return;
-    }
-    curl_multi_add_handle(curlM, curlE);
-    int receivingData = 0;
-    int handleHasData = 1;
-    CURLMcode curlMStatus = curl_multi_perform(curlM, &receivingData);
-    if(curlMStatus != CURLM_OK) qDebug() << curl_multi_strerror(curlMStatus);
-    while((receivingData || handleHasData) && m_running){
-        CURLMcode pollStatus = curl_multi_poll(curlM, nullptr, 0, 3000, &handleHasData);
-        if(pollStatus != CURLM_OK){
-            qDebug() << "Error while polling for activity on handles :" << curl_multi_strerror(pollStatus);
-            break;
-        }
-
-        curlMStatus = curl_multi_perform(curlM, &receivingData);
-        if(curlMStatus != CURLM_OK) qDebug() << curl_multi_strerror(curlMStatus);
-        QCoreApplication::processEvents();
-    }
-    if(handleHasData == 0) emit error(tr("No stream data found"));
-    else if(receivingData == 1 && handleHasData == 1){
+    connect(pStreamClient, &StreamClient::loadH264Packet, this, &QStreamWorker::loadH264Packet);
+    connect(pStreamClient, &StreamClient::loadH265Packet, this, &QStreamWorker::loadH265Packet);
+    connect(pStreamClient, &StreamClient::detectUnsupportedVideoCodec, this, &QStreamWorker::detectUnsupportedVideoCodec);
+    connect(pStreamClient, &StreamClient::receiveBytes, this, &QStreamWorker::receiveBytes);
+    connect(pStreamClient, &StreamClient::finished, this, [this, pStreamClient](){
+        pStreamClient->deleteLater();
+        emit finished();
+    });
+    connect(pStreamClient, &StreamClient::error, this, &QStreamWorker::error);
+    connect(pStreamClient, &StreamClient::updateVideoCodec, this, &QStreamWorker::updateVideoCodec);
+    connect(pStreamClient, &StreamClient::updateAudioCodec, this, &QStreamWorker::updateAudioCodec);
+    connect(pStreamClient, &StreamClient::updateProtocol, this, &QStreamWorker::updateProtocol);
+    connect(pStreamClient, &StreamClient::updateContentType, this, &QStreamWorker::updateContentType);
+    connect(pStreamClient, &StreamClient::updateValidURLs, this, [this](const QString& URL){
         QSettings settings;
         QList<QString> registeredLinks = settings.value("validLinks").value<QList<QString>>();
-        if(!registeredLinks.contains(URL)) {
-            registeredLinks.push_back(URL);
-            if(registeredLinks.size() > 7) registeredLinks.pop_front();
+        QString anonymizedURL = URL;
+        anonymizedURL.remove(QRegularExpression("[\\w\\d_\\-]+:[\\w\\d_\\-]+@"));
+        if(!registeredLinks.contains(anonymizedURL)) {
+            registeredLinks.push_back(anonymizedURL);
+            while(registeredLinks.size() > 7) registeredLinks.pop_front();
             settings.setValue("validLinks", QVariant::fromValue(registeredLinks));
-            emit updateValidURLs(URL);
+            emit updateValidURLs(anonymizedURL);
         }
-    }
-    curl_multi_cleanup(curlM);
-    curl_easy_cleanup(curlE);
-    curl_global_cleanup();
-    emit finished();
+    });
+    connect(this, &QStreamWorker::stopStream, pStreamClient, &StreamClient::streamStopped);
+    
+    pStreamClient->process();
 }
 
 void QStreamWorker::streamStopped(){
-    m_running = false;
+    emit stopStream();
 }

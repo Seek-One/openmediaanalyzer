@@ -6,6 +6,9 @@
 #include <QScrollArea>
 #include <QUuid>
 #include <list>
+#include <QSharedPointer>
+
+#include "GUIModel/QAccessUnitModel.h"
 
 #define SCROLL_CLAMP_RIGHT_THRESHOLD 0.925
 
@@ -22,7 +25,7 @@ public:
 public slots:
     void resetTimeline();
     void accessUnitsUpdated();
-    void accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitss);
+    void accessUnitsAdded(QVector<QSharedPointer<QAccessUnitModel>> pAccessUnits);
     void accessUnitsRemoved(uint count);
     void accessUnitSelected(QSharedPointer<QAccessUnitModel> pAccessUnits);
     void liveContentSet(bool val);

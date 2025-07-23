@@ -19,6 +19,8 @@ extern "C" {
     #include <libswscale/swscale.h>
 }
 
+#include "GUIModel/QAccessUnitModel.h"
+
 class QAccessUnitModel;
 class H264Stream;
 class H265Stream;

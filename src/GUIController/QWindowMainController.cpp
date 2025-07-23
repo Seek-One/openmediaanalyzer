@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QApplication>
 #include <QDebug>
+#include <QSharedPointer>
 
 #include "../GUI/QWindowMain.h"
 #include "../GUI/QNALUInfoView.h"
@@ -9,6 +10,8 @@
 #include "../GUIModel/QFolderModel.h"
 #include "../GUIModel/QStreamModel.h"
 #include "../GUIModel/QDecoderModel.h"
+#include "../GUIModel/QAccessUnitModel.h"
+
 #include "QVideoInputViewController.h"
 #include "QTimelineViewController.h"
 #include "QErrorViewController.h"
@@ -43,7 +46,8 @@ QWindowMainController::~QWindowMainController(){
     if(m_pVideoFrameViewController) delete m_pVideoFrameViewController;
 }
 
-void QWindowMainController::init(QWindowMain* pWindowMain){
+void QWindowMainController::init(QWindowMain* pWindowMain)
+{
     m_pWindowMain = pWindowMain;
     m_pVideoInputViewController = new QVideoInputViewController(pWindowMain->getVideoInputView(), m_pFolderModel, m_pStreamModel, m_pDecoderModel);
     m_pTimelineViewController = new QTimelineViewController(pWindowMain->getTimelineView(), m_pDecoderModel);
@@ -92,7 +96,8 @@ void QWindowMainController::init(QWindowMain* pWindowMain){
     qRegisterMetaType<uint64_t>("uint64_t");
 }
 
-void QWindowMainController::folderOpened(){
+void QWindowMainController::folderOpened()
+{
     QString selectedFolder = QFileDialog::getExistingDirectory(m_pWindowMain, "Choose a folder");
     if(!selectedFolder.isEmpty()) {
         emit openFolder(selectedFolder);

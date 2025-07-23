@@ -7,7 +7,13 @@
 #include "GUI/QWindowMain.h"
 #include "GUIController/QWindowMainController.h"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
+#ifdef WIN32
+	// Add runtime dir in plugins search path
+	QCoreApplication::addLibraryPath(".");
+#endif
+
     QApplication app(argc, argv);
     app.setOrganizationName("seekone");
     app.setApplicationName("OpenMediaAnalyzer");

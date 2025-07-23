@@ -16,14 +16,20 @@ QFolderModel::~QFolderModel(){
     }
 }
 
-void QFolderModel::folderLoaded(const QString& folderPath){
+void QFolderModel::folderLoaded(const QString& folderPath)
+{
+	qDebug("[Model] Loading folder: %s", qPrintable(folderPath));
+
     m_pModel->setRootPath(folderPath);
     m_loadedFolderPath = folderPath;
     emit updateVideoInputView(m_pModel);
     processDirectory(folderPath);
 }
 
-void QFolderModel::processFile(const QString& filePath){
+void QFolderModel::processFile(const QString& filePath)
+{
+	qDebug("[Model] Loading file: %s", qPrintable(filePath));
+
     std::ifstream fileStream(filePath.toStdString(), std::ios::binary | std::ios::ate);
     if (!fileStream) {
         qDebug() << "Error opening file: " << filePath;
@@ -38,8 +44,8 @@ void QFolderModel::processFile(const QString& filePath){
     uint8_t* buffer = new uint8_t[fileSize];
     fileStream.read(reinterpret_cast<char*>(buffer), fileSize);
     QString fileExtension = filePath.split('.').back(); 
-    if(fileExtension == "h264") emit loadH264File(buffer, fileSize);
-    else if (fileExtension == "h265") emit loadH265File(buffer, fileSize);
+    if(fileExtension.toLower() == "h264") emit loadH264File(buffer, fileSize);
+    else if (fileExtension.toLower() == "h265") emit loadH265File(buffer, fileSize);
     else delete[] buffer;
     fileStream.close();
 }

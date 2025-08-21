@@ -25,7 +25,7 @@ public:
 
 private:
 	H265ProfileTierLevel readProfileTierLevel(uint8_t iProfilePresentFlag, uint8_t iMaxNumSubLayersMinus1);
-	H265ScalingList readScalingList();
+	H265ScalingList readScalingListData();
 	H265ShortTermRefPicSet readShortTermRefPicSet(uint32_t iShortTermSetIndex, const H265SPS& h265SPS);
 	H265HrdParameters readHrdParameters(uint8_t commonInfPresentFlag, uint8_t maxNumSubLayersMinus1);
 	H265VuiParameters readVuiParameters(uint8_t sps_max_sub_layers_minus1);

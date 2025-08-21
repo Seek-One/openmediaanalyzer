@@ -233,8 +233,11 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 {
 	sps_video_parameter_set_id = 0;
 	sps_max_sub_layers_minus1 = 0;
+	sps_ext_or_max_sub_layers_minus1 = 0;
 	sps_temporal_id_nesting_flag = 0;
 	sps_seq_parameter_set_id = 0;
+	update_rep_format_flag = 0;
+	sps_rep_format_idx = 0;
 	chroma_format_idc = 0;
 	separate_colour_plane_flag = 0;
 	pic_width_in_luma_samples = 0;
@@ -255,6 +258,8 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 	max_transform_hierarchy_depth_inter = 0;
 	max_transform_hierarchy_depth_intra = 0;
 	scaling_list_enabled_flag = 0;
+	sps_infer_scaling_list_flag = 0;
+	sps_scaling_list_ref_layer_id = 0;
 	sps_scaling_list_data_present_flag = 0;
 	amp_enabled_flag = 0;
 	sample_adaptive_offset_enabled_flag = 0;
@@ -274,6 +279,8 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 	sps_multilayer_extension_flag = 0;
 	sps_3d_extension_flag = 0;
 	sps_scc_extension_flag = 0;
+	sps_extension_4bits = 0;
+	sps_extension_data_flag = 0;
 
 	short_term_ref_pic_set.resize(1);
 
@@ -347,11 +354,11 @@ UnitFieldList H265SPS::dump_fields(){
 	fields.addItem(UnitField("max_transform_hierarchy_depth_intra", max_transform_hierarchy_depth_intra));
 	ValueUnitFieldList scaling_list_enabled_flagField = ValueUnitFieldList("scaling_list_enabled_flag", scaling_list_enabled_flag);
 	if(scaling_list_enabled_flag){
-		ValueUnitFieldList sps_scaling_list_data_present_flagField = ValueUnitFieldList("sps_scaling_list_data_present_flag", sps_scaling_list_data_present_flag);
-		scaling_list_enabled_flagField.addItem(std::move(sps_scaling_list_data_present_flagField));
+		ValueUnitFieldList sps_scaling_list_data_present_flagField("sps_scaling_list_data_present_flag", sps_scaling_list_data_present_flag);
 		if(sps_scaling_list_data_present_flag){
 			sps_scaling_list_data_present_flagField.addItem(scaling_list_data.dump_fields());
 		}
+		scaling_list_enabled_flagField.addItem(std::move(sps_scaling_list_data_present_flagField));
 	}
 	fields.addItem(std::move(scaling_list_enabled_flagField));
 	fields.addItem(UnitField("amp_enabled_flag", amp_enabled_flag));

@@ -18,8 +18,17 @@ H265GOP::~H265GOP(){
     accessUnits.clear();
 }
 
-void H265GOP::setAccessUnitDecodability(){
-    switch(accessUnits.back()->slice()->slice_type){
+void H265GOP::setAccessUnitDecodability() {
+	if (accessUnits.empty()) {
+		return;
+	}
+
+	auto slice = accessUnits.back()->slice();
+	if (!slice) {
+		return;
+	}
+
+    switch(slice->slice_type){
         case H265Slice::SliceType_I:
         case H265Slice::SliceType_P: {
             accessUnits.back()->decodable = true;

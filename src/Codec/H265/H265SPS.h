@@ -145,9 +145,12 @@ struct H265SPS : public H265NAL {
 
 	uint8_t sps_video_parameter_set_id;
 	uint8_t sps_max_sub_layers_minus1;
+	uint8_t sps_ext_or_max_sub_layers_minus1;
 	uint8_t sps_temporal_id_nesting_flag;
 	H265ProfileTierLevel profile_tier_level;
 	uint8_t sps_seq_parameter_set_id;
+	uint8_t update_rep_format_flag;
+	uint8_t sps_rep_format_idx;
 	uint32_t chroma_format_idc;
 	uint8_t separate_colour_plane_flag;
 	uint32_t pic_width_in_luma_samples;
@@ -171,6 +174,8 @@ struct H265SPS : public H265NAL {
 	uint32_t max_transform_hierarchy_depth_inter;
 	uint32_t max_transform_hierarchy_depth_intra;
 	uint8_t scaling_list_enabled_flag;
+	uint8_t sps_infer_scaling_list_flag;
+	uint8_t sps_scaling_list_ref_layer_id;
 	uint8_t sps_scaling_list_data_present_flag;
 	H265ScalingList scaling_list_data;
 	uint8_t amp_enabled_flag;
@@ -198,6 +203,8 @@ struct H265SPS : public H265NAL {
 	uint8_t sps_multilayer_extension_flag;
 	uint8_t sps_3d_extension_flag;
 	uint8_t sps_scc_extension_flag;
+	uint8_t sps_extension_4bits;
+	uint8_t sps_extension_data_flag;
 
 	H265SPSRangeExtension sps_range_extension;
 	H265SPSMultilayerExtension sps_multilayer_extension;

@@ -5,22 +5,32 @@
 #include "QVideoInputView.h"
 
 QVideoInputView::QVideoInputView(QWidget* parent)
-    : QGroupBox(tr("No video data"), parent), m_pFolderView(new QTreeView(this)), m_pStreamInfoView(new QTreeView(this)),
-    m_pVideoCodec(new QStandardItem()), m_pVideoResolution(new QStandardItem()), m_pVideoFrameRate(new QStandardItem()), 
-    m_pGOVLength(new QStandardItem()), m_pVideoContentBitrate(new QStandardItem()), 
-    m_pCodedVideoSize(new QStandardItem()), m_pDecodedPicturesSize(new QStandardItem()), m_pFrameValidity(new QStandardItem()),
-    m_pAudioCodec(new QStandardItem()), m_pAudioContentBitrate(new QStandardItem()),
-    m_pContentType(new QStandardItem()), m_pProtocol(new QStandardItem()), m_pGlobalContentBitrate(new QStandardItem())
+    : QGroupBox(tr("No video data"), parent)
 {
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+	m_pFolderView = new QTreeView(this);
+	m_pStreamInfoView = new QTreeView(this);
+	m_pVideoCodec = new QStandardItem();
+	m_pVideoResolution = new QStandardItem();
+	m_pVideoFrameRate = new QStandardItem();
+	m_pGOVLength = new QStandardItem();
+	m_pVideoContentBitrate = new QStandardItem();
+	m_pCodedVideoSize = new QStandardItem();
+	m_pDecodedPicturesSize = new QStandardItem();
+	m_pFrameValidity = new QStandardItem();
+	m_pAudioCodec = new QStandardItem();
+	m_pAudioContentBitrate = new QStandardItem();
+	m_pContentType = new QStandardItem();
+	m_pProtocol = new QStandardItem();
+	m_pGlobalContentBitrate = new QStandardItem();
+
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
     setLayout(pVBoxLayout);
     pVBoxLayout->addWidget(m_pFolderView);
     pVBoxLayout->addWidget(m_pStreamInfoView);
 
-    m_pFolderView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //m_pFolderView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     
-    m_pStreamInfoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //m_pStreamInfoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_pStreamInfoView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     
     QStandardItemModel* pMetricsModel = new QStandardItemModel(m_pStreamInfoView);

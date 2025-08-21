@@ -6,18 +6,16 @@
 QNALUInfoView::QNALUInfoView(QWidget* parent)
     : QWidget(parent)
 {
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     QVBoxLayout* pVBoxLayout = new QVBoxLayout(this);
     setLayout(pVBoxLayout);
 
     m_pTreeView = new QTreeView(this);
     pVBoxLayout->addWidget(m_pTreeView);
-    m_pTreeView->show();
     m_pTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    show();
 }
 
-QNALUInfoView::~QNALUInfoView(){
+QNALUInfoView::~QNALUInfoView()
+{
     if(m_pTreeView->model()){
         delete m_pTreeView->model();
         delete m_pTreeView->selectionModel();

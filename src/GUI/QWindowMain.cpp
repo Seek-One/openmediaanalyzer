@@ -3,6 +3,7 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QStatusBar>
+#include <QSplitter>
 
 #include "QVideoInputView.h"
 #include "QVideoFrameView.h"
@@ -19,44 +20,11 @@
 QWindowMain::QWindowMain(QWidget* parent)
     : QMainWindow(parent)
 {
-    const quint16 WINDOW_WIDTH = 1500;
-    const quint16 WINDOW_HEIGHT = 750;
-    setGeometry(200, 200, WINDOW_WIDTH, WINDOW_HEIGHT);
-    setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    QWidget* pWidget = new QWidget(parent);
-    QGridLayout* pGridLayout = new QGridLayout(pWidget);
-    m_pVideoInputView = new QVideoInputView(pWidget);
-    m_pVideoFrameView = new QVideoFrameView(pWidget);
-    m_pTabWidget = new QTabWidget(pWidget);
-    m_pVPSInfoView = new QNALUInfoView(pWidget);
-    m_pSPSInfoView = new QNALUInfoView(pWidget);
-    m_pPPSInfoView = new QNALUInfoView(pWidget);
-    m_pFrameInfoView = new QNALUInfoView(pWidget);
-    m_pTimelineView = new QTimelineView(pWidget);
-    m_pErrorView = new QErrorView(pWidget);
-    m_pStreamSettingsView = new QStreamSettingsView(pWidget);
+	QWidget* pWidget = createSplitView(this);
+	setCentralWidget(pWidget);
+
     m_pStatusView = new QStatusView(pWidget);
     m_pStreamLinkDialog = new QStreamLinkDialog(pWidget);
-
-    setCentralWidget(pWidget);
-    
-    pWidget->setLayout(pGridLayout);
-    pGridLayout->addWidget(m_pVideoInputView, 0, 0, m_pStreamSettingsView->isVisibleTo(this) ? 2 : 3, 1);
-    pGridLayout->addWidget(m_pVideoFrameView, 0, 1, 2, 2);
-    m_pTabWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    pGridLayout->addWidget(m_pTabWidget, 0, 3, m_pErrorView->isVisibleTo(this) ? 2 : 3, 1);
-    m_pTabWidget->addTab(m_pFrameInfoView, tr("Access unit"));
-    m_pTabWidget->addTab(m_pVPSInfoView, "VPS");
-    m_pTabWidget->addTab(m_pSPSInfoView, "SPS");
-    m_pTabWidget->addTab(m_pPPSInfoView, "PPS");
-
-    pGridLayout->addWidget(m_pTimelineView, 2, 1, 1, 2);
-    pGridLayout->addWidget(m_pStreamSettingsView, 2, 0, 1, 1);
-    pGridLayout->addWidget(m_pErrorView, 2, 3, 1, 1);
-
-    m_pVideoInputView->setMinimumWidth(WINDOW_WIDTH/5);
-    m_pTabWidget->setMinimumWidth(WINDOW_WIDTH/5);
-
 
     QMenu *pFileMenu = menuBar()->addMenu(tr("File"));
     {
@@ -75,8 +43,6 @@ QWindowMain::QWindowMain(QWidget* parent)
         pFileMenu->addAction(pOpenFolderAction);
         pFileMenu->addAction(pOpenStreamAction);
     }
-    
-    pWidget->show();
     
     connect(m_pTabWidget, &QTabWidget::currentChanged, this, [this](int index){
         switch(index){
@@ -102,6 +68,80 @@ QWindowMain::QWindowMain(QWidget* parent)
 
 QWindowMain::~QWindowMain()
 {
+
+}
+
+QWidget* QWindowMain::createSplitView(QWidget* parent)
+{
+	QSplitter* pMainView = new QSplitter(parent);
+	pMainView->setOrientation(Qt::Horizontal);
+	pMainView->setChildrenCollapsible(false);
+
+	m_pVideoInputView = new QVideoInputView(pMainView);
+	pMainView->addWidget(m_pVideoInputView);
+
+	auto pContentView = createContentView(pMainView);
+	pMainView->addWidget(pContentView);
+
+	auto pRightView = createRightView(pMainView);
+	pMainView->addWidget(pRightView);
+
+	//pMainView->setStretchFactor(0, 1);
+	pMainView->setStretchFactor(1, 1);
+	//pMainView->setStretchFactor(2, 1);
+
+	return pMainView;
+}
+
+QWidget* QWindowMain::createContentView(QWidget* parent)
+{
+	auto pMainView = new QWidget(parent);
+
+	auto pBoxLayout = new QVBoxLayout();
+	pMainView->setLayout(pBoxLayout);
+
+	m_pVideoFrameView = new QVideoFrameView(pMainView);
+	pBoxLayout->addWidget(m_pVideoFrameView, 1);
+
+	m_pTimelineView = new QTimelineView(pMainView);
+	pBoxLayout->addWidget(m_pTimelineView);
+
+	m_pStreamSettingsView = new QStreamSettingsView(pMainView);
+	pBoxLayout->addWidget(m_pStreamSettingsView);
+
+	return pMainView;
+}
+
+QWidget* QWindowMain::createRightView(QWidget* parent)
+{
+	auto pMainWidget = new QWidget(parent);
+
+	auto pMainLayout = new QVBoxLayout();
+	pMainWidget->setLayout(pMainLayout);
+
+	m_pTabWidget = createTabView(pMainWidget);
+	pMainLayout->addWidget(m_pTabWidget);
+
+	m_pErrorView = new QErrorView(pMainWidget);
+	pMainLayout->addWidget(m_pErrorView);
+
+	return pMainWidget;
+}
+
+QTabWidget* QWindowMain::createTabView(QWidget* parent)
+{
+	auto pTabWidget = new QTabWidget(parent);
+
+	m_pFrameInfoView = new QNALUInfoView(pTabWidget);
+	pTabWidget->addTab(m_pFrameInfoView, tr("Access unit"));
+	m_pVPSInfoView = new QNALUInfoView(pTabWidget);
+	pTabWidget->addTab(m_pVPSInfoView, "VPS");
+	m_pSPSInfoView = new QNALUInfoView(pTabWidget);
+	pTabWidget->addTab(m_pSPSInfoView, "SPS");
+	m_pPPSInfoView = new QNALUInfoView(pTabWidget);
+	pTabWidget->addTab(m_pPPSInfoView, "PPS");
+
+	return pTabWidget;
 }
 
 QVideoInputView* QWindowMain::getVideoInputView(){
@@ -128,38 +168,47 @@ QNALUInfoView* QWindowMain::getFrameInfoView(){
     return m_pFrameInfoView;
 }
 
-QErrorView* QWindowMain::getErrorView(){
+QErrorView* QWindowMain::getErrorView()
+{
     return m_pErrorView;
 }
 
-QStreamSettingsView* QWindowMain::getStreamSettingsView(){
+QStreamSettingsView* QWindowMain::getStreamSettingsView()
+{
     return m_pStreamSettingsView;
 }
 
-QStatusView* QWindowMain::getStatusView(){
+QStatusView* QWindowMain::getStatusView()
+{
     return m_pStatusView;
 }
 
-QVideoFrameView* QWindowMain::getVideoFrameView(){
+QVideoFrameView* QWindowMain::getVideoFrameView()
+{
     return m_pVideoFrameView;
 }
 
-QStreamLinkDialog* QWindowMain::getStreamLinkDialog(){
+QStreamLinkDialog* QWindowMain::getStreamLinkDialog()
+{
     return m_pStreamLinkDialog;
 }
 
-void QWindowMain::errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors){
-    QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
-    layout->removeWidget(m_pTabWidget);
-    layout->addWidget(m_pTabWidget, 0, 3, minorErrors.empty() && majorErrors.empty() ? 3 : 2, 1);
+void QWindowMain::errorViewToggled(QString _, QStringList minorErrors, QStringList majorErrors)
+{
+	if(minorErrors.isEmpty() && majorErrors.isEmpty()) {
+		m_pErrorView->setVisible(false);
+	}else{
+		m_pErrorView->setVisible(true);
+	}
 }
 
-void QWindowMain::streamSettingsViewToggled(bool visible){
-    if(visible) m_pStreamSettingsView->show();
-    else m_pStreamSettingsView->hide();
-    QGridLayout* layout = (QGridLayout*)centralWidget()->layout();
-    layout->removeWidget(m_pVideoInputView);
-    layout->addWidget(m_pVideoInputView, 0, 0, visible ? 2 : 3, 1);
+void QWindowMain::streamSettingsViewToggled(bool visible)
+{
+    if(visible){
+		m_pStreamSettingsView->show();
+	}else {
+		m_pStreamSettingsView->hide();
+	}
 }
 
 void QWindowMain::closeEvent(QCloseEvent* event){

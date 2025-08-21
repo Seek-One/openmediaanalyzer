@@ -19,7 +19,6 @@ class QWindowMain : public QMainWindow
 
 public:
     QWindowMain(QWidget* parent = 0);
-
     virtual ~QWindowMain();
 
     QVideoInputView* getVideoInputView();
@@ -49,6 +48,12 @@ signals:
 
 protected:
     void closeEvent(QCloseEvent* event);
+
+private:
+	QWidget* createSplitView(QWidget* parent);
+	QWidget* createContentView(QWidget* parent);
+	QWidget* createRightView(QWidget* parent);
+	QTabWidget* createTabView(QWidget* parent);
 
 private:
     QVideoInputView* m_pVideoInputView;

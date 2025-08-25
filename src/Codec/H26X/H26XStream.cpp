@@ -1,7 +1,6 @@
-#include <cstring>
+#include "H26XUtils.h"
 
 #include "H26XStream.h"
-#include "H26XUtils.h"
 
 H26XStream::H26XStream()
 {
@@ -9,9 +8,9 @@ H26XStream::H26XStream()
 	m_iPacketLength = 0;
 }
 
-std::vector<NALData> H26XStream::splitNAL(uint8_t* pPacketData, uint32_t iPacketLength)
+H26XVector<NALData> H26XStream::splitNAL(const uint8_t* pPacketData, uint32_t iPacketLength)
 {
-	std::vector<NALData> listNAL;
+	H26XVector<NALData> listNAL;
 	m_pPacketData = pPacketData;
 	m_iPacketLength = iPacketLength;
 
@@ -20,10 +19,10 @@ std::vector<NALData> H26XStream::splitNAL(uint8_t* pPacketData, uint32_t iPacket
 	bool bEndPacket = false;
 	do {
 		// Skip the startcode at the NAL begin
-		if (memcmp(g_startCode3Bytes, m_pPacketData, 3) == 0) {
+		if (p_memcmp(g_startCode3Bytes, m_pPacketData, 3) == 0) {
 			m_pPacketData += 3;
 			m_iPacketLength -= 3;
-		} else if (memcmp(g_startCode4Bytes, m_pPacketData, 4) == 0) {
+		} else if (p_memcmp(g_startCode4Bytes, m_pPacketData, 4) == 0) {
 			m_pPacketData += 4;
 			m_iPacketLength -= 4;
 		}
@@ -36,12 +35,12 @@ std::vector<NALData> H26XStream::splitNAL(uint8_t* pPacketData, uint32_t iPacket
 			NALData nalData;
 			nalData.pData = m_pPacketData;
 			nalData.iLength = m_iPacketLength;
-			listNAL.push_back(nalData);
+			listNAL.add(nalData);
 		} else {
 			NALData nalData;
 			nalData.pData = m_pPacketData;
 			nalData.iLength = iDataIndex;
-			listNAL.push_back(nalData);
+			listNAL.add(nalData);
 
 			m_pPacketData += iDataIndex;
 			m_iPacketLength -= iDataIndex;

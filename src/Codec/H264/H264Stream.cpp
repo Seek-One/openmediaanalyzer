@@ -85,7 +85,7 @@ std::vector<H264AccessUnit*> H264Stream::getAccessUnits() const
 	return pAccessUnits;
 }
 
-bool H264Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
+bool H264Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
 
@@ -145,7 +145,7 @@ bool newCodedPicture(H264Slice* prev, H264Slice* curr){
 	return false;
 }
 
-bool H264Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
+bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 {
 	H264BitstreamReader bitstreamReader(pNALData, iNALLength);
 	bool previousUnitIsVLC = false;

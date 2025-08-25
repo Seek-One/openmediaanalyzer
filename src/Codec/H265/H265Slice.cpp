@@ -153,7 +153,7 @@ H265Slice::H265Slice():
 	H265Slice(0, UnitType_Unspecified, 0, 0, 0, nullptr)
 {}
 
-H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data):
+H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
 	H265NAL(forbidden_zero_bit, nal_unit_type, nuh_layer_id, nuh_temporal_id_plus1, nal_size, nal_data)
 {
 	first_slice_segment_in_pic_flag = 0;

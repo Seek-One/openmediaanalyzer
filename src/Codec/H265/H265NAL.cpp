@@ -10,7 +10,7 @@ H265NAL::H265NAL():
 	H265NAL(0, UnitType_Unspecified, 0, 0, 0, nullptr)
 {}
 
-H265NAL::H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, uint8_t* nalData):
+H265NAL::H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, const uint8_t* nalData):
 	forbidden_zero_bit(forbiddenZeroBit), nal_unit_type(nalUnitType), nuh_layer_id(nuhLayerId), nuh_temporal_id_plus1(nuhTemporalIdPlus1), 
 	TemporalId(nuh_temporal_id_plus1-1), nal_size(nalSize+3), nal_data(nullptr), completelyParsed(true)
 {

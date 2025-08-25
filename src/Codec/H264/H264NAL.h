@@ -32,7 +32,7 @@ struct H264NAL {
 	};
 
 	H264NAL();
-	H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, uint8_t* nalData);
+	H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, const uint8_t* nalData);
 	virtual ~H264NAL();
 
 	uint8_t forbidden_zero_bit;

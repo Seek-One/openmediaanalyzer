@@ -38,7 +38,7 @@ public:
 	std::list<H264AccessUnit*> getLastAccessUnits(uint32_t count) const;
 	std::vector<H264AccessUnit*> getAccessUnits() const;
 
-	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength) override;
+	bool parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength) override;
 	void lastPacketParsed();
 
 
@@ -50,7 +50,7 @@ public:
 	std::deque<std::string> majorErrors;
 
 private:
-	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength) override;
+	bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;
 
 	inline int computeSubWidthC() const;
 	inline int computeSubHeightC() const;

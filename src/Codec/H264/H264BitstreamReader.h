@@ -15,7 +15,7 @@ struct H264SEI;
 
 class H264BitstreamReader: public H26XBitstreamReader {
 public:
-	H264BitstreamReader(uint8_t* pNALData, uint32_t iNALLength);
+	H264BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength);
 
 	void readNALHeader(H264NAL& h264NAL);
 	void readSPS(H264SPS& h264SPS);

@@ -1,7 +1,7 @@
 #ifndef TOOLKIT_CODEC_UTILS_H26X_UTILS_H_
 #define TOOLKIT_CODEC_UTILS_H26X_UTILS_H_
 
-#include <cstdint>
+#include "H26XTypes.h"
 
 extern const uint8_t g_startCode3Bytes[3];
 extern const uint8_t g_startCode4Bytes[4];

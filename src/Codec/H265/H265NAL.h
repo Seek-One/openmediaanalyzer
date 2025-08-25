@@ -39,7 +39,7 @@ struct H265NAL {
 	};
 
 	H265NAL();
-	H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, uint8_t* nalData);
+	H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, const uint8_t* nalData);
 	virtual ~H265NAL();
 
 	uint8_t forbidden_zero_bit;
@@ -63,6 +63,8 @@ struct H265NAL {
 	bool isIDR() const;
 	bool isTSA() const;
 	bool isSTSA() const;
+
+
 	virtual UnitFieldList dump_fields();
 	virtual void validate();
 };

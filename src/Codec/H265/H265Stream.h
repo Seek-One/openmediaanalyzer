@@ -30,7 +30,7 @@ public:
 	std::list<H265AccessUnit*> getLastAccessUnits(uint32_t count) const;
 	std::vector<H265AccessUnit*> getAccessUnits() const;
 
-	virtual bool parsePacket(uint8_t* pPacketData, uint32_t iPacketLength);
+	bool parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength) override;
 	void lastPacketParsed();
 
 	// Extract all necessary information for the decoding process
@@ -44,7 +44,7 @@ public:
 	std::deque<std::string> majorErrors;
 
 private:
-	virtual bool parseNAL(uint8_t* pNALData, uint32_t iNALLength);
+	bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;
 
 private:
 	H265NAL m_currentNAL;

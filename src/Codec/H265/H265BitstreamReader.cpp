@@ -6,7 +6,7 @@
 
 #include "H265BitstreamReader.h"
 
-H265BitstreamReader::H265BitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
+H265BitstreamReader::H265BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength)
 	: H26XBitstreamReader(pNALData, iNALLength)
 {
 
@@ -800,7 +800,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 		shortTermRefPicSet.RefRpsIdx = iShortTermSetIndex - (shortTermRefPicSet.delta_idx_minus1 + 1); // 7-59
 		uint32_t RefRpsIdx = shortTermRefPicSet.RefRpsIdx;
 		uint32_t NumDeltaPocs = 0;
-		
+
 		if (h265SPS.short_term_ref_pic_set[RefRpsIdx].inter_ref_pic_set_prediction_flag) {
 			for (uint32_t i = 0; i < h265SPS.short_term_ref_pic_set[RefRpsIdx].used_by_curr_pic_flag.size(); ++i) {
 				if(h265SPS.short_term_ref_pic_set[RefRpsIdx].used_by_curr_pic_flag[i] || h265SPS.short_term_ref_pic_set[RefRpsIdx].use_delta_flag[i]) {
@@ -813,23 +813,23 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 
 		shortTermRefPicSet.used_by_curr_pic_flag.resize(NumDeltaPocs + 1);
 		shortTermRefPicSet.use_delta_flag.resize(NumDeltaPocs + 1);
-		for (unsigned i = 0; i < NumDeltaPocs + 1; i++) {
+		for (unsigned i = 0; i < NumDeltaPocs + 1; ++i) {
 			shortTermRefPicSet.use_delta_flag[i] = 0;
 		}
-		
+
 		for (uint64_t i = 0; i <= NumDeltaPocs; ++i) {
 			shortTermRefPicSet.used_by_curr_pic_flag[i] = readBits(1);
 			if(!shortTermRefPicSet.used_by_curr_pic_flag[i]) {
 				shortTermRefPicSet.use_delta_flag[i] = readBits(1);
 			}
 		}
-		
+
 		// 7-61 calculate NumNegativePics, DeltaPocS0 and UsedByCurrPicS0
 		int32_t deltaRps = (1 - 2 * shortTermRefPicSet.delta_rps_sign) * (shortTermRefPicSet.abs_delta_rps_minus1 + 1); // 7-60
 		const H265ShortTermRefPicSet& RefRps = h265SPS.short_term_ref_pic_set[RefRpsIdx];
-		
+
 		uint32_t i = 0;
-		for (int32_t j = (RefRps.NumPositivePics - 1); j >= 0; j--) {
+		for (int32_t j = ((int)RefRps.NumPositivePics - 1); j >= 0; j--) {
 			int32_t dPoc = RefRps.DeltaPocS1[j] + deltaRps;
 			if (dPoc < 0 && shortTermRefPicSet.use_delta_flag[RefRps.NumNegativePics + j]) {
 				shortTermRefPicSet.DeltaPocS0[i] = dPoc;
@@ -843,7 +843,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 			shortTermRefPicSet.UsedByCurrPicS0[i++] = shortTermRefPicSet.used_by_curr_pic_flag[RefRps.NumDeltaPocs];
 		}
 
-		for (uint32_t j = 0; j < RefRps.NumNegativePics; j++) {
+		for (int32_t j = 0; j < (int)RefRps.NumNegativePics; j++) {
 			int32_t dPoc = RefRps.DeltaPocS0[j] + deltaRps;
 			if (dPoc < 0 && shortTermRefPicSet.use_delta_flag[j]) {
 				shortTermRefPicSet.DeltaPocS0[i] = dPoc;
@@ -854,7 +854,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 
 		// 7-62 calculate NumPositivePics, DeltaPocS1 and UsedByCurrPicS1
 		i = 0;
-		for (int32_t j = (RefRps.NumNegativePics - 1); j >= 0; j--) {
+		for (int32_t j = ((int)RefRps.NumNegativePics - 1); j >= 0; j--) {
 			int32_t dPoc = RefRps.DeltaPocS0[j] + deltaRps;
 			if (dPoc > 0 && shortTermRefPicSet.use_delta_flag[j]) {
 				shortTermRefPicSet.DeltaPocS1[i] = dPoc;
@@ -865,7 +865,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 			shortTermRefPicSet.DeltaPocS1[i] = deltaRps;
 			shortTermRefPicSet.UsedByCurrPicS1[i++] = shortTermRefPicSet.used_by_curr_pic_flag[RefRps.NumDeltaPocs];
 		}
-		for (uint32_t j = 0; j < RefRps.NumPositivePics; j++) {
+		for (int32_t j = 0; j < (int)RefRps.NumPositivePics; j++) {
 			int32_t dPoc = RefRps.DeltaPocS1[j] + deltaRps;
 			if (dPoc > 0 && shortTermRefPicSet.use_delta_flag[RefRps.NumNegativePics + j]) {
 				shortTermRefPicSet.DeltaPocS1[i] = dPoc;
@@ -935,6 +935,7 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 	}
 
 	shortTermRefPicSet.NumDeltaPocs = shortTermRefPicSet.NumPositivePics + shortTermRefPicSet.NumNegativePics; // 7-71
+
 	return shortTermRefPicSet;
 }
 

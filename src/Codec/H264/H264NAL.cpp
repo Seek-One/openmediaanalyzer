@@ -10,7 +10,7 @@ H264NAL::H264NAL():
 	H264NAL(0, 0, 0, nullptr)
 {}
 
-H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, uint8_t* nalData):
+H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, const uint8_t* nalData):
 	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(UnitType_Unspecified), nal_size(nalSize+3), nal_data(nullptr), completelyParsed(true)
 {
 	if(nalData == nullptr) return;

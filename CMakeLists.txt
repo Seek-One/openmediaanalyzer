@@ -165,12 +165,15 @@ set(STRING_HELPERS_SOURCES
 set(CODEC_SOURCES
     src/Codec/H26X/H26XBitstreamReader.cpp
     src/Codec/H26X/H26XBitstreamReader.h
+	src/Codec/H26X/H26XErrorsMsg.h
     src/Codec/H26X/H26XMath.cpp
     src/Codec/H26X/H26XMath.h
     src/Codec/H26X/H26XStream.cpp
     src/Codec/H26X/H26XStream.h
+	src/Codec/H26X/H26XTypes.h
     src/Codec/H26X/H26XUtils.cpp
     src/Codec/H26X/H26XUtils.h
+	src/Codec/H26X/H26XVector.h
     src/Codec/H264/H264AccessUnit.cpp
     src/Codec/H264/H264AccessUnit.h
     src/Codec/H264/H264AUD.cpp

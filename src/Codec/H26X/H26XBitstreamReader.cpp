@@ -1,11 +1,12 @@
-#include <stdexcept>
+#include "H26XErrorsMsg.h"
 
 #include "H26XBitstreamReader.h"
 
-H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
+H26XBitstreamReader::H26XBitstreamReader(const uint8_t* pNALData, uint32_t iNALLength)
 {
 	m_pNALData = pNALData;
 	m_iBitsOffset = 0;
+
 	// Remove empty trailing bytes
 	while (pNALData[iNALLength - 1] == 0) {
 		--iNALLength;
@@ -25,7 +26,10 @@ H26XBitstreamReader::H26XBitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
 
 uint32_t H26XBitstreamReader::readBits(uint8_t iNumberBits)
 {
-	if(iNumberBits > m_iRemainingBits) throw std::runtime_error(END_OF_STREAM_ERR_MSG);
+	if(iNumberBits > m_iRemainingBits){
+		throw std::runtime_error(END_OF_STREAM_ERR_MSG);
+	}
+
 	uint32_t iValue = 0;
 	for (int i = 0; i < iNumberBits; i++) {
 		iValue = (iValue << 1) | (readBit() ? 1 : 0);

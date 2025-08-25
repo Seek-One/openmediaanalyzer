@@ -74,7 +74,7 @@ std::vector<H265AccessUnit*> H265Stream::getAccessUnits() const
 	return pAccessUnits;
 }
 
-bool H265Stream::parsePacket(uint8_t* pPacketData, uint32_t iPacketLength)
+bool H265Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
 {
 	std::vector<NALData> listNAL = splitNAL(pPacketData, iPacketLength);
 
@@ -104,12 +104,15 @@ void H265Stream::lastPacketParsed(){
 	for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
 }
 
-bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
+bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 {
 	H265BitstreamReader bitstreamReader(pNALData, iNALLength);
-	try { bitstreamReader.readNALHeader(m_currentNAL);
-	} catch(const std::runtime_error& e) { majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));}
 
+	try {
+		bitstreamReader.readNALHeader(m_currentNAL);
+	} catch(const std::runtime_error& e) {
+		majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));
+	}
 
 	if(!m_pCurrentAccessUnit) {
 		m_pCurrentAccessUnit = new H265AccessUnit();
@@ -121,36 +124,45 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 	switch (m_currentNAL.nal_unit_type) {
 		case H265NAL::UnitType_VPS:{
 			m_pActiveVPS = new H265VPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			try{ bitstreamReader.readVPS(*m_pActiveVPS);
+			try{
+				bitstreamReader.readVPS(*m_pActiveVPS);
 			} catch(const std::runtime_error& e){ 
 				m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what()));
 				m_pActiveVPS->completelyParsed = false;
 			}
-			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
+			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				newAccessUnit();
+			}
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265VPS>(m_pActiveVPS));
 			H265VPS::VPSMap.insert_or_assign(m_pActiveVPS->vps_video_parameter_set_id, m_pActiveVPS);
 			break;
 		}
 		case H265NAL::UnitType_SPS:{
 			m_pActiveSPS = new H265SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			try { bitstreamReader.readSPS(*m_pActiveSPS);
+			try {
+				bitstreamReader.readSPS(*m_pActiveSPS);
 			} catch(const std::runtime_error& e){ 
 				m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); 
 				m_pActiveSPS->completelyParsed = false;
 			}
-			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
+			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				newAccessUnit();
+			}
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SPS>(m_pActiveSPS));
 			H265SPS::SPSMap.insert_or_assign(m_pActiveSPS->sps_seq_parameter_set_id, m_pActiveSPS);
 			break;
 		}
 		case H265NAL::UnitType_PPS:{
 			m_pActivePPS = new H265PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
-			try { bitstreamReader.readPPS(*m_pActivePPS);
+			try {
+				bitstreamReader.readPPS(*m_pActivePPS);
 			} catch(const std::runtime_error& e){ 
 				m_pActivePPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); 
 				m_pActivePPS->completelyParsed = false;
 			}
-			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
+			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
+				newAccessUnit();
+			}
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265PPS>(m_pActivePPS));
 			H265PPS::PPSMap.insert_or_assign(m_pActivePPS->pps_pic_parameter_set_id, m_pActivePPS);
 			break;
@@ -179,7 +191,9 @@ bool H265Stream::parseNAL(uint8_t* pNALData, uint32_t iNALLength)
 				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
 				pSlice->completelyParsed = false;
 			}
-			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()) newAccessUnit();
+			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
+				newAccessUnit();
+			}
 			if(pSlice->slice_type == H265Slice::SliceType_I && pSlice->first_slice_segment_in_pic_flag){ // I-frame marks new GOP
 				// move access unit inserted in the previous GOP to a new one,
 				// unless it's the very first access unit of the GOP (access units can start with

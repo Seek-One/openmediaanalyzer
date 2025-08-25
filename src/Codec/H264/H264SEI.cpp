@@ -13,7 +13,7 @@ H264SEI::H264SEI():
 	H264SEI(0, 0, 0, nullptr)
 {}
 
-H264SEI::H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, uint8_t* nal_data):
+H264SEI::H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, const uint8_t* nal_data):
 	H264NAL(forbidden_zero_bit, nal_ref_idc, nal_size, nal_data)
 {
 	nal_unit_type = UnitType_SEI;

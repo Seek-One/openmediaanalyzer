@@ -6,7 +6,8 @@
 
 #include "H265SPS.h"
 
-H265VuiParameters::H265VuiParameters(){
+H265VuiParameters::H265VuiParameters()
+{
 	aspect_ratio_info_present_flag = 0;
 	aspect_ratio_idc = 0;
 	sar_width = 0;
@@ -110,7 +111,8 @@ UnitFieldList H265VuiParameters::dump_fields(){
 	return fields;
 }
 
-H265SPSRangeExtension::H265SPSRangeExtension(){
+H265SPSRangeExtension::H265SPSRangeExtension()
+{
 	transform_skip_rotation_enabled_flag = 0;
 	transform_skip_context_enabled_flag = 0;
 	implicit_rdpcm_enabled_flag = 0;
@@ -136,7 +138,8 @@ UnitFieldList H265SPSRangeExtension::dump_fields(){
 	return fields;
 }
 
-H265SPSMultilayerExtension::H265SPSMultilayerExtension(){
+H265SPSMultilayerExtension::H265SPSMultilayerExtension()
+{
 	inter_view_mv_vert_constraint_flag = 0;
 }
 
@@ -146,7 +149,8 @@ UnitFieldList H265SPSMultilayerExtension::dump_fields(){
 	return fields;
 }
 
-H265SPS3DExtension::H265SPS3DExtension(){
+H265SPS3DExtension::H265SPS3DExtension()
+{
 	for(int d = 0;d <= 1;++d){
 		iv_di_mc_enabled_flag[d] = 0;
 		iv_mv_scal_enabled_flag[d] = 0;
@@ -189,7 +193,8 @@ UnitFieldList H265SPS3DExtension::dump_fields(){
 	return fields;
 }
 
-H265SPSSCCExtension::H265SPSSCCExtension(){
+H265SPSSCCExtension::H265SPSSCCExtension()
+{
 	sps_curr_pic_ref_enabled_flag = 0;
 	palette_mode_enabled_flag = 0;
 	palette_max_size = 0;
@@ -228,7 +233,7 @@ H265SPS::H265SPS():
 	H265SPS(0, UnitType_Unspecified, 0, 0, 0, nullptr)
 {}
 
-H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data):
+H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
 	H265NAL(forbidden_zero_bit, nal_unit_type, nuh_layer_id, nuh_temporal_id_plus1, nal_size, nal_data)
 {
 	sps_video_parameter_set_id = 0;
@@ -315,7 +320,8 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 H265SPS::~H265SPS(){}
 
-UnitFieldList H265SPS::dump_fields(){
+UnitFieldList H265SPS::dump_fields()
+{
 	UnitFieldList fields = UnitFieldList("Sequence Parameter Set", H265NAL::dump_fields());
 	if(!completelyParsed) return fields;
 	fields.addItem(UnitField("sps_video_parameter_set_id", sps_video_parameter_set_id));

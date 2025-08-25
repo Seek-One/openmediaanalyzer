@@ -49,7 +49,7 @@ static const uint8_t default_8x8_inter[64] = {
 	24,25,27,28,30,32,33,35
 };
 
-H264BitstreamReader::H264BitstreamReader(uint8_t* pNALData, uint32_t iNALLength)
+H264BitstreamReader::H264BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength)
 	: H26XBitstreamReader(pNALData, iNALLength)
 {
 

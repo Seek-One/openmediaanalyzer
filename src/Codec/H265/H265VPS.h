@@ -10,7 +10,7 @@
 
 struct H265VPS : public H265NAL {
 	H265VPS();
-	H265VPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data);
+	H265VPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t vps_video_parameter_set_id;
 	uint8_t vps_base_layer_internal_flag;

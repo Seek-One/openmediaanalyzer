@@ -12,7 +12,7 @@ H264Slice::H264Slice():
 	H264Slice(0, 0, UnitType::UnitType_Unspecified, 0, nullptr)
 {}
 
-H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, uint8_t* nalData):
+H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, const uint8_t* nalData):
 	H264NAL(forbiddenZeroBit, nalRefIdc, nalSize, nalData)
 {
 	nal_unit_type = nalUnitType;

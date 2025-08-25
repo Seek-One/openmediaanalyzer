@@ -139,7 +139,7 @@ struct H265PPSSCCExtension {
 
 struct H265PPS : public H265NAL {
 	H265PPS();
-	H265PPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, uint8_t* nal_data);
+	H265PPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data);
 	~H265PPS();
 
 	uint8_t pps_pic_parameter_set_id;

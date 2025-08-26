@@ -107,7 +107,7 @@ struct H264Slice : public H264NAL {
 	std::vector<uint16_t> RefPicList0;
 	std::vector<uint16_t> RefPicList1;
 
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 	H264PPS* getPPS() const;
 	H264SPS* getSPS() const;

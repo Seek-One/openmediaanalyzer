@@ -63,7 +63,7 @@ struct H265VuiParameters {
 	uint8_t log2_max_mv_length_horizontal;
 	uint8_t log2_max_mv_length_vertical;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265SPSRangeExtension {
@@ -89,7 +89,7 @@ struct H265SPSRangeExtension {
 	uint8_t WpOffsetHalfRangeY; 
 	uint8_t WpOffsetHalfRangeC;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265SPSMultilayerExtension {
@@ -97,7 +97,7 @@ struct H265SPSMultilayerExtension {
 
 	uint8_t inter_view_mv_vert_constraint_flag;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265SPS3DExtension {
@@ -119,7 +119,7 @@ struct H265SPS3DExtension {
 	std::array<uint8_t, 2> inter_dc_only_enabled_flag;
 	std::array<uint8_t, 2> skip_intra_enabled_flag;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265SPSSCCExtension {
@@ -135,7 +135,7 @@ struct H265SPSSCCExtension {
 	uint8_t motion_vector_resolution_control_idc;
 	uint8_t intra_boundary_filtering_disabled_flag;
 
-	UnitFieldList dump_fields(uint32_t chroma_format_idc);
+	void dump(H26XDumpObject& dumpObject, uint32_t chroma_format_idc) const;
 };
 
 struct H265SPS : public H265NAL {
@@ -242,7 +242,7 @@ struct H265SPS : public H265NAL {
 
 	uint16_t computeMaxFrameNumber() const;
 
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 
 	static inline std::unordered_map<uint8_t, uint8_t> level_limit_index = {

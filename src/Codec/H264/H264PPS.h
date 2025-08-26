@@ -53,8 +53,7 @@ struct H264PPS : public H264NAL {
 
 	int8_t second_chroma_qp_index_offset;
 
-
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 	static inline std::unordered_map<uint8_t, H264PPS*> PPSMap;
 };

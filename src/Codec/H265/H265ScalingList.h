@@ -1,9 +1,9 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_
 #define TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_
 
-#include "H265Types.h"
+#include "../H26X/H26XDumpObject.h"
 
-class UnitFieldList;
+#include "H265Types.h"
 
 struct H265ScalingList {
 	H265ScalingList();
@@ -20,7 +20,7 @@ struct H265ScalingList {
 	// ScalingList[2] -> 16x16
 	// ScalingList[3] -> 32x32
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265_SCALING_LIST_H_

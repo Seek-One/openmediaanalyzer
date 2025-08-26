@@ -20,7 +20,7 @@ struct H264SEIMessage {
 	uint8_t payloadType;
 
 	std::vector<std::string> errors;
-	virtual UnitFieldList dump_fields();
+	virtual void dump(H26XDumpObject& dumpObject) const;
 	virtual void validate();
 };
 
@@ -30,8 +30,8 @@ struct H264SEI : public H264NAL {
 	~H264SEI();
 
     std::vector<H264SEIMessage*> messages;
-	
-	UnitFieldList dump_fields() override;
+
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 
@@ -43,7 +43,7 @@ struct H264SEIBufferingPeriod : public H264SEIMessage {
 	uint32_t nal_initial_cpb_removal_delay_offset[32];
 	uint32_t vcl_initial_cpb_removal_delay[32];
 	uint32_t vcl_initial_cpb_removal_delay_offset[32];
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 
@@ -69,12 +69,12 @@ struct H264SEIPicTiming : public H264SEIMessage {
 	uint32_t time_offset[3];
 
 	uint8_t seq_parameter_set_id;
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 
 struct H264SEIFillerPayload : public H264SEIMessage {
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 };
 
 struct H264SEIUserDataUnregistered : public H264SEIMessage {
@@ -82,7 +82,7 @@ struct H264SEIUserDataUnregistered : public H264SEIMessage {
 	uint64_t uuid_iso_iec_11578_msb;
 	uint64_t uuid_iso_iec_11578_lsb;
 	std::vector<uint8_t> user_data_payload_byte;
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 };
 
 struct H264SEIRecoveryPoint : public H264SEIMessage {
@@ -93,7 +93,7 @@ struct H264SEIRecoveryPoint : public H264SEIMessage {
 	uint8_t changing_slice_group_idc;
 
 	uint8_t seq_parameter_set_id;
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 
@@ -101,7 +101,7 @@ struct H264SEIRecoveryPoint : public H264SEIMessage {
 struct H264SEIFullFrameFreeze : public H264SEIMessage {
 	~H264SEIFullFrameFreeze() = default;
 	uint16_t full_frame_freeze_repetition_period;
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 

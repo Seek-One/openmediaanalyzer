@@ -1,8 +1,6 @@
 #include <iostream>
 #include <cstring>
 
-#include "../../StringHelpers/UnitFieldList.h"
-
 #include "H265SEI.h"
 
 H265SEI::H265SEI():
@@ -22,17 +20,27 @@ H265SEIMessage::H265SEIMessage(){
 	payloadType = UINT8_MAX;
 }
 
-UnitFieldList H265SEIMessage::dump_fields(){
-	return UnitFieldList("SEI Message");
+void H265SEIMessage::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SEI Message");
+	dumpObject.endUnitFieldList();
 }
 
-UnitFieldList H265SEI::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Supplemental Enhancement Information", H265NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	for(H265SEIMessage* message : messages){
-		fields.addItem(message->dump_fields());
+void H265SEI::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Supplemental Enhancement Information");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		H265NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
+		}
+
+		for (H265SEIMessage *message: messages) {
+			message->dump(dumpObject);
+		}
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H265SEI::validate(){

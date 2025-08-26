@@ -2,7 +2,6 @@
 
 #include "H264SPS.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H264PPS.h"
 
@@ -68,56 +67,75 @@ H264PPS::H264PPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_s
 	second_chroma_qp_index_offset = 0;
 }
 
-UnitFieldList H264PPS::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Picture Parameter Set", H264NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	fields.addItem(UnitField("pic_parameter_set_id", pic_parameter_set_id));
-	fields.addItem(UnitField("seq_parameter_set_id", seq_parameter_set_id));
-	fields.addItem(UnitField("entropy_coding_mode_flag", entropy_coding_mode_flag));
-	fields.addItem(UnitField("bottom_field_pic_order_in_frame_present_flag", bottom_field_pic_order_in_frame_present_flag));
-	ValueUnitFieldList num_slice_groups_minus1Field = ValueUnitFieldList("num_slice_groups_minus1", num_slice_groups_minus1);
-	
-	if(num_slice_groups_minus1 > 0){
-		ValueUnitFieldList slice_group_map_typeField = ValueUnitFieldList("slice_group_map_type", slice_group_map_type);
-		if(slice_group_map_type == 0){
-			for(uint32_t i = 0;i <= num_slice_groups_minus1;++i) slice_group_map_typeField.addItem(IdxUnitField("run_length_minus1", run_length_minus1[i], i));
-		} else if(slice_group_map_type == 2){
-			for(uint32_t i = 0;i < num_slice_groups_minus1;++i) {
-				slice_group_map_typeField.addItem(IdxUnitField("top_left", top_left[i], i));
-				slice_group_map_typeField.addItem(IdxUnitField("bottom_right", bottom_right[i], i));
-			}
-		} else if(slice_group_map_type >= 3 && slice_group_map_type <= 5){
-			slice_group_map_typeField.addItem(UnitField("slice_group_change_direction_flag", slice_group_change_direction_flag));
-			slice_group_map_typeField.addItem(UnitField("slice_group_change_rate_minus1", slice_group_change_rate_minus1));
-		} else if(slice_group_map_type == 6) {
-			ValueUnitFieldList pic_size_in_map_units_minus1Field = ValueUnitFieldList("pic_size_in_map_units_minus1", pic_size_in_map_units_minus1);
-			for(uint32_t i = 0;i <= pic_size_in_map_units_minus1;++i) pic_size_in_map_units_minus1Field.addItem(IdxUnitField("slice_group_id", slice_group_id[i], i));
-			slice_group_map_typeField.addItem(std::move(pic_size_in_map_units_minus1Field));
+
+void H264PPS::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Picture Parameter Set");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope)
+	{
+		H264NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
 		}
-		num_slice_groups_minus1Field.addItem(std::move(slice_group_map_typeField));
+
+		dumpObject.addUnitField("pic_parameter_set_id", pic_parameter_set_id);
+		dumpObject.addUnitField("seq_parameter_set_id", seq_parameter_set_id);
+		dumpObject.addUnitField("entropy_coding_mode_flag", entropy_coding_mode_flag);
+		dumpObject.addUnitField("bottom_field_pic_order_in_frame_present_flag", bottom_field_pic_order_in_frame_present_flag);
+
+		dumpObject.startValueUnitFieldList("num_slice_groups_minus1", num_slice_groups_minus1);
+		{
+			if (num_slice_groups_minus1 > 0) {
+				dumpObject.startValueUnitFieldList("slice_group_map_type", slice_group_map_type);
+				{
+					if (slice_group_map_type == 0) {
+						for (uint32_t i = 0; i <= num_slice_groups_minus1; i++) {
+							dumpObject.addIdxUnitField("run_length_minus1", (int)i, run_length_minus1[i]);
+						}
+					} else if (slice_group_map_type == 2) {
+						for (uint32_t i = 0; i < num_slice_groups_minus1; i++) {
+							dumpObject.addIdxUnitField("top_left", (int)i, top_left[i]);
+							dumpObject.addIdxUnitField("bottom_right", (int)i, bottom_right[i]);
+						}
+					} else if (slice_group_map_type >= 3 && slice_group_map_type <= 5) {
+						dumpObject.addUnitField("slice_group_change_direction_flag", slice_group_change_direction_flag);
+						dumpObject.addUnitField("slice_group_change_rate_minus1", slice_group_change_rate_minus1);
+					} else if (slice_group_map_type == 6) {
+						dumpObject.startValueUnitFieldList("pic_size_in_map_units_minus1", pic_size_in_map_units_minus1);
+						for (uint32_t i = 0; i <= pic_size_in_map_units_minus1; ++i){
+							dumpObject.addIdxUnitField("slice_group_id", (int)i, slice_group_id[i]);
+						}
+						dumpObject.endValueUnitFieldList();
+					}
+				}
+				dumpObject.endValueUnitFieldList();
+			}
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("num_ref_idx_l0_active_minus1", num_ref_idx_l0_active_minus1);
+		dumpObject.addUnitField("num_ref_idx_l1_active_minus1", num_ref_idx_l1_active_minus1);
+		dumpObject.addUnitField("weighted_pred_flag", weighted_pred_flag);
+		dumpObject.addUnitField("weighted_bipred_idc", weighted_bipred_idc);
+		dumpObject.addUnitField("pic_init_qp_minus26", pic_init_qp_minus26);
+		dumpObject.addUnitField("pic_init_qs_minus26", pic_init_qs_minus26);
+		dumpObject.addUnitField("chroma_qp_index_offset", chroma_qp_index_offset);
+		dumpObject.addUnitField("deblocking_filter_control_present_flag", deblocking_filter_control_present_flag);
+		dumpObject.addUnitField("constrained_intra_pred_flag", constrained_intra_pred_flag);
+		dumpObject.addUnitField("redundant_pic_cnt_present_flag", redundant_pic_cnt_present_flag);
+
+		// fields.addItem(ValuedUnitField("transform_8x8_mode_flag", transform_8x8_mode_flag));
+
+		// fields.addItem(ValuedUnitField("pic_scaling_matrix_present_flag", pic_scaling_matrix_present_flag));
+		// uint8_t pic_scaling_list_present_flag[12];
+		// uint8_t scaling_lists_4x4[6][16];
+		// uint8_t scaling_lists_8x8[6][64];
+
+		// fields.addItem(ValuedUnitField("second_chroma_qp_index_offset", second_chroma_qp_index_offset));
+
 	}
-	fields.addItem(std::move(num_slice_groups_minus1Field));
-	
-	fields.addItem(UnitField("num_ref_idx_l0_active_minus1", num_ref_idx_l0_active_minus1));
-	fields.addItem(UnitField("num_ref_idx_l1_active_minus1", num_ref_idx_l1_active_minus1));
-	fields.addItem(UnitField("weighted_pred_flag", weighted_pred_flag));
-	fields.addItem(UnitField("weighted_bipred_idc", weighted_bipred_idc));
-	fields.addItem(UnitField("pic_init_qp_minus26", pic_init_qp_minus26));
-	fields.addItem(UnitField("pic_init_qs_minus26", pic_init_qs_minus26));
-	fields.addItem(UnitField("chroma_qp_index_offset", chroma_qp_index_offset));
-	fields.addItem(UnitField("deblocking_filter_control_present_flag", deblocking_filter_control_present_flag));
-	fields.addItem(UnitField("constrained_intra_pred_flag", constrained_intra_pred_flag));
-	fields.addItem(UnitField("redundant_pic_cnt_present_flag", redundant_pic_cnt_present_flag));
-
-	// fields.addItem(ValuedUnitField("transform_8x8_mode_flag", transform_8x8_mode_flag));
-
-	// fields.addItem(ValuedUnitField("pic_scaling_matrix_present_flag", pic_scaling_matrix_present_flag));
-	// uint8_t pic_scaling_list_present_flag[12];
-	// uint8_t scaling_lists_4x4[6][16];
-	// uint8_t scaling_lists_8x8[6][64];
-
-	// fields.addItem(ValuedUnitField("second_chroma_qp_index_offset", second_chroma_qp_index_offset));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H264PPS::validate(){

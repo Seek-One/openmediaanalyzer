@@ -4,7 +4,6 @@
 #include "H264PPS.h"
 #include "H264SPS.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H264Slice.h"
 
@@ -129,105 +128,146 @@ H264Slice::SliceType H264Slice::getSliceType(int value) {
 	}
 }
 
-UnitFieldList H264Slice::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Slice", H264NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	fields.addItem(UnitField("first_mb_in_slice", first_mb_in_slice));
-    fields.addItem(UnitField("slice_type", slice_type-1));
-    fields.addItem(UnitField("pic_parameter_set_id", pic_parameter_set_id));
-	
-	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
-	if(referencedPPS == H264PPS::PPSMap.end()) return fields;
-	H264PPS* pPps = referencedPPS->second;
-	auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);
-	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
-	H264SPS* pSps = referencedSPS->second;
-	if(pSps->separate_colour_plane_flag == 1) fields.addItem(UnitField("colour_plane_id", colour_plane_id));
-    fields.addItem(UnitField("frame_num", frame_num));
-	if(!pSps->frame_mbs_only_flag){
-		ValueUnitFieldList field_pic_flagField = ValueUnitFieldList("field_pic_flag", field_pic_flag);
-		if(field_pic_flag) field_pic_flagField.addItem(UnitField("bottom_field_flag", bottom_field_flag));
-		else if(pPps->bottom_field_pic_order_in_frame_present_flag){
-			if(pSps->pic_order_cnt_type == 0) field_pic_flagField.addItem(UnitField("delta_pic_order_cnt_bottom", delta_pic_order_cnt_bottom));
-			else if(pSps->pic_order_cnt_type == 1) fields.addItem(UnitField("delta_pic_order_cnt1", delta_pic_order_cnt[1]));
+void H264Slice::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Slice");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope)
+	{
+		H264NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
 		}
-		fields.addItem(std::move(field_pic_flagField));
-	}
-	if(IdrPicFlag) fields.addItem(UnitField("idr_pic_id", idr_pic_id));
-	if(pSps->pic_order_cnt_type == 0){
-		fields.addItem(UnitField("pic_order_cnt_lsb", pic_order_cnt_lsb));
-	}
-	if(pSps->pic_order_cnt_type == 1 && pSps->delta_pic_order_always_zero_flag){
-		fields.addItem(UnitField("delta_pic_order_cnt0", delta_pic_order_cnt[0]));
-	}
-	if(pPps->redundant_pic_cnt_present_flag) fields.addItem(UnitField("redundant_pic_cnt", redundant_pic_cnt));
-	if(slice_type == SliceType_B) fields.addItem(UnitField("direct_spatial_mv_pred_flag", direct_spatial_mv_pred_flag));
-	if(slice_type == SliceType_P || slice_type == SliceType_SP || slice_type == SliceType_B){
-		ValueUnitFieldList num_ref_idx_active_override_flagField = ValueUnitFieldList("num_ref_idx_active_override_flag", num_ref_idx_active_override_flag);
-		if(num_ref_idx_active_override_flag){
-			num_ref_idx_active_override_flagField.addItem(UnitField("num_ref_idx_l0_active_minus1", num_ref_idx_l0_active_minus1));
-			if(slice_type == SliceType_B) num_ref_idx_active_override_flagField.addItem(UnitField("num_ref_idx_l1_active_minus1", num_ref_idx_l1_active_minus1));
+
+		dumpObject.addUnitField("first_mb_in_slice", first_mb_in_slice);
+		dumpObject.addUnitField("slice_type", slice_type-1);
+		dumpObject.addUnitField("pic_parameter_set_id", pic_parameter_set_id);
+
+		auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
+		if(referencedPPS == H264PPS::PPSMap.end()){
+			break;
 		}
-		fields.addItem(std::move(num_ref_idx_active_override_flagField));
-	}
-	UnitFieldList pwtField = UnitFieldList("pwt");
-	pwtField.addItem(UnitField("luma_log2_weight_denom", pwt.luma_log2_weight_denom));
-	pwtField.addItem(UnitField("chroma_log2_weight_denom", pwt.chroma_log2_weight_denom));
-	for(int i = 0;i < 64;++i){
-		IdxValueUnitFieldList luma_weight_l0_flagField = IdxValueUnitFieldList("luma_weight_l0_flag", pwt.luma_weight_l0_flag[i], i);
-		if(pwt.luma_weight_l0_flag[i] != 0){
-			luma_weight_l0_flagField.addItem(IdxUnitField("luma_weight_l0", pwt.luma_weight_l0[i], i));
-			luma_weight_l0_flagField.addItem(IdxUnitField("luma_offset_l0", pwt.luma_offset_l0[i], i));
-			IdxValueUnitFieldList chroma_weight_l0_flagField = IdxValueUnitFieldList("chroma_weight_l0_flag", pwt.chroma_weight_l0_flag[i], i);
-			luma_weight_l0_flagField.addItem(std::move(chroma_weight_l0_flagField));
-			if(pwt.chroma_weight_l0_flag[i] != 0){
-				for(int j = 0;j < 2;++j) {
-					chroma_weight_l0_flagField.addItem(DblIdxUnitField("chroma_weight_l0", pwt.chroma_weight_l0[i][j], i, j));
-					chroma_weight_l0_flagField.addItem(DblIdxUnitField("chroma_offset_l0", pwt.chroma_offset_l0[i][j], i, j));
+		H264PPS* pPps = referencedPPS->second;
+		auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);
+		if(referencedSPS == H264SPS::SPSMap.end())
+		{
+			break;
+		}
+		H264SPS* pSps = referencedSPS->second;
+		if(pSps->separate_colour_plane_flag == 1){
+			dumpObject.addUnitField("colour_plane_id", colour_plane_id);
+		}
+		dumpObject.addUnitField("frame_num", frame_num);
+		if(!pSps->frame_mbs_only_flag){
+			dumpObject.startValueUnitFieldList("field_pic_flag", field_pic_flag);
+			if(field_pic_flag){
+				dumpObject.addUnitField("bottom_field_flag", bottom_field_flag);
+			}else if(pPps->bottom_field_pic_order_in_frame_present_flag){
+				if(pSps->pic_order_cnt_type == 0){
+					dumpObject.addUnitField("delta_pic_order_cnt_bottom", delta_pic_order_cnt_bottom);
+				}else if(pSps->pic_order_cnt_type == 1){
+					dumpObject.addUnitField("delta_pic_order_cnt1", delta_pic_order_cnt[1]);
 				}
 			}
+			dumpObject.endValueUnitFieldList();
 		}
-		pwtField.addItem(std::move(luma_weight_l0_flagField));
-	}
-	for(int i = 0;i < 64;++i){;
-		IdxValueUnitFieldList luma_weight_l1_flagField = IdxValueUnitFieldList("luma_weight_l1_flag", pwt.luma_weight_l1_flag[i], i);
-		if(pwt.luma_weight_l1_flag[i] == 1){
-			luma_weight_l1_flagField.addItem(IdxUnitField("luma_weight_l1", pwt.luma_weight_l1[i], i));
-			luma_weight_l1_flagField.addItem(IdxUnitField("luma_offset_l1", pwt.luma_offset_l1[i], i));
-			IdxValueUnitFieldList chroma_weight_l1_flagField = IdxValueUnitFieldList("chroma_weight_l1_flag", pwt.chroma_weight_l1_flag[i], i);
-			luma_weight_l1_flagField.addItem(std::move(chroma_weight_l1_flagField));
-			if(pwt.chroma_weight_l1_flag[i] == 1){
-				for(int j = 0;j < 2;++j) {
-					chroma_weight_l1_flagField.addItem(DblIdxUnitField("chroma_weight_l1", pwt.chroma_weight_l1[i][j], i, j));
-					chroma_weight_l1_flagField.addItem(DblIdxUnitField("chroma_offset_l1", pwt.chroma_offset_l1[i][j], i, j));
+		if(IdrPicFlag){
+			dumpObject.addUnitField("idr_pic_id", idr_pic_id);
+		}
+		if(pSps->pic_order_cnt_type == 0){
+			dumpObject.addUnitField("pic_order_cnt_lsb", pic_order_cnt_lsb);
+		}
+		if(pSps->pic_order_cnt_type == 1 && pSps->delta_pic_order_always_zero_flag){
+			dumpObject.addUnitField("delta_pic_order_cnt0", delta_pic_order_cnt[0]);
+		}
+		if(pPps->redundant_pic_cnt_present_flag){
+			dumpObject.addUnitField("redundant_pic_cnt", redundant_pic_cnt);
+		}
+		if(slice_type == SliceType_B){
+			dumpObject.addUnitField("direct_spatial_mv_pred_flag", direct_spatial_mv_pred_flag);
+		}
+		if(slice_type == SliceType_P || slice_type == SliceType_SP || slice_type == SliceType_B)
+		{
+			dumpObject.startValueUnitFieldList("num_ref_idx_active_override_flag", num_ref_idx_active_override_flag);
+			if(num_ref_idx_active_override_flag){
+				dumpObject.addUnitField("num_ref_idx_l0_active_minus1", num_ref_idx_l0_active_minus1);
+				if(slice_type == SliceType_B){
+					dumpObject.addUnitField("num_ref_idx_l1_active_minus1", num_ref_idx_l1_active_minus1);
 				}
 			}
+			dumpObject.endValueUnitFieldList();
 		}
-		pwtField.addItem(std::move(luma_weight_l1_flagField));
-	}
-	fields.addItem(std::move(pwtField));
-	if(pPps->entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI) fields.addItem(UnitField("cabac_init_idc", cabac_init_idc));
-	fields.addItem(UnitField("slice_qp_delta", slice_qp_delta));
-	if(slice_type == SliceType_SP || slice_type == SliceType_SI){
-		if(slice_type == SliceType_SP) fields.addItem(UnitField("sp_for_switch_flag", sp_for_switch_flag));
-		fields.addItem(UnitField("slice_qs_delta", slice_qs_delta));
-	}
-	if(pPps->deblocking_filter_control_present_flag){
-		ValueUnitFieldList disable_deblocking_filter_idcField = ValueUnitFieldList("disable_deblocking_filter_idc", disable_deblocking_filter_idc);
-		if(disable_deblocking_filter_idc != 1){
-			disable_deblocking_filter_idcField.addItem(UnitField("slice_alpha_c0_offset_div2", slice_alpha_c0_offset_div2));
-			disable_deblocking_filter_idcField.addItem(UnitField("slice_beta_offset_div2", slice_beta_offset_div2));
+
+		dumpObject.startUnitFieldList("pwt");
+		dumpObject.addUnitField("luma_log2_weight_denom", pwt.luma_log2_weight_denom);
+		dumpObject.addUnitField("chroma_log2_weight_denom", pwt.chroma_log2_weight_denom);
+		for(int i = 0;i < 64;++i)
+		{
+			dumpObject.startIdxValueUnitFieldList("luma_weight_l0_flag", i, pwt.luma_weight_l0_flag[i]);
+			if(pwt.luma_weight_l0_flag[i] != 0)
+			{
+				dumpObject.addIdxUnitField("luma_weight_l0", i, pwt.luma_weight_l0[i]);
+				dumpObject.addIdxUnitField("luma_offset_l0", i, pwt.luma_offset_l0[i]);
+				dumpObject.startIdxValueUnitFieldList("chroma_weight_l0_flag", i, pwt.chroma_weight_l0_flag[i]);
+				if(pwt.chroma_weight_l0_flag[i] != 0)
+				{
+					for(int j = 0;j < 2;++j) {
+						dumpObject.addDblIdxUnitField("chroma_weight_l0", i, j, pwt.chroma_weight_l0[i][j]);
+						dumpObject.addDblIdxUnitField("chroma_offset_l0", i, j, pwt.chroma_offset_l0[i][j]);
+					}
+				}
+				dumpObject.endIdxValueUnitFieldList();
+			}
+			dumpObject.endIdxValueUnitFieldList();
 		}
-		fields.addItem(std::move(disable_deblocking_filter_idcField));
-	}
-	if(pPps->num_slice_groups_minus1 > 0 && pPps->slice_group_map_type >= 3 && pPps->slice_group_map_type <= 5){
-		fields.addItem(UnitField("slice_group_change_cycle", slice_group_change_cycle));
-	}
+		for(int i = 0;i < 64;++i)
+		{
+			dumpObject.startIdxValueUnitFieldList("luma_weight_l1_flag", i, pwt.luma_weight_l1_flag[i]);
+			if(pwt.luma_weight_l1_flag[i] == 1)
+			{
+				dumpObject.addIdxUnitField("luma_weight_l1", i, pwt.luma_weight_l1[i]);
+				dumpObject.addIdxUnitField("luma_offset_l1", i, pwt.luma_offset_l1[i]);
+				dumpObject.startIdxValueUnitFieldList("chroma_weight_l1_flag", i, pwt.chroma_weight_l1_flag[i]);
+				if(pwt.chroma_weight_l1_flag[i] == 1)
+				{
+					for(int j = 0;j < 2;++j) {
+						dumpObject.addDblIdxUnitField("chroma_weight_l1", i, j, pwt.chroma_weight_l1[i][j]);
+						dumpObject.addDblIdxUnitField("chroma_offset_l1", i, j, pwt.chroma_offset_l1[i][j]);
+					}
+				}
+				dumpObject.endIdxValueUnitFieldList();
+			}
+			dumpObject.endIdxValueUnitFieldList();
+		}
+		dumpObject.endUnitFieldList();
 
-	fields.addItem(UnitField("IdrPicFlag", IdrPicFlag));
-    fields.addItem(UnitField("PrevRefFrameNum", PrevRefFrameNum));
+		if(pPps->entropy_coding_mode_flag && slice_type != SliceType_I && slice_type != SliceType_SI){
+			dumpObject.addUnitField("cabac_init_idc", cabac_init_idc);
+		}
+		dumpObject.addUnitField("slice_qp_delta", slice_qp_delta);
+		if(slice_type == SliceType_SP || slice_type == SliceType_SI){
+			if(slice_type == SliceType_SP){
+				dumpObject.addUnitField("sp_for_switch_flag", sp_for_switch_flag);
+			}
+			dumpObject.addUnitField("slice_qs_delta", slice_qs_delta);
+		}
+		if(pPps->deblocking_filter_control_present_flag)
+		{
+			dumpObject.startValueUnitFieldList("disable_deblocking_filter_idc", disable_deblocking_filter_idc);
+			if(disable_deblocking_filter_idc != 1){
+				dumpObject.addUnitField("slice_alpha_c0_offset_div2", slice_alpha_c0_offset_div2);
+				dumpObject.addUnitField("slice_beta_offset_div2", slice_beta_offset_div2);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		if(pPps->num_slice_groups_minus1 > 0 && pPps->slice_group_map_type >= 3 && pPps->slice_group_map_type <= 5){
+			dumpObject.addUnitField("slice_group_change_cycle", slice_group_change_cycle);
+		}
 
-	return fields;
+		dumpObject.addUnitField("IdrPicFlag", IdrPicFlag);
+		dumpObject.addUnitField("PrevRefFrameNum", PrevRefFrameNum);
+	}
+	dumpObject.endUnitFieldList();
 }
 
 void H264Slice::validate(){

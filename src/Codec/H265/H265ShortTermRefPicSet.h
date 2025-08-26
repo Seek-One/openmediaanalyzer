@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstdint>
 
-class UnitFieldList;
+#include "../H26X/H26XDumpObject.h"
 
 struct H265ShortTermRefPicSet {
 	H265ShortTermRefPicSet();
@@ -32,7 +32,7 @@ struct H265ShortTermRefPicSet {
 	std::vector<uint8_t> UsedByCurrPicS1;
 	uint32_t NumDeltaPocs;
 
-	UnitFieldList dump_fields(uint32_t stRpsId, uint32_t num_short_term_ref_pic_sets);
+	void dump(H26XDumpObject& dumpObject, uint32_t stRpsIdx, uint32_t num_short_term_ref_pic_sets) const;
 };
 
 

@@ -23,4 +23,6 @@ int p_memcmpsi(const void* buffer, short val);
 }
 #endif
 
+#define H26X_BREAKABLE_SCOPE(x) for(int x=0;x<1;++x)
+
 #endif //TOOLKIT_CODEC_UTILS_H26XTYPES_H

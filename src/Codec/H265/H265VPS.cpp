@@ -2,7 +2,6 @@
 #include <unordered_set>
 
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265VPS.h"
 
@@ -31,51 +30,70 @@ H265VPS::H265VPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 	vps_extension_flag = 0;
 }
 
-UnitFieldList H265VPS::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Video Parameter Set", H265NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	fields.addItem(UnitField("vps_video_parameter_set_id", vps_video_parameter_set_id));
-	fields.addItem(UnitField("vps_base_layer_internal_flag", vps_base_layer_internal_flag));
-	fields.addItem(UnitField("vps_base_layer_available_flag", vps_base_layer_available_flag));
-	fields.addItem(UnitField("vps_max_layers_minus1", vps_max_layers_minus1));
-	fields.addItem(UnitField("vps_max_sub_layers_minus1", vps_max_sub_layers_minus1));
-	fields.addItem(UnitField("vps_temporal_id_nesting_flag", vps_temporal_id_nesting_flag));
-	fields.addItem(profile_tier_level.dump_fields());
-	fields.addItem(UnitField("vps_sub_layer_ordering_info_present_flag", vps_sub_layer_ordering_info_present_flag));
-	for(uint8_t i = vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1;i <= vps_max_sub_layers_minus1;++i){
-		fields.addItem(IdxUnitField("vps_max_dec_pic_buffering_minus1", vps_max_dec_pic_buffering_minus1[i], i));
-		fields.addItem(IdxUnitField("vps_max_num_reorder_pics", vps_max_num_reorder_pics[i], i));
-		fields.addItem(IdxUnitField("vps_max_latency_increase_plus1", vps_max_latency_increase_plus1[i], i));
-	}
-	fields.addItem(UnitField("vps_max_layer_id", vps_max_layer_id));
-	ValueUnitFieldList vps_num_layer_sets_minus1Field = ValueUnitFieldList("vps_num_layer_sets_minus1", vps_num_layer_sets_minus1);
-	for(uint16_t i = 1;i <= vps_num_layer_sets_minus1;++i){
-		for(uint8_t j = 0;j <= vps_max_layer_id;++j){
-			vps_num_layer_sets_minus1Field.addItem(DblIdxUnitField("layer_id_included_flag", layer_id_included_flag[i][j], i, j));
+void H265VPS::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SVideo Parameter Set");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		H265NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
 		}
-	}
-	fields.addItem(std::move(vps_num_layer_sets_minus1Field));
-	ValueUnitFieldList vps_timing_info_present_flagField = ValueUnitFieldList("vps_timing_info_present_flag", vps_timing_info_present_flag);
-	if(vps_timing_info_present_flag){
-		vps_timing_info_present_flagField.addItem(UnitField("vps_num_units_in_tick", vps_num_units_in_tick));
-		vps_timing_info_present_flagField.addItem(UnitField("vps_time_scale", vps_time_scale));
-		ValueUnitFieldList vps_poc_proportional_to_timing_flagField = ValueUnitFieldList("vps_poc_proportional_to_timing_flag", vps_poc_proportional_to_timing_flag);
-		vps_timing_info_present_flagField.addItem(std::move(vps_poc_proportional_to_timing_flagField));
-		if(vps_poc_proportional_to_timing_flag) vps_poc_proportional_to_timing_flagField.addItem(UnitField("vps_num_ticks_poc_diff_one_minus1", vps_num_ticks_poc_diff_one_minus1));
-		ValueUnitFieldList vps_num_hrd_parametersField = ValueUnitFieldList("vps_num_hrd_parameters", vps_num_hrd_parameters);
-		vps_timing_info_present_flagField.addItem(std::move(vps_num_hrd_parametersField));
-		for(uint32_t i = 0;i < vps_num_hrd_parameters;++i){
-			vps_num_hrd_parametersField.addItem(IdxUnitField("hrd_layer_set_idx", hrd_layer_set_idx[i], i));
-			if(i > 0) vps_num_hrd_parametersField.addItem(IdxUnitField("cprms_present_flag", cprms_present_flag[i], i));
-			vps_num_hrd_parametersField.addItem(hrd_parameters[i].dump_fields(cprms_present_flag[i]));
+
+		dumpObject.addUnitField("vps_video_parameter_set_id", vps_video_parameter_set_id);
+		dumpObject.addUnitField("vps_base_layer_internal_flag", vps_base_layer_internal_flag);
+		dumpObject.addUnitField("vps_base_layer_available_flag", vps_base_layer_available_flag);
+		dumpObject.addUnitField("vps_max_layers_minus1", vps_max_layers_minus1);
+		dumpObject.addUnitField("vps_max_sub_layers_minus1", vps_max_sub_layers_minus1);
+		dumpObject.addUnitField("vps_temporal_id_nesting_flag", vps_temporal_id_nesting_flag);
+		profile_tier_level.dump(dumpObject);
+		dumpObject.addUnitField("vps_sub_layer_ordering_info_present_flag", vps_sub_layer_ordering_info_present_flag);
+		for(uint8_t i = vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1;i <= vps_max_sub_layers_minus1;++i)
+		{
+			dumpObject.addIdxUnitField("vps_max_dec_pic_buffering_minus1", i, vps_max_dec_pic_buffering_minus1[i]);
+			dumpObject.addIdxUnitField("vps_max_num_reorder_pics", i, vps_max_num_reorder_pics[i]);
+			dumpObject.addIdxUnitField("vps_max_latency_increase_plus1", i, vps_max_latency_increase_plus1[i]);
 		}
+		dumpObject.addUnitField("vps_max_layer_id", vps_max_layer_id);
+
+		dumpObject.startValueUnitFieldList("vps_num_layer_sets_minus1", vps_num_layer_sets_minus1);
+		for(uint16_t i = 1;i <= vps_num_layer_sets_minus1;++i){
+			for(uint8_t j = 0;j <= vps_max_layer_id;++j){
+				dumpObject.addDblIdxUnitField("layer_id_included_flag", i, j, layer_id_included_flag[i][j]);
+			}
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("vps_timing_info_present_flag", vps_timing_info_present_flag);
+		if(vps_timing_info_present_flag){
+			dumpObject.addUnitField("vps_num_units_in_tick", vps_num_units_in_tick);
+			dumpObject.addUnitField("vps_time_scale", vps_time_scale);
+
+			dumpObject.startValueUnitFieldList("vps_poc_proportional_to_timing_flag", vps_poc_proportional_to_timing_flag);
+			if(vps_poc_proportional_to_timing_flag){
+				dumpObject.addUnitField("vps_num_ticks_poc_diff_one_minus1", vps_num_ticks_poc_diff_one_minus1);
+			}
+			dumpObject.endValueUnitFieldList();
+
+			dumpObject.startValueUnitFieldList("vps_num_hrd_parameters", vps_num_hrd_parameters);
+			for(uint32_t i = 0;i < vps_num_hrd_parameters;++i){
+				dumpObject.addIdxUnitField("hrd_layer_set_idx", i, hrd_layer_set_idx[i]);
+				if(i > 0){
+					dumpObject.addIdxUnitField("cprms_present_flag", i, cprms_present_flag[i]);
+				}
+				hrd_parameters[i].dump(dumpObject, cprms_present_flag[i]);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("vps_extension_flag", vps_extension_flag);
 	}
-	fields.addItem(std::move(vps_timing_info_present_flagField));
-	fields.addItem(UnitField("vps_extension_flag", vps_extension_flag));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
-void H265VPS::validate(){
+void H265VPS::validate()
+{
 	H265NAL::validate();
 	if(!completelyParsed) return;
 	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0) minorErrors.push_back("[VPS] vps_max_layers_minus1 not greater than 0");

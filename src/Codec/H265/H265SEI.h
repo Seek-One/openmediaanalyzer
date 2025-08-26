@@ -12,7 +12,7 @@ struct H265SEIMessage {
 	virtual ~H265SEIMessage() = default;
 	uint8_t payloadType;
 
-	virtual UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265SEI : public H265NAL {
@@ -21,8 +21,8 @@ struct H265SEI : public H265NAL {
 	~H265SEI();
 
     std::vector<H265SEIMessage*> messages;
-	
-	UnitFieldList dump_fields() override;
+
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 

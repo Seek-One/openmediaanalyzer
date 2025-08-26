@@ -131,7 +131,7 @@ struct H264SPS : public H264NAL {
 	uint8_t max_num_reorder_frames;
 	uint8_t max_dec_frame_buffering;
 
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 
 	static inline std::unordered_map<uint8_t, H264SPS*> SPSMap;

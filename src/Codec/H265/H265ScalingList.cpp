@@ -1,7 +1,6 @@
 #include <string>
 
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265ScalingList.h"
 
@@ -56,34 +55,34 @@ H265ScalingList::H265ScalingList()
 	}
 }
 
-UnitFieldList H265ScalingList::dump_fields()
+void H265ScalingList::dump(H26XDumpObject& dumpObject) const
 {
-	UnitFieldList fields = UnitFieldList("scaling_list_data");
+	dumpObject.startUnitFieldList("scaling_list_data");
 	for(int sizeId = 0; sizeId < 4; sizeId++)
 	{
-		UnitFieldList sizeIdField = UnitFieldList(StringFormatter::formatString("sizeId[%d]", sizeId));
+		dumpObject.startUnitFieldList(StringFormatter::formatString("sizeId[%d]", sizeId).c_str());
 		for(int matrixId = 0; matrixId < 6; matrixId += (sizeId == 3 ? 3 : 1))
 		{
-			UnitFieldList matrixIdField = UnitFieldList(StringFormatter::formatString("matrixId[%d]", sizeId));
-			matrixIdField.addItem(DblIdxUnitField("scaling_list_pred_mode_flag", scaling_list_pred_mode_flag[sizeId][matrixId], sizeId, matrixId));
+			dumpObject.startUnitFieldList(StringFormatter::formatString("matrixId[%d]", sizeId).c_str());
+			dumpObject.addDblIdxUnitField("scaling_list_pred_mode_flag", sizeId, matrixId, scaling_list_pred_mode_flag[sizeId][matrixId]);
 			if(!scaling_list_pred_mode_flag[sizeId][matrixId]){
-				matrixIdField.addItem(DblIdxUnitField("scaling_list_pred_matrix_id_delta", scaling_list_pred_matrix_id_delta[sizeId][matrixId], sizeId, matrixId));
+				dumpObject.addDblIdxUnitField("scaling_list_pred_matrix_id_delta", sizeId, matrixId, scaling_list_pred_matrix_id_delta[sizeId][matrixId]);
 			} else {
 				int coefNum = std::min(64, (1 << (4 + (sizeId << 1))));
 				if(sizeId > 1){
-					matrixIdField.addItem(DblIdxUnitField("scaling_list_dc_coef_minus8", sizeId-2, matrixId, scaling_list_dc_coef_minus8[sizeId-2][matrixId]));
+					dumpObject.addDblIdxUnitField("scaling_list_dc_coef_minus8", sizeId-2, matrixId, scaling_list_dc_coef_minus8[sizeId-2][matrixId]);
 				}
 
 				for(int i = 0; i<coefNum; i++){
-					UnitFieldList coefNumField = UnitFieldList(StringFormatter::formatString("coefNum[%d]", i));
-					coefNumField.addItem(DblIdxUnitField(StringFormatter::formatString("scaling_list_delta_coef[%d]", i), scaling_list_delta_coef[sizeId][matrixId][i], sizeId, matrixId));
-					coefNumField.addItem(DblIdxUnitField(StringFormatter::formatString("ScalingList[%d]", i), ScalingList[sizeId][matrixId][i], sizeId, matrixId));
-					matrixIdField.addItem(std::move(coefNumField));
+					dumpObject.startUnitFieldList(StringFormatter::formatString("coefNum[%d]", i).c_str());
+					dumpObject.addDblIdxUnitField(StringFormatter::formatString("scaling_list_delta_coef[%d]", i).c_str(), sizeId, matrixId, scaling_list_delta_coef[sizeId][matrixId][i]);
+					dumpObject.addDblIdxUnitField(StringFormatter::formatString("ScalingList[%d]", i).c_str(), sizeId, matrixId, ScalingList[sizeId][matrixId][i]);
+					dumpObject.endUnitFieldList();
 				}
 			}
-			sizeIdField.addItem(std::move(matrixIdField));
+			dumpObject.endUnitFieldList();
 		}
-		fields.addItem(std::move(sizeIdField));
+		dumpObject.endUnitFieldList();
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }

@@ -5,7 +5,7 @@
 
 #include "H265Types.h"
 
-class UnitFieldList;
+#include "../H26X/H26XDumpObject.h"
 
 struct H265ProfileTierLevel {
 	H265ProfileTierLevel();
@@ -54,8 +54,8 @@ struct H265ProfileTierLevel {
 	std::vector<uint8_t> sub_layer_level_idc;
 
 	std::vector<std::string> errors;
-	
-	UnitFieldList dump_fields();
+
+	void dump(H26XDumpObject& dumpObject) const;
 	void validate(uint8_t iProfilePresentFlag);
 };
 

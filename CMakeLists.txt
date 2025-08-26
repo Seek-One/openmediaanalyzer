@@ -133,6 +133,8 @@ set(APPLICATION_SOURCES
     src/GUI/QWindowMain.h
     src/GUIController/QErrorViewController.cpp
     src/GUIController/QErrorViewController.h
+	src/GUIController/QH26XDumpObject.cpp
+	src/GUIController/QH26XDumpObject.h
     src/GUIController/QVideoInputViewController.cpp
     src/GUIController/QVideoInputViewController.h
     src/GUIController/QStatusViewController.cpp
@@ -158,13 +160,13 @@ set(APPLICATION_SOURCES
 set(STRING_HELPERS_SOURCES
     src/StringHelpers/StringFormatter.cpp
     src/StringHelpers/StringFormatter.h
-    src/StringHelpers/UnitFieldList.cpp
-    src/StringHelpers/UnitFieldList.h
 )
 
 set(CODEC_SOURCES
     src/Codec/H26X/H26XBitstreamReader.cpp
     src/Codec/H26X/H26XBitstreamReader.h
+	src/Codec/H26X/H26XDumpObject.h
+	src/Codec/H26X/H26XDumpObject.cpp
 	src/Codec/H26X/H26XErrorsMsg.h
     src/Codec/H26X/H26XMath.cpp
     src/Codec/H26X/H26XMath.h

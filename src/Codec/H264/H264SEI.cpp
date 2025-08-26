@@ -5,7 +5,6 @@
 
 #include "H264SPS.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H264SEI.h"
 
@@ -28,19 +27,29 @@ H264SEIMessage::H264SEIMessage(){
 	payloadType = UINT8_MAX;
 }
 
-UnitFieldList H264SEIMessage::dump_fields(){
-	return UnitFieldList("SEI Message");
+void H264SEIMessage::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SEI Message");
+	dumpObject.endUnitFieldList();
 }
 
 void H264SEIMessage::validate(){}
 
-UnitFieldList H264SEI::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Supplemental Enhancement Information", H264NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	for(H264SEIMessage* message : messages){
-		fields.addItem(message->dump_fields());
+void H264SEI::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Supplemental Enhancement Information");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		H264NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
+		}
+
+		for (H264SEIMessage *message: messages) {
+			message->dump(dumpObject);
+		}
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H264SEI::validate(){
@@ -53,25 +62,30 @@ void H264SEI::validate(){
 	}
 }
 
-UnitFieldList H264SEIBufferingPeriod::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Buffering period");
-	fields.addItem(UnitField("seq_parameter_set_id", seq_parameter_set_id));
-	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
-	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
-	H264SPS* pSps = referencedSPS->second;
- 	if(pSps->nal_hrd_parameters_present_flag){
-		for(int i = 0;i <= pSps->nal_cpb_cnt_minus1;++i){
-			fields.addItem(IdxUnitField("nal_initial_cpb_removal_delay", nal_initial_cpb_removal_delay[i], i));
-			fields.addItem(IdxUnitField("nal_initial_cpb_removal_delay_offset", nal_initial_cpb_removal_delay_offset[i], i));
+void H264SEIBufferingPeriod::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Buffering period");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		dumpObject.addUnitField("seq_parameter_set_id", seq_parameter_set_id);
+		auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
+		if (referencedSPS == H264SPS::SPSMap.end()) {
+			break;
+		}
+		H264SPS *pSps = referencedSPS->second;
+		if (pSps->nal_hrd_parameters_present_flag) {
+			for (int i = 0; i <= pSps->nal_cpb_cnt_minus1; ++i) {
+				dumpObject.addIdxUnitField("nal_initial_cpb_removal_delay", i, nal_initial_cpb_removal_delay[i]);
+				dumpObject.addIdxUnitField("nal_initial_cpb_removal_delay_offset", i, nal_initial_cpb_removal_delay_offset[i]);
+			}
+		}
+		if (pSps->vcl_hrd_parameters_present_flag) {
+			for (int i = 0; i <= pSps->vcl_cpb_cnt_minus1; ++i) {
+				dumpObject.addIdxUnitField("vcl_initial_cpb_removal_delay", i, vcl_initial_cpb_removal_delay[i]);
+				dumpObject.addIdxUnitField("vcl_initial_cpb_removal_delay_offset", i, vcl_initial_cpb_removal_delay_offset[i]);
+			}
 		}
 	}
-	if(pSps->vcl_hrd_parameters_present_flag){
-		for(int i = 0;i <= pSps->vcl_cpb_cnt_minus1;++i){
-			fields.addItem(IdxUnitField("vcl_initial_cpb_removal_delay", vcl_initial_cpb_removal_delay[i], i));
-			fields.addItem(IdxUnitField("vcl_initial_cpb_removal_delay_offset", vcl_initial_cpb_removal_delay_offset[i], i));
-		}
-	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H264SEIBufferingPeriod::validate(){
@@ -108,54 +122,72 @@ void H264SEIBufferingPeriod::validate(){
 	}
 }
 
-UnitFieldList H264SEIPicTiming::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Picture timing");
-	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
-	if(referencedSPS == H264SPS::SPSMap.end()) return fields;
-	H264SPS* pSps = referencedSPS->second;
-	if(pSps->nal_hrd_parameters_present_flag || pSps->vcl_hrd_parameters_present_flag){
-		fields.addItem(UnitField("cpb_removal_delay", cpb_removal_delay));
-		fields.addItem(UnitField("dpb_output_delay", dpb_output_delay));
-	}
-	if(pSps->pic_struct_present_flag){
-		ValueUnitFieldList pic_structField = ValueUnitFieldList("pic_struct", pic_struct);
-		int NumClockTS = 0;
-		switch(pic_struct){
-			case 0: case 1: case 2: 
-			NumClockTS = 1;
-			break;
-			case 3: case 4: case 7:
-			NumClockTS = 2;
-			break;
-			case 5: case 6: case 8:
-			NumClockTS = 3;
+void H264SEIPicTiming::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Picture timing");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
+		if(referencedSPS == H264SPS::SPSMap.end()){
 			break;
 		}
-		for(int i = 0;i < NumClockTS;++i){
-			IdxValueUnitFieldList clock_timestamp_flagField = IdxValueUnitFieldList("clock_timestamp_flag", clock_timestamp_flag[i], i);
-			if(clock_timestamp_flag[i]){
-				clock_timestamp_flagField.addItem(IdxUnitField("ct_type", ct_type[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("nuit_field_based_flag", nuit_field_based_flag[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("counting_type", counting_type[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("discontinuity_flag", discontinuity_flag[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("cnt_dropped_flag", cnt_dropped_flag[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("n_frames", n_frames[i], i));
-				clock_timestamp_flagField.addItem(IdxUnitField("full_timestamp_flag", full_timestamp_flag[i], i));
-				if(full_timestamp_flag[i] || seconds_flag[i]) clock_timestamp_flagField.addItem(IdxUnitField("seconds_value", seconds_value[i], i));
-				if(full_timestamp_flag[i] || minutes_flag[i]) clock_timestamp_flagField.addItem(IdxUnitField("minutes_value", minutes_value[i], i));
-				if(full_timestamp_flag[i] || hours_flag[i]) clock_timestamp_flagField.addItem(IdxUnitField("hours_value", hours_value[i], i));
-				if(pSps->nal_time_offset_length > 0 || pSps->vcl_time_offset_length > 0){
-					clock_timestamp_flagField.addItem(IdxUnitField("full_timestamp_flag", full_timestamp_flag[i], i));
-				}
+		H264SPS* pSps = referencedSPS->second;
+		if(pSps->nal_hrd_parameters_present_flag || pSps->vcl_hrd_parameters_present_flag){
+			dumpObject.addUnitField("cpb_removal_delay", cpb_removal_delay);
+			dumpObject.addUnitField("dpb_output_delay", dpb_output_delay);
+		}
+		if(pSps->pic_struct_present_flag) {
+			dumpObject.startValueUnitFieldList("pic_struct", pic_struct);
+			int NumClockTS = 0;
+			switch (pic_struct) {
+				case 0:
+				case 1:
+				case 2:
+					NumClockTS = 1;
+					break;
+				case 3:
+				case 4:
+				case 7:
+					NumClockTS = 2;
+					break;
+				case 5:
+				case 6:
+				case 8:
+					NumClockTS = 3;
+					break;
 			}
-			pic_structField.addItem(std::move(clock_timestamp_flagField));
+			for (int i = 0; i < NumClockTS; ++i) {
+				dumpObject.startIdxValueUnitFieldList("clock_timestamp_flag", i, clock_timestamp_flag[i]);
+				if (clock_timestamp_flag[i]) {
+					dumpObject.addIdxUnitField("ct_type", i, ct_type[i]);
+					dumpObject.addIdxUnitField("nuit_field_based_flag", i, nuit_field_based_flag[i]);
+					dumpObject.addIdxUnitField("counting_type", i, counting_type[i]);
+					dumpObject.addIdxUnitField("discontinuity_flag", i, discontinuity_flag[i]);
+					dumpObject.addIdxUnitField("cnt_dropped_flag", i, cnt_dropped_flag[i]);
+					dumpObject.addIdxUnitField("n_frames", i, n_frames[i]);
+					dumpObject.addIdxUnitField("full_timestamp_flag", i, full_timestamp_flag[i]);
+					if (full_timestamp_flag[i] || seconds_flag[i]) {
+						dumpObject.addIdxUnitField("seconds_value", i, seconds_value[i]);
+					}
+					if (full_timestamp_flag[i] || minutes_flag[i]) {
+						dumpObject.addIdxUnitField("minutes_value", i, minutes_value[i]);
+					}
+					if (full_timestamp_flag[i] || hours_flag[i]) {
+						dumpObject.addIdxUnitField("hours_value", i, hours_value[i]);
+					}
+					if (pSps->nal_time_offset_length > 0 || pSps->vcl_time_offset_length > 0) {
+						dumpObject.addIdxUnitField("full_timestamp_flag", i, full_timestamp_flag[i]);
+					}
+				}
+				dumpObject.endIdxValueUnitFieldList();
+			}
+			dumpObject.endValueUnitFieldList();
 		}
-		fields.addItem(std::move(pic_structField));
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
-void H264SEIPicTiming::validate(){
+void H264SEIPicTiming::validate()
+{
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
 		errors.push_back(StringFormatter::formatString("[SEI Pic timing] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
@@ -198,16 +230,18 @@ void H264SEIPicTiming::validate(){
 	}
 }
 
-UnitFieldList H264SEIFillerPayload::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Filler Payload");
-	return fields;
+void H264SEIFillerPayload::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Filler Payload");
+	dumpObject.endUnitFieldList();
 }
 
 H264SEIUserDataUnregistered::~H264SEIUserDataUnregistered(){
 }
 
-UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
-	UnitFieldList fields = UnitFieldList("User Data Unregistered");
+void H264SEIUserDataUnregistered::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("User Data Unregistered");
 	int index = 15;
 	std::ostringstream uuidStringStream;
 	for(int len : {8, 4, 4}){
@@ -225,20 +259,21 @@ UnitFieldList H264SEIUserDataUnregistered::dump_fields(){
 		}
 		if(len != 12) uuidStringStream << "-";
 	}
-	fields.addItem(StrUnitField("uuid_iso_iec_11578", uuidStringStream.str()));
+	dumpObject.addStrUnitField("uuid_iso_iec_11578", uuidStringStream.str());
 	for(uint32_t i = 0;i < user_data_payload_byte.size();++i){
-		fields.addItem(IdxUnitField("user_data_payload_byte", user_data_payload_byte[i], i));
+		dumpObject.addIdxUnitField("user_data_payload_byte", i, user_data_payload_byte[i]);
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
-UnitFieldList H264SEIRecoveryPoint::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Recovery Point");
-	fields.addItem(UnitField("recovery_frame_cnt", recovery_frame_cnt));
-	fields.addItem(UnitField("exact_match_flag", exact_match_flag));
-	fields.addItem(UnitField("broken_link_flag", broken_link_flag));
-	fields.addItem(UnitField("changing_slice_group_idc", changing_slice_group_idc));
-	return fields;
+void H264SEIRecoveryPoint::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Recovery Point");
+	dumpObject.addUnitField("recovery_frame_cnt", recovery_frame_cnt);
+	dumpObject.addUnitField("exact_match_flag", exact_match_flag);
+	dumpObject.addUnitField("broken_link_flag", broken_link_flag);
+	dumpObject.addUnitField("changing_slice_group_idc", changing_slice_group_idc);
+	dumpObject.endUnitFieldList();
 }
 
 void H264SEIRecoveryPoint::validate(){
@@ -254,10 +289,11 @@ void H264SEIRecoveryPoint::validate(){
 	}
 }
 
-UnitFieldList H264SEIFullFrameFreeze::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Full Frame Freeze");
-	fields.addItem(UnitField("full_frame_freeze_repetition_period", full_frame_freeze_repetition_period));
-	return fields;
+void H264SEIFullFrameFreeze::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Full Frame Freeze");
+	dumpObject.addUnitField("full_frame_freeze_repetition_period", full_frame_freeze_repetition_period);
+	dumpObject.endUnitFieldList();
 }
 
 void H264SEIFullFrameFreeze::validate(){

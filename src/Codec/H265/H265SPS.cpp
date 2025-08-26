@@ -2,7 +2,6 @@
 
 #include "H265VPS.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265SPS.h"
 
@@ -49,66 +48,80 @@ H265VuiParameters::H265VuiParameters()
 	log2_max_mv_length_vertical = 15;
 }
 
-UnitFieldList H265VuiParameters::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Video Usability Information");
-	ValueUnitFieldList aspect_ratio_info_present_flagField = ValueUnitFieldList("aspect_ratio_info_present_flag", aspect_ratio_info_present_flag);
-	if(aspect_ratio_info_present_flag){
-		ValueUnitFieldList aspect_ratio_idcField = ValueUnitFieldList("aspect_ratio_idc", aspect_ratio_idc);
-		if(aspect_ratio_idc == EXTENDED_SAR){
-			aspect_ratio_idcField.addItem(UnitField("sar_width", sar_width));
-			aspect_ratio_idcField.addItem(UnitField("sar_height", sar_height));
+void H265VuiParameters::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Video Usability Information");
+	{
+		dumpObject.startValueUnitFieldList("aspect_ratio_info_present_flag", aspect_ratio_info_present_flag);
+		if(aspect_ratio_info_present_flag){
+			dumpObject.startValueUnitFieldList("aspect_ratio_idc", aspect_ratio_idc);
+			if(aspect_ratio_idc == EXTENDED_SAR){
+				dumpObject.addUnitField("sar_width", sar_width);
+				dumpObject.addUnitField("sar_height", sar_height);
+			}
+			dumpObject.endValueUnitFieldList();
 		}
-		aspect_ratio_info_present_flagField.addItem(std::move(aspect_ratio_idcField));
-	}
-	fields.addItem(std::move(aspect_ratio_info_present_flagField));
-	ValueUnitFieldList overscan_info_present_flagField = ValueUnitFieldList("overscan_info_present_flag", overscan_info_present_flag);
-	if(overscan_info_present_flag) overscan_info_present_flagField.addItem(UnitField("overscan_appropriate_flag", overscan_appropriate_flag));
-	fields.addItem(std::move(overscan_info_present_flagField));
-	ValueUnitFieldList video_signal_type_present_flagField = ValueUnitFieldList("video_signal_type_present_flag", video_signal_type_present_flag);
-	if(video_signal_type_present_flag){
-		video_signal_type_present_flagField.addItem(UnitField("video_format", video_format));
-		video_signal_type_present_flagField.addItem(UnitField("video_full_range_flag", video_full_range_flag));
-		ValueUnitFieldList colour_description_present_flagField = ValueUnitFieldList("colour_description_present_flag", colour_description_present_flag);
-		if(colour_description_present_flag){
-			colour_description_present_flagField.addItem(UnitField("colour_primaries", colour_primaries));
-			colour_description_present_flagField.addItem(UnitField("transfer_characteristics", transfer_characteristics));
-			colour_description_present_flagField.addItem(UnitField("matrix_coeffs", matrix_coeffs));
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("overscan_info_present_flag", overscan_info_present_flag);
+		if(overscan_info_present_flag){
+			dumpObject.addUnitField("overscan_appropriate_flag", overscan_appropriate_flag);
 		}
-		video_signal_type_present_flagField.addItem(std::move(colour_description_present_flagField));
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("video_signal_type_present_flag", video_signal_type_present_flag);
+		if(video_signal_type_present_flag){
+			dumpObject.addUnitField("video_format", video_format);
+			dumpObject.addUnitField("video_full_range_flag", video_full_range_flag);
+			dumpObject.startValueUnitFieldList("colour_description_present_flag", colour_description_present_flag);
+			if(colour_description_present_flag){
+				dumpObject.addUnitField("colour_primaries", colour_primaries);
+				dumpObject.addUnitField("transfer_characteristics", transfer_characteristics);
+				dumpObject.addUnitField("matrix_coeffs", matrix_coeffs);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("chroma_loc_info_present_flag", chroma_loc_info_present_flag);
+		if(chroma_loc_info_present_flag){
+			dumpObject.addUnitField("chroma_sample_loc_type_top_field", chroma_sample_loc_type_top_field);
+			dumpObject.addUnitField("chroma_sample_loc_type_bottom_field", chroma_sample_loc_type_bottom_field);
+		}
+		dumpObject.endValueUnitFieldList();
+		
+		dumpObject.addUnitField("neutral_chroma_indication_flag", neutral_chroma_indication_flag);
+		dumpObject.addUnitField("field_seq_flag", field_seq_flag);
+		dumpObject.addUnitField("frame_field_info_present_flag", frame_field_info_present_flag);
+
+		dumpObject.startValueUnitFieldList("default_display_window_flag",default_display_window_flag);
+		if(default_display_window_flag){
+			dumpObject.addUnitField("def_disp_win_left_offset", def_disp_win_left_offset);
+			dumpObject.addUnitField("def_disp_win_right_offset", def_disp_win_right_offset);
+			dumpObject.addUnitField("def_disp_win_top_offset", def_disp_win_top_offset);
+			dumpObject.addUnitField("def_disp_win_bottom_offset", def_disp_win_bottom_offset);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("vui_timing_info_present_flag", vui_timing_info_present_flag);
+		if(vui_timing_info_present_flag){
+			dumpObject.addUnitField("vui_num_units_in_tick", vui_num_units_in_tick);
+			dumpObject.addUnitField("vui_time_scale", vui_time_scale);
+			dumpObject.startValueUnitFieldList("vui_poc_proportional_to_timing_flag", vui_poc_proportional_to_timing_flag);
+			if(vui_poc_proportional_to_timing_flag){
+				dumpObject.addUnitField("vui_num_ticks_poc_diff_one_minus1", vui_num_ticks_poc_diff_one_minus1);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("vui_hrd_parameters_present_flag", vui_hrd_parameters_present_flag);
+		if(vui_hrd_parameters_present_flag){
+			hrd_parameters.dump(dumpObject, 1);
+		}
+		dumpObject.endValueUnitFieldList();
 	}
-	fields.addItem(std::move(video_signal_type_present_flagField));
-	ValueUnitFieldList chroma_loc_info_present_flagField = ValueUnitFieldList("chroma_loc_info_present_flag", chroma_loc_info_present_flag);
-	if(chroma_loc_info_present_flag){
-		chroma_loc_info_present_flagField.addItem(UnitField("chroma_sample_loc_type_top_field", chroma_sample_loc_type_top_field));
-		chroma_loc_info_present_flagField.addItem(UnitField("chroma_sample_loc_type_bottom_field", chroma_sample_loc_type_bottom_field));
-	}
-	fields.addItem(std::move(chroma_loc_info_present_flagField));
-	fields.addItem(UnitField("neutral_chroma_indication_flag", neutral_chroma_indication_flag));
-	fields.addItem(UnitField("field_seq_flag", field_seq_flag));
-	fields.addItem(UnitField("frame_field_info_present_flag", frame_field_info_present_flag));
-	ValueUnitFieldList default_display_window_flagField = ValueUnitFieldList("default_display_window_flag",default_display_window_flag);
-	if(default_display_window_flag){
-		default_display_window_flagField.addItem(UnitField("def_disp_win_left_offset", def_disp_win_left_offset));
-		default_display_window_flagField.addItem(UnitField("def_disp_win_right_offset", def_disp_win_right_offset));
-		default_display_window_flagField.addItem(UnitField("def_disp_win_top_offset", def_disp_win_top_offset));
-		default_display_window_flagField.addItem(UnitField("def_disp_win_bottom_offset", def_disp_win_bottom_offset));
-	}
-	fields.addItem(std::move(default_display_window_flagField));
-	ValueUnitFieldList vui_timing_info_present_flagField = ValueUnitFieldList("vui_timing_info_present_flag", vui_timing_info_present_flag);
-	if(vui_timing_info_present_flag){
-		vui_timing_info_present_flagField.addItem(UnitField("vui_num_units_in_tick", vui_num_units_in_tick));
-		vui_timing_info_present_flagField.addItem(UnitField("vui_time_scale", vui_time_scale));
-		ValueUnitFieldList vui_poc_proportional_to_timing_flagField = ValueUnitFieldList("vui_poc_proportional_to_timing_flag",vui_poc_proportional_to_timing_flag);
-		vui_timing_info_present_flagField.addItem(std::move(vui_poc_proportional_to_timing_flagField));
-		if(vui_poc_proportional_to_timing_flag) vui_poc_proportional_to_timing_flagField.addItem(UnitField("vui_num_ticks_poc_diff_one_minus1", vui_num_ticks_poc_diff_one_minus1));
-	}
-	fields.addItem(std::move(vui_timing_info_present_flagField));
-	ValueUnitFieldList vui_hrd_parameters_present_flagField = ValueUnitFieldList("vui_hrd_parameters_present_flag", vui_hrd_parameters_present_flag);
-	if(vui_hrd_parameters_present_flag){
-		vui_hrd_parameters_present_flagField.addItem(hrd_parameters.dump_fields(1));
-	}
-	fields.addItem(std::move(vui_hrd_parameters_present_flagField));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265SPSRangeExtension::H265SPSRangeExtension()
@@ -124,18 +137,19 @@ H265SPSRangeExtension::H265SPSRangeExtension()
 	cabac_bypass_alignment_enabled_flag = 0;
 }
 
-UnitFieldList H265SPSRangeExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("SPS Range Extension");
-	fields.addItem(UnitField("transform_skip_rotation_enabled_flag", transform_skip_rotation_enabled_flag));
-	fields.addItem(UnitField("transform_skip_context_enabled_flag", transform_skip_context_enabled_flag));
-	fields.addItem(UnitField("implicit_rdpcm_enabled_flag", implicit_rdpcm_enabled_flag));
-	fields.addItem(UnitField("explicit_rdpcm_enabled_flag", explicit_rdpcm_enabled_flag));
-	fields.addItem(UnitField("extended_precision_processing_flag", extended_precision_processing_flag));
-	fields.addItem(UnitField("intra_smoothing_disabled_flag", intra_smoothing_disabled_flag));
-	fields.addItem(UnitField("high_precision_offsets_enabled_flag", high_precision_offsets_enabled_flag));
-	fields.addItem(UnitField("persistent_rice_adaptation_enabled_flag", persistent_rice_adaptation_enabled_flag));
-	fields.addItem(UnitField("cabac_bypass_alignment_enabled_flag", cabac_bypass_alignment_enabled_flag));
-	return fields;
+void H265SPSRangeExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SPS Range Extension");
+	dumpObject.addUnitField("transform_skip_rotation_enabled_flag", transform_skip_rotation_enabled_flag);
+	dumpObject.addUnitField("transform_skip_context_enabled_flag", transform_skip_context_enabled_flag);
+	dumpObject.addUnitField("implicit_rdpcm_enabled_flag", implicit_rdpcm_enabled_flag);
+	dumpObject.addUnitField("explicit_rdpcm_enabled_flag", explicit_rdpcm_enabled_flag);
+	dumpObject.addUnitField("extended_precision_processing_flag", extended_precision_processing_flag);
+	dumpObject.addUnitField("intra_smoothing_disabled_flag", intra_smoothing_disabled_flag);
+	dumpObject.addUnitField("high_precision_offsets_enabled_flag", high_precision_offsets_enabled_flag);
+	dumpObject.addUnitField("persistent_rice_adaptation_enabled_flag", persistent_rice_adaptation_enabled_flag);
+	dumpObject.addUnitField("cabac_bypass_alignment_enabled_flag", cabac_bypass_alignment_enabled_flag);
+	dumpObject.endUnitFieldList();
 }
 
 H265SPSMultilayerExtension::H265SPSMultilayerExtension()
@@ -143,10 +157,11 @@ H265SPSMultilayerExtension::H265SPSMultilayerExtension()
 	inter_view_mv_vert_constraint_flag = 0;
 }
 
-UnitFieldList H265SPSMultilayerExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("SPS Multilayer Extension");
-	fields.addItem(UnitField("inter_view_mv_vert_constraint_flag", inter_view_mv_vert_constraint_flag));
-	return fields;
+void H265SPSMultilayerExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SPS Multilayer Extension");
+	dumpObject.addUnitField("inter_view_mv_vert_constraint_flag", inter_view_mv_vert_constraint_flag);
+	dumpObject.endUnitFieldList();
 }
 
 H265SPS3DExtension::H265SPS3DExtension()
@@ -169,28 +184,29 @@ H265SPS3DExtension::H265SPS3DExtension()
 	}
 }
 
-UnitFieldList H265SPS3DExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("SPS 3D Extension");
+void H265SPS3DExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("SPS 3D Extension");
 	for(int d = 0;d <= 1;++d){
-		fields.addItem(IdxUnitField("iv_di_mc_enabled_flag", iv_di_mc_enabled_flag[d], d));
-		fields.addItem(IdxUnitField("iv_mv_scal_enabled_flag", iv_mv_scal_enabled_flag[d], d));
+		dumpObject.addIdxUnitField("iv_di_mc_enabled_flag", d, iv_di_mc_enabled_flag[d]);
+		dumpObject.addIdxUnitField("iv_mv_scal_enabled_flag", d, iv_mv_scal_enabled_flag[d]);
 		if(d == 0){
-			fields.addItem(IdxUnitField("log2_ivmc_sub_pb_size_minus3", log2_ivmc_sub_pb_size_minus3[d], d));
-			fields.addItem(IdxUnitField("iv_res_pred_enabled_flag", iv_res_pred_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("depth_ref_enabled_flag", depth_ref_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("vsp_mc_enabled_flag", vsp_mc_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("dbbp_enabled_flag", dbbp_enabled_flag[d], d));
+			dumpObject.addIdxUnitField("log2_ivmc_sub_pb_size_minus3", d, log2_ivmc_sub_pb_size_minus3[d]);
+			dumpObject.addIdxUnitField("iv_res_pred_enabled_flag", d, iv_res_pred_enabled_flag[d]);
+			dumpObject.addIdxUnitField("depth_ref_enabled_flag", d, depth_ref_enabled_flag[d]);
+			dumpObject.addIdxUnitField("vsp_mc_enabled_flag", d, vsp_mc_enabled_flag[d]);
+			dumpObject.addIdxUnitField("dbbp_enabled_flag", d, dbbp_enabled_flag[d]);
 		} else {
-			fields.addItem(IdxUnitField("tex_mc_enabled_flag", tex_mc_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("log2_texmc_sub_pb_size_minus3", log2_texmc_sub_pb_size_minus3[d], d));
-			fields.addItem(IdxUnitField("intra_contour_enabled_flag", intra_contour_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("intra_dc_only_wedge_enabled_flag", intra_dc_only_wedge_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("cqt_cu_part_pred_enabled_flag", cqt_cu_part_pred_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("inter_dc_only_enabled_flag", inter_dc_only_enabled_flag[d], d));
-			fields.addItem(IdxUnitField("skip_intra_enabled_flag", skip_intra_enabled_flag[d], d));
+			dumpObject.addIdxUnitField("tex_mc_enabled_flag", d, tex_mc_enabled_flag[d]);
+			dumpObject.addIdxUnitField("log2_texmc_sub_pb_size_minus3", d, log2_texmc_sub_pb_size_minus3[d]);
+			dumpObject.addIdxUnitField("intra_contour_enabled_flag", d, intra_contour_enabled_flag[d]);
+			dumpObject.addIdxUnitField("intra_dc_only_wedge_enabled_flag", d, intra_dc_only_wedge_enabled_flag[d]);
+			dumpObject.addIdxUnitField("cqt_cu_part_pred_enabled_flag", d, cqt_cu_part_pred_enabled_flag[d]);
+			dumpObject.addIdxUnitField("inter_dc_only_enabled_flag", d, inter_dc_only_enabled_flag[d]);
+			dumpObject.addIdxUnitField("skip_intra_enabled_flag", d, skip_intra_enabled_flag[d]);
 		}
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265SPSSCCExtension::H265SPSSCCExtension()
@@ -205,28 +221,32 @@ H265SPSSCCExtension::H265SPSSCCExtension()
 	intra_boundary_filtering_disabled_flag = 0;
 }
 
-UnitFieldList H265SPSSCCExtension::dump_fields(uint32_t chroma_format_idc){
-	UnitFieldList fields = UnitFieldList("SPS SCC Extension");
-	fields.addItem(UnitField("sps_curr_pic_ref_enabled_flag", sps_curr_pic_ref_enabled_flag));
-	ValueUnitFieldList palette_mode_enabled_flagField = ValueUnitFieldList("palette_mode_enabled_flag", palette_mode_enabled_flag);
+void H265SPSSCCExtension::dump(H26XDumpObject& dumpObject, uint32_t chroma_format_idc) const
+{
+	dumpObject.startUnitFieldList("SPS SCC Extension");
+	dumpObject.addUnitField("sps_curr_pic_ref_enabled_flag", sps_curr_pic_ref_enabled_flag);
+
+	dumpObject.startValueUnitFieldList("palette_mode_enabled_flag", palette_mode_enabled_flag);
 	if(palette_mode_enabled_flag){
-		palette_mode_enabled_flagField.addItem(UnitField("palette_max_size", palette_max_size));
-		palette_mode_enabled_flagField.addItem(UnitField("delta_palette_max_predictor_size", delta_palette_max_predictor_size));
-		ValueUnitFieldList sps_palette_predictor_initializers_present_flagField = ValueUnitFieldList("sps_palette_predictor_initializers_present_flag", sps_palette_predictor_initializers_present_flag);
-		palette_mode_enabled_flagField.addItem(std::move(sps_palette_predictor_initializers_present_flagField));
+		dumpObject.addUnitField("palette_max_size", palette_max_size);
+		dumpObject.addUnitField("delta_palette_max_predictor_size", delta_palette_max_predictor_size);
+
+		dumpObject.startValueUnitFieldList("sps_palette_predictor_initializers_present_flag", sps_palette_predictor_initializers_present_flag);
 		if(sps_palette_predictor_initializers_present_flag){
 			uint8_t numComps = (chroma_format_idc == 0) ? 1 : 3;
 			for(int comp = 0;comp < numComps;++comp){
 				for(uint16_t i = 0;i <= sps_num_palette_predictor_initializers_minus1;++i){
-					sps_palette_predictor_initializers_present_flagField.addItem(DblIdxUnitField("sps_palette_predictor_initializer", sps_palette_predictor_initializer[comp][i], comp, i));
+					dumpObject.addDblIdxUnitField("sps_palette_predictor_initializer", comp, i, sps_palette_predictor_initializer[comp][i]);
 				}
 			}
 		}
+		dumpObject.endValueUnitFieldList();
 	}
-	fields.addItem(std::move(palette_mode_enabled_flagField));
-	fields.addItem(UnitField("motion_vector_resolution_control_idc", motion_vector_resolution_control_idc));
-	fields.addItem(UnitField("intra_boundary_filtering_disabled_flag", intra_boundary_filtering_disabled_flag));
-	return fields;
+	dumpObject.endValueUnitFieldList();
+
+	dumpObject.addUnitField("motion_vector_resolution_control_idc", motion_vector_resolution_control_idc);
+	dumpObject.addUnitField("intra_boundary_filtering_disabled_flag", intra_boundary_filtering_disabled_flag);
+	dumpObject.endUnitFieldList();
 }
 
 H265SPS::H265SPS():
@@ -320,105 +340,138 @@ H265SPS::H265SPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 H265SPS::~H265SPS(){}
 
-UnitFieldList H265SPS::dump_fields()
+void H265SPS::dump(H26XDumpObject& dumpObject) const
 {
-	UnitFieldList fields = UnitFieldList("Sequence Parameter Set", H265NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	fields.addItem(UnitField("sps_video_parameter_set_id", sps_video_parameter_set_id));
-	fields.addItem(UnitField("sps_max_sub_layers_minus1", sps_max_sub_layers_minus1));
-	fields.addItem(UnitField("sps_temporal_id_nesting_flag", sps_temporal_id_nesting_flag));
-	fields.addItem(profile_tier_level.dump_fields());
+	dumpObject.startUnitFieldList("Sequence Parameter Set");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		H265NAL::dump(dumpObject);
 
-	fields.addItem(UnitField("sps_seq_parameter_set_id", sps_seq_parameter_set_id));
-	ValueUnitFieldList chroma_format_idcField = ValueUnitFieldList("chroma_format_idc", chroma_format_idc);
-	if(chroma_format_idc == 3) chroma_format_idcField.addItem(UnitField("separate_colour_plane_flag", separate_colour_plane_flag));
-	fields.addItem(std::move(chroma_format_idcField));
-	fields.addItem(UnitField("pic_width_in_luma_samples", pic_width_in_luma_samples));
-	fields.addItem(UnitField("pic_height_in_luma_samples", pic_height_in_luma_samples));
-	ValueUnitFieldList conformance_window_flagField = ValueUnitFieldList("conformance_window_flag", conformance_window_flag);
-	if(conformance_window_flag){
-		conformance_window_flagField.addItem(UnitField("conf_win_left_offset", conf_win_left_offset));
-		conformance_window_flagField.addItem(UnitField("conf_win_right_offset", conf_win_right_offset));
-		conformance_window_flagField.addItem(UnitField("conf_win_top_offset", conf_win_top_offset));
-		conformance_window_flagField.addItem(UnitField("conf_win_bottom_offset", conf_win_bottom_offset));
-	}
-	fields.addItem(std::move(conformance_window_flagField));
-	fields.addItem(UnitField("bit_depth_luma_minus8", bit_depth_luma_minus8));
-	fields.addItem(UnitField("bit_depth_chroma_minus8", bit_depth_chroma_minus8));
-	fields.addItem(UnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4));
-	fields.addItem(UnitField("sps_sub_layer_ordering_info_present_flag", sps_sub_layer_ordering_info_present_flag));
-	for(uint8_t i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1;i <= sps_max_sub_layers_minus1;++i){
-		fields.addItem(IdxUnitField("sps_max_dec_pic_buffering_minus1", sps_max_dec_pic_buffering_minus1[i], i));
-		fields.addItem(IdxUnitField("sps_max_num_reorder_pics", sps_max_num_reorder_pics[i], i));
-		fields.addItem(IdxUnitField("sps_max_latency_increase_plus1", sps_max_latency_increase_plus1[i], i));
-	}
-	fields.addItem(UnitField("log2_min_luma_coding_block_size_minus3", log2_min_luma_coding_block_size_minus3));
-	fields.addItem(UnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size));
-	fields.addItem(UnitField("log2_min_luma_transform_block_size_minus2", log2_min_luma_transform_block_size_minus2));
-	fields.addItem(UnitField("log2_diff_max_min_luma_transform_block_size", log2_diff_max_min_luma_transform_block_size));
-	fields.addItem(UnitField("max_transform_hierarchy_depth_inter", max_transform_hierarchy_depth_inter));
-	fields.addItem(UnitField("max_transform_hierarchy_depth_intra", max_transform_hierarchy_depth_intra));
-	ValueUnitFieldList scaling_list_enabled_flagField = ValueUnitFieldList("scaling_list_enabled_flag", scaling_list_enabled_flag);
-	if(scaling_list_enabled_flag){
-		ValueUnitFieldList sps_scaling_list_data_present_flagField("sps_scaling_list_data_present_flag", sps_scaling_list_data_present_flag);
-		if(sps_scaling_list_data_present_flag){
-			sps_scaling_list_data_present_flagField.addItem(scaling_list_data.dump_fields());
+		if (!completelyParsed) {
+			break;
 		}
-		scaling_list_enabled_flagField.addItem(std::move(sps_scaling_list_data_present_flagField));
-	}
-	fields.addItem(std::move(scaling_list_enabled_flagField));
-	fields.addItem(UnitField("amp_enabled_flag", amp_enabled_flag));
-	fields.addItem(UnitField("sample_adaptive_offset_enabled_flag", sample_adaptive_offset_enabled_flag));
-	ValueUnitFieldList pcm_enabled_flagField = ValueUnitFieldList("pcm_enabled_flag", pcm_enabled_flag);
-	if(pcm_enabled_flag){
-		pcm_enabled_flagField.addItem(UnitField("pcm_sample_bit_depth_luma_minus1", pcm_sample_bit_depth_luma_minus1));
-		pcm_enabled_flagField.addItem(UnitField("pcm_sample_bit_depth_chroma_minus1", pcm_sample_bit_depth_chroma_minus1));
-		pcm_enabled_flagField.addItem(UnitField("log2_min_pcm_luma_coding_block_size_minus3", log2_min_pcm_luma_coding_block_size_minus3));
-		pcm_enabled_flagField.addItem(UnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size));
-		pcm_enabled_flagField.addItem(UnitField("pcm_loop_filter_disabled_flag", pcm_loop_filter_disabled_flag));
-	}
-	fields.addItem(std::move(pcm_enabled_flagField));
-	ValueUnitFieldList num_short_term_ref_pic_setsField = ValueUnitFieldList("num_short_term_ref_pic_sets", num_short_term_ref_pic_sets);
-	for(uint32_t i = 0;i < num_short_term_ref_pic_sets;++i){
-		num_short_term_ref_pic_setsField.addItem(short_term_ref_pic_set[i].dump_fields(i, num_short_term_ref_pic_sets));
-	}
-	fields.addItem(std::move(num_short_term_ref_pic_setsField));
-	ValueUnitFieldList long_term_ref_pics_present_flagField = ValueUnitFieldList("long_term_ref_pics_present_flag", long_term_ref_pics_present_flag);
-	if(long_term_ref_pics_present_flag){
-		ValueUnitFieldList num_long_term_ref_pics_spsField = ValueUnitFieldList("num_long_term_ref_pics_sps",num_long_term_ref_pics_sps);
-		long_term_ref_pics_present_flagField.addItem(std::move(num_long_term_ref_pics_spsField));
-		for(uint32_t i = 0;i < num_long_term_ref_pics_sps;++i){
-			num_long_term_ref_pics_spsField.addItem(IdxUnitField("lt_ref_pic_poc_lsb_sps", lt_ref_pic_poc_lsb_sps[i], i));
-			num_long_term_ref_pics_spsField.addItem(IdxUnitField("used_by_curr_pic_lt_sps_flag", used_by_curr_pic_lt_sps_flag[i], i));
-		}
-	}
-	fields.addItem(std::move(long_term_ref_pics_present_flagField));
-	fields.addItem(UnitField("sps_temporal_mvp_enabled_flag", sps_temporal_mvp_enabled_flag));
-	fields.addItem(UnitField("strong_intra_smoothing_enabled_flag", strong_intra_smoothing_enabled_flag));
-	ValueUnitFieldList vui_parameters_present_flagField = ValueUnitFieldList("vui_parameters_present_flag", vui_parameters_present_flag);
-	if(vui_parameters_present_flag) vui_parameters_present_flagField.addItem(vui_parameters.dump_fields());
-	fields.addItem(std::move(vui_parameters_present_flagField));
+		
+		dumpObject.addUnitField("sps_video_parameter_set_id", sps_video_parameter_set_id);
+		dumpObject.addUnitField("sps_max_sub_layers_minus1", sps_max_sub_layers_minus1);
+		dumpObject.addUnitField("sps_temporal_id_nesting_flag", sps_temporal_id_nesting_flag);
+		profile_tier_level.dump(dumpObject);
 	
-	ValueUnitFieldList sps_extension_flagField = ValueUnitFieldList("sps_extension_flag", sps_extension_flag);
-	
-	ValueUnitFieldList sps_range_extension_flagField = ValueUnitFieldList("sps_range_extension_flag", sps_range_extension_flag);
-	ValueUnitFieldList sps_multilayer_extension_flagField = ValueUnitFieldList("sps_multilayer_extension_flag", sps_multilayer_extension_flag);
-	ValueUnitFieldList sps_3d_extension_flagField = ValueUnitFieldList("sps_3d_extension_flag", sps_3d_extension_flag);
-	ValueUnitFieldList sps_scc_extension_flagField = ValueUnitFieldList("sps_scc_extension_flag", sps_scc_extension_flag);
-	
-	fields.addItem(std::move(sps_extension_flagField));
-	if(sps_range_extension_flag)sps_range_extension_flagField.addItem(sps_range_extension.dump_fields());
-	if(sps_multilayer_extension_flag) sps_multilayer_extension_flagField.addItem(sps_multilayer_extension.dump_fields());
-	if(sps_3d_extension_flag) sps_3d_extension_flagField.addItem(sps_3d_extension.dump_fields());
-	if(sps_scc_extension_flag) sps_scc_extension_flagField.addItem(sps_scc_extension.dump_fields(chroma_format_idc));
+		dumpObject.addUnitField("sps_seq_parameter_set_id", sps_seq_parameter_set_id);
 
-	if(sps_extension_flag){
-		sps_extension_flagField.addItem(std::move(sps_range_extension_flagField));
-		sps_extension_flagField.addItem(std::move(sps_multilayer_extension_flagField));
-		sps_extension_flagField.addItem(std::move(sps_3d_extension_flagField));
-		sps_extension_flagField.addItem(std::move(sps_scc_extension_flagField));
+		dumpObject.startValueUnitFieldList("chroma_format_idc", chroma_format_idc);
+		if(chroma_format_idc == 3){
+			dumpObject.addUnitField("separate_colour_plane_flag", separate_colour_plane_flag);
+		}
+		dumpObject.endValueUnitFieldList();
+		
+		dumpObject.addUnitField("pic_width_in_luma_samples", pic_width_in_luma_samples);
+		dumpObject.addUnitField("pic_height_in_luma_samples", pic_height_in_luma_samples);
+
+		dumpObject.startValueUnitFieldList("conformance_window_flag", conformance_window_flag);
+		if(conformance_window_flag){
+			dumpObject.addUnitField("conf_win_left_offset", conf_win_left_offset);
+			dumpObject.addUnitField("conf_win_right_offset", conf_win_right_offset);
+			dumpObject.addUnitField("conf_win_top_offset", conf_win_top_offset);
+			dumpObject.addUnitField("conf_win_bottom_offset", conf_win_bottom_offset);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("bit_depth_luma_minus8", bit_depth_luma_minus8);
+		dumpObject.addUnitField("bit_depth_chroma_minus8", bit_depth_chroma_minus8);
+		dumpObject.addUnitField("log2_max_pic_order_cnt_lsb_minus4", log2_max_pic_order_cnt_lsb_minus4);
+		dumpObject.addUnitField("sps_sub_layer_ordering_info_present_flag", sps_sub_layer_ordering_info_present_flag);
+		for(uint8_t i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1;i <= sps_max_sub_layers_minus1;++i){
+			dumpObject.addIdxUnitField("sps_max_dec_pic_buffering_minus1", i, sps_max_dec_pic_buffering_minus1[i]);
+			dumpObject.addIdxUnitField("sps_max_num_reorder_pics", i, sps_max_num_reorder_pics[i]);
+			dumpObject.addIdxUnitField("sps_max_latency_increase_plus1", i, sps_max_latency_increase_plus1[i]);
+		}
+		dumpObject.addUnitField("log2_min_luma_coding_block_size_minus3", log2_min_luma_coding_block_size_minus3);
+		dumpObject.addUnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size);
+		dumpObject.addUnitField("log2_min_luma_transform_block_size_minus2", log2_min_luma_transform_block_size_minus2);
+		dumpObject.addUnitField("log2_diff_max_min_luma_transform_block_size", log2_diff_max_min_luma_transform_block_size);
+		dumpObject.addUnitField("max_transform_hierarchy_depth_inter", max_transform_hierarchy_depth_inter);
+		dumpObject.addUnitField("max_transform_hierarchy_depth_intra", max_transform_hierarchy_depth_intra);
+
+		dumpObject.startValueUnitFieldList("scaling_list_enabled_flag", scaling_list_enabled_flag);
+		if(scaling_list_enabled_flag){
+			dumpObject.startValueUnitFieldList("sps_scaling_list_data_present_flag", sps_scaling_list_data_present_flag);
+			if(sps_scaling_list_data_present_flag){
+				scaling_list_data.dump(dumpObject);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("amp_enabled_flag", amp_enabled_flag);
+		dumpObject.addUnitField("sample_adaptive_offset_enabled_flag", sample_adaptive_offset_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("pcm_enabled_flag", pcm_enabled_flag);
+		if(pcm_enabled_flag){
+			dumpObject.addUnitField("pcm_sample_bit_depth_luma_minus1", pcm_sample_bit_depth_luma_minus1);
+			dumpObject.addUnitField("pcm_sample_bit_depth_chroma_minus1", pcm_sample_bit_depth_chroma_minus1);
+			dumpObject.addUnitField("log2_min_pcm_luma_coding_block_size_minus3", log2_min_pcm_luma_coding_block_size_minus3);
+			dumpObject.addUnitField("log2_diff_max_min_luma_coding_block_size", log2_diff_max_min_luma_coding_block_size);
+			dumpObject.addUnitField("pcm_loop_filter_disabled_flag", pcm_loop_filter_disabled_flag);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("num_short_term_ref_pic_sets", num_short_term_ref_pic_sets);
+		for(uint32_t i = 0;i < num_short_term_ref_pic_sets;++i){
+			short_term_ref_pic_set[i].dump(dumpObject, i, num_short_term_ref_pic_sets);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("long_term_ref_pics_present_flag", long_term_ref_pics_present_flag);
+		if(long_term_ref_pics_present_flag){
+			dumpObject.startValueUnitFieldList("num_long_term_ref_pics_sps",num_long_term_ref_pics_sps);
+			for(uint32_t i = 0;i < num_long_term_ref_pics_sps;++i){
+				dumpObject.addIdxUnitField("lt_ref_pic_poc_lsb_sps", i, lt_ref_pic_poc_lsb_sps[i]);
+				dumpObject.addIdxUnitField("used_by_curr_pic_lt_sps_flag", i, used_by_curr_pic_lt_sps_flag[i]);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("sps_temporal_mvp_enabled_flag", sps_temporal_mvp_enabled_flag);
+		dumpObject.addUnitField("strong_intra_smoothing_enabled_flag", strong_intra_smoothing_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("vui_parameters_present_flag", vui_parameters_present_flag);
+		if(vui_parameters_present_flag){
+			vui_parameters.dump(dumpObject);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("sps_extension_flag", sps_extension_flag);
+		{
+			if (sps_extension_flag)
+			{
+				dumpObject.startValueUnitFieldList("sps_range_extension_flag", sps_range_extension_flag);
+				if (sps_range_extension_flag) {
+					sps_range_extension.dump(dumpObject);
+				}
+				dumpObject.endValueUnitFieldList();
+
+				dumpObject.startValueUnitFieldList("sps_multilayer_extension_flag", sps_multilayer_extension_flag);
+				if (sps_multilayer_extension_flag) {
+					sps_multilayer_extension.dump(dumpObject);
+				}
+				dumpObject.endValueUnitFieldList();
+
+				dumpObject.startValueUnitFieldList("sps_3d_extension_flag", sps_3d_extension_flag);
+				if (sps_3d_extension_flag) {
+					sps_3d_extension.dump(dumpObject);
+				}
+				dumpObject.endValueUnitFieldList();
+
+				dumpObject.startValueUnitFieldList("sps_scc_extension_flag", sps_scc_extension_flag);
+				if (sps_scc_extension_flag) {
+					sps_scc_extension.dump(dumpObject, chroma_format_idc);
+				}
+				dumpObject.endValueUnitFieldList();
+			}
+		}
+		dumpObject.endValueUnitFieldList();
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H265SPS::validate(){

@@ -3,7 +3,6 @@
 
 #include "H265SPS.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265PPS.h"
 
@@ -18,23 +17,26 @@ H265PPSRangeExtension::H265PPSRangeExtension(){
 	log2_sao_offset_scale_chroma = 0;
 }
 
-UnitFieldList H265PPSRangeExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("PPS Range Extension");
-	fields.addItem(UnitField("log2_max_transform_skip_block_size_minus2", log2_max_transform_skip_block_size_minus2));
-	fields.addItem(UnitField("cross_component_prediction_enabled_flag", cross_component_prediction_enabled_flag));
-	ValueUnitFieldList chroma_qp_offset_list_enabled_flagField = ValueUnitFieldList("chroma_qp_offset_list_enabled_flag", chroma_qp_offset_list_enabled_flag);
-	if(chroma_qp_offset_list_enabled_flag){
-		chroma_qp_offset_list_enabled_flagField.addItem(UnitField("diff_cu_chroma_qp_offset_depth", diff_cu_chroma_qp_offset_depth));
-		chroma_qp_offset_list_enabled_flagField.addItem(UnitField("chroma_qp_offset_list_len_minus1", chroma_qp_offset_list_len_minus1));
-		for(uint8_t i = 0;i < chroma_qp_offset_list_len_minus1;++i){
-			chroma_qp_offset_list_enabled_flagField.addItem(IdxUnitField("cb_qp_offset_list", cb_qp_offset_list[i], i));
-			chroma_qp_offset_list_enabled_flagField.addItem(IdxUnitField("cr_qp_offset_list", cr_qp_offset_list[i], i));
+void H265PPSRangeExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("PPS Range Extension");
+	{
+		dumpObject.addUnitField("log2_max_transform_skip_block_size_minus2", log2_max_transform_skip_block_size_minus2);
+		dumpObject.addUnitField("cross_component_prediction_enabled_flag", cross_component_prediction_enabled_flag);
+		dumpObject.startValueUnitFieldList("chroma_qp_offset_list_enabled_flag", chroma_qp_offset_list_enabled_flag);
+		if(chroma_qp_offset_list_enabled_flag){
+			dumpObject.addUnitField("diff_cu_chroma_qp_offset_depth", diff_cu_chroma_qp_offset_depth);
+			dumpObject.addUnitField("chroma_qp_offset_list_len_minus1", chroma_qp_offset_list_len_minus1);
+			for(uint8_t i = 0;i < chroma_qp_offset_list_len_minus1;++i){
+				dumpObject.addIdxUnitField("cb_qp_offset_list", i, cb_qp_offset_list[i]);
+				dumpObject.addIdxUnitField("cr_qp_offset_list", i, cr_qp_offset_list[i]);
+			}
 		}
+		dumpObject.endValueUnitFieldList();
+		dumpObject.addUnitField("log2_sao_offset_scale_luma", log2_sao_offset_scale_luma);
+		dumpObject.addUnitField("log2_sao_offset_scale_chroma", log2_sao_offset_scale_chroma);
 	}
-	fields.addItem(std::move(chroma_qp_offset_list_enabled_flagField));
-	fields.addItem(UnitField("log2_sao_offset_scale_luma", log2_sao_offset_scale_luma));
-	fields.addItem(UnitField("log2_sao_offset_scale_chroma", log2_sao_offset_scale_chroma));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265PPSColourMappingOctants::H265PPSColourMappingOctants(){
@@ -86,42 +88,55 @@ H265PPSMultilayerExtension::H265PPSMultilayerExtension(){
 	colour_mapping_enabled_flag = 0;
 }
 
-UnitFieldList H265PPSMultilayerExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("PPS Multilayer Extension");
-	fields.addItem(UnitField("poc_reset_info_present_flag", poc_reset_info_present_flag));
-	ValueUnitFieldList pps_infer_scaling_list_flagField = ValueUnitFieldList("pps_infer_scaling_list_flag", pps_infer_scaling_list_flag);
-	if(pps_infer_scaling_list_flag) pps_infer_scaling_list_flagField.addItem(UnitField("pps_scaling_list_ref_layer_id", pps_scaling_list_ref_layer_id));
-	fields.addItem(std::move(pps_infer_scaling_list_flagField));
-	fields.addItem(UnitField("num_ref_loc_offsets", num_ref_loc_offsets));
-	for(uint8_t i = 0;i < num_ref_loc_offsets;++i){
-		fields.addItem(IdxUnitField("ref_loc_offset_layer_id", ref_loc_offset_layer_id[i], i));
-		IdxValueUnitFieldList scaled_ref_layer_offset_present_flagField = IdxValueUnitFieldList("scaled_ref_layer_offset_present_flag", scaled_ref_layer_offset_present_flag[i], i);
-		if(scaled_ref_layer_offset_present_flag[i]){
-			scaled_ref_layer_offset_present_flagField.addItem(IdxUnitField("scaled_ref_layer_left_offset[%d]:{}", ref_loc_offset_layer_id[i], scaled_ref_layer_left_offset[ref_loc_offset_layer_id[i]]));
-			scaled_ref_layer_offset_present_flagField.addItem(IdxUnitField("scaled_ref_layer_top_offset[%d]:{}", ref_loc_offset_layer_id[i], scaled_ref_layer_top_offset[ref_loc_offset_layer_id[i]]));
-			scaled_ref_layer_offset_present_flagField.addItem(IdxUnitField("scaled_ref_layer_right_offset[%d]:{}", ref_loc_offset_layer_id[i], scaled_ref_layer_right_offset[ref_loc_offset_layer_id[i]]));
-			scaled_ref_layer_offset_present_flagField.addItem(IdxUnitField("scaled_ref_layer_bottom_offset[%d]:{}", ref_loc_offset_layer_id[i], scaled_ref_layer_bottom_offset[ref_loc_offset_layer_id[i]]));
+void H265PPSMultilayerExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("PPS Multilayer Extension");
+	{
+		dumpObject.addUnitField("poc_reset_info_present_flag", poc_reset_info_present_flag);
+
+		dumpObject.startValueUnitFieldList("pps_infer_scaling_list_flag", pps_infer_scaling_list_flag);
+		if(pps_infer_scaling_list_flag){
+			dumpObject.addUnitField("pps_scaling_list_ref_layer_id", pps_scaling_list_ref_layer_id);
 		}
-		fields.addItem(std::move(scaled_ref_layer_offset_present_flagField));
-		IdxValueUnitFieldList ref_region_offset_present_flagField = IdxValueUnitFieldList("ref_region_offset_present_flag", ref_region_offset_present_flag[i], i);
-		if(scaled_ref_layer_offset_present_flag[i]){
-			ref_region_offset_present_flagField.addItem(IdxUnitField("ref_region_left_offset[%d]:{}", ref_loc_offset_layer_id[i], ref_region_left_offset[ref_loc_offset_layer_id[i]]));
-			ref_region_offset_present_flagField.addItem(IdxUnitField("ref_region_top_offset[%d]:{}", ref_loc_offset_layer_id[i], ref_region_top_offset[ref_loc_offset_layer_id[i]]));
-			ref_region_offset_present_flagField.addItem(IdxUnitField("ref_region_right_offset[%d]:{}", ref_loc_offset_layer_id[i], ref_region_right_offset[ref_loc_offset_layer_id[i]]));
-			ref_region_offset_present_flagField.addItem(IdxUnitField("ref_region_bottom_offset[%d]:{}", ref_loc_offset_layer_id[i], ref_region_bottom_offset[ref_loc_offset_layer_id[i]]));
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.addUnitField("num_ref_loc_offsets", num_ref_loc_offsets);
+		for(uint8_t i = 0;i < num_ref_loc_offsets;++i){
+
+			auto layer_id = ref_loc_offset_layer_id[i];
+
+			dumpObject.addIdxUnitField("ref_loc_offset_layer_id", i, layer_id);
+
+			dumpObject.startIdxValueUnitFieldList("scaled_ref_layer_offset_present_flag", scaled_ref_layer_offset_present_flag[i], i);
+			if(scaled_ref_layer_offset_present_flag[i]){
+				dumpObject.addIdxUnitField("scaled_ref_layer_left_offset[%d]:{}", scaled_ref_layer_left_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("scaled_ref_layer_top_offset[%d]:{}", scaled_ref_layer_top_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("scaled_ref_layer_right_offset[%d]:{}", scaled_ref_layer_right_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("scaled_ref_layer_bottom_offset[%d]:{}", scaled_ref_layer_bottom_offset[layer_id], layer_id);
+			}
+			dumpObject.endIdxValueUnitFieldList();
+
+			dumpObject.startIdxValueUnitFieldList("ref_region_offset_present_flag", ref_region_offset_present_flag[i], i);
+			if(scaled_ref_layer_offset_present_flag[i]){
+				dumpObject.addIdxUnitField("ref_region_left_offset[%d]:{}", ref_region_left_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("ref_region_top_offset[%d]:{}", ref_region_left_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("ref_region_right_offset[%d]:{}", ref_region_left_offset[layer_id], layer_id);
+				dumpObject.addIdxUnitField("ref_region_bottom_offset[%d]:{}", ref_region_bottom_offset[layer_id], layer_id);
+			}
+			dumpObject.endIdxValueUnitFieldList();
+
+			dumpObject.startIdxValueUnitFieldList("resample_phase_set_present_flag", resample_phase_set_present_flag[i], i);
+			if(scaled_ref_layer_offset_present_flag[i]){
+				dumpObject.addIdxUnitField("phase_hor_luma[%d]:{}", phase_hor_luma[layer_id], layer_id);
+				dumpObject.addIdxUnitField("phase_ver_luma[%d]:{}", phase_ver_luma[layer_id], layer_id);
+				dumpObject.addIdxUnitField("phase_hor_chroma_plus8[%d]:{}", phase_hor_chroma_plus8[layer_id], layer_id);
+				dumpObject.addIdxUnitField("phase_ver_chroma_plus8[%d]:{}", phase_ver_chroma_plus8[layer_id], layer_id);
+			}
+			dumpObject.endIdxValueUnitFieldList();
 		}
-		fields.addItem(std::move(ref_region_offset_present_flagField));
-		IdxValueUnitFieldList resample_phase_set_present_flagField = IdxValueUnitFieldList("resample_phase_set_present_flag", resample_phase_set_present_flag[i], i);
-		if(scaled_ref_layer_offset_present_flag[i]){
-			resample_phase_set_present_flagField.addItem(IdxUnitField("phase_hor_luma[%d]:{}", ref_loc_offset_layer_id[i], phase_hor_luma[ref_loc_offset_layer_id[i]]));
-			resample_phase_set_present_flagField.addItem(IdxUnitField("phase_ver_luma[%d]:{}", ref_loc_offset_layer_id[i], phase_ver_luma[ref_loc_offset_layer_id[i]]));
-			resample_phase_set_present_flagField.addItem(IdxUnitField("phase_hor_chroma_plus8[%d]:{}", ref_loc_offset_layer_id[i], phase_hor_chroma_plus8[ref_loc_offset_layer_id[i]]));
-			resample_phase_set_present_flagField.addItem(IdxUnitField("phase_ver_chroma_plus8[%d]:{}", ref_loc_offset_layer_id[i], phase_ver_chroma_plus8[ref_loc_offset_layer_id[i]]));
-		}
-		fields.addItem(std::move(resample_phase_set_present_flagField));
+		dumpObject.addUnitField("colour_mapping_enabled_flag", colour_mapping_enabled_flag);
 	}
-	fields.addItem(UnitField("colour_mapping_enabled_flag", colour_mapping_enabled_flag));
-	return fields;
+	return dumpObject.endUnitFieldList();
 }
 
 H265PPSDeltaLookupTable::H265PPSDeltaLookupTable(){
@@ -142,31 +157,37 @@ H265PPS3DExtension::H265PPS3DExtension(){
 	}
 }
 
-UnitFieldList H265PPS3DExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("PPS 3D Extension");
-	ValueUnitFieldList dlts_present_flagField = ValueUnitFieldList("dlts_present_flag", dlts_present_flag);
-	if(dlts_present_flag){
-		dlts_present_flagField.addItem(UnitField("pps_depth_layers_minus1", pps_depth_layers_minus1));
-		dlts_present_flagField.addItem(UnitField("pps_bit_depth_for_depth_layers_minus8", pps_bit_depth_for_depth_layers_minus8));
-		for(uint8_t i = 0;i <= pps_bit_depth_for_depth_layers_minus8;++i){
-			IdxValueUnitFieldList dlt_flagField = IdxValueUnitFieldList("dlt_flag", dlt_flag[i], i);
-			dlts_present_flagField.addItem(std::move(dlt_flagField));
-			if(dlt_flag[i]){
-				IdxValueUnitFieldList dlt_pred_flagField = IdxValueUnitFieldList("dlt_pred_flag", dlt_pred_flag[i], i);
-				dlt_flagField.addItem(std::move(dlt_pred_flagField));
-				IdxValueUnitFieldList dlt_val_flags_present_flagField = IdxValueUnitFieldList("dlt_val_flags_present_flag", dlt_val_flags_present_flag[i], i);
-				if(!dlt_pred_flag[i]){
-					dlt_pred_flagField.addItem(std::move(dlt_val_flags_present_flagField));
-				} 
-				
-				if(dlt_val_flags_present_flag[i]){
-					for(uint32_t j = 0;j < dlt_value_flag[i].size();++j) dlt_val_flags_present_flagField.addItem(DblIdxUnitField("dlt_value_flag", dlt_value_flag[i][j], i, j));
+void H265PPS3DExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("PPS 3D Extension");
+	{
+		dumpObject.startValueUnitFieldList("dlts_present_flag", dlts_present_flag);
+		if (dlts_present_flag) {
+			dumpObject.addUnitField("pps_depth_layers_minus1", pps_depth_layers_minus1);
+			dumpObject.addUnitField("pps_bit_depth_for_depth_layers_minus8", pps_bit_depth_for_depth_layers_minus8);
+			for (uint8_t i = 0; i <= pps_bit_depth_for_depth_layers_minus8; ++i)
+			{
+				dumpObject.startIdxValueUnitFieldList("dlt_flag", i, dlt_flag[i]);
+				if (dlt_flag[i]) {
+					dumpObject.startIdxValueUnitFieldList("dlt_pred_flag", dlt_pred_flag[i], i);
+
+					if (!dlt_pred_flag[i]) {
+						dumpObject.startIdxValueUnitFieldList("dlt_val_flags_present_flag", i, dlt_val_flags_present_flag[i]);
+						if (dlt_val_flags_present_flag[i]) {
+							for (uint32_t j = 0; j < dlt_value_flag[i].size(); ++j)
+								dumpObject.addDblIdxUnitField("dlt_value_flag", i, j, dlt_value_flag[i][j]);
+						}
+						dumpObject.endIdxValueUnitFieldList();
+					}
+
+					dumpObject.endIdxValueUnitFieldList();
 				}
+				dumpObject.endIdxValueUnitFieldList();
 			}
 		}
+		dumpObject.endValueUnitFieldList();
 	}
-	fields.addItem(std::move(dlts_present_flagField));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265PPSSCCExtension::H265PPSSCCExtension(){
@@ -182,34 +203,43 @@ H265PPSSCCExtension::H265PPSSCCExtension(){
 	chroma_bit_depth_entry_minus8 = 0;
 }
 
-UnitFieldList H265PPSSCCExtension::dump_fields(){
-	UnitFieldList fields = UnitFieldList("PPS SCC Extension");
-	fields.addItem(UnitField("pps_curr_pic_ref_enabled_flag", pps_curr_pic_ref_enabled_flag));
-	ValueUnitFieldList residual_adaptive_colour_transform_enabled_flagField = ValueUnitFieldList("residual_adaptive_colour_transform_enabled_flag", residual_adaptive_colour_transform_enabled_flag);
-	if(residual_adaptive_colour_transform_enabled_flag){
-		residual_adaptive_colour_transform_enabled_flagField.addItem(UnitField("pps_slice_act_qp_offsets_present_flag", pps_slice_act_qp_offsets_present_flag));
-		residual_adaptive_colour_transform_enabled_flagField.addItem(UnitField("pps_act_y_qp_offset_plus5", pps_act_y_qp_offset_plus5));
-		residual_adaptive_colour_transform_enabled_flagField.addItem(UnitField("pps_act_cb_qp_offset_plus5", pps_act_cb_qp_offset_plus5));
-		residual_adaptive_colour_transform_enabled_flagField.addItem(UnitField("pps_act_cr_qp_offset_plus3", pps_act_cr_qp_offset_plus3));
-	}
-	fields.addItem(std::move(residual_adaptive_colour_transform_enabled_flagField));
-	ValueUnitFieldList pps_palette_predictor_initializers_present_flagField = ValueUnitFieldList("pps_palette_predictor_initializers_present_flag", pps_palette_predictor_initializers_present_flag);
-	if(pps_palette_predictor_initializers_present_flag){
-		pps_palette_predictor_initializers_present_flagField.addItem(UnitField("pps_num_palette_predictor_initializer", pps_num_palette_predictor_initializer));
-		if(pps_num_palette_predictor_initializer > 0){
-			ValueUnitFieldList monochrome_palette_flagField = ValueUnitFieldList("monochrome_palette_flag", monochrome_palette_flag);
-			pps_palette_predictor_initializers_present_flagField.addItem(std::move(monochrome_palette_flagField));
-			pps_palette_predictor_initializers_present_flagField.addItem(UnitField("luma_bit_depth_entry_minus8", luma_bit_depth_entry_minus8));
-			if(!monochrome_palette_flag) monochrome_palette_flagField.addItem(UnitField("chroma_bit_depth_entry_minus8", chroma_bit_depth_entry_minus8));
-			for(uint8_t comp = 0;comp < (monochrome_palette_flag ? 1 : 3);++comp){
-				for(uint32_t i = 0;i < pps_num_palette_predictor_initializer;++i){
-					pps_palette_predictor_initializers_present_flagField.addItem(StringFormatter::formatString("pps_palette_predictor_initializer", pps_palette_predictor_initializer[comp][i], comp, i));
+void H265PPSSCCExtension::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("PPS SCC Extension");
+	{
+		dumpObject.addUnitField("pps_curr_pic_ref_enabled_flag", pps_curr_pic_ref_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("residual_adaptive_colour_transform_enabled_flag", residual_adaptive_colour_transform_enabled_flag);
+		if(residual_adaptive_colour_transform_enabled_flag){
+			dumpObject.addUnitField("pps_slice_act_qp_offsets_present_flag", pps_slice_act_qp_offsets_present_flag);
+			dumpObject.addUnitField("pps_act_y_qp_offset_plus5", pps_act_y_qp_offset_plus5);
+			dumpObject.addUnitField("pps_act_cb_qp_offset_plus5", pps_act_cb_qp_offset_plus5);
+			dumpObject.addUnitField("pps_act_cr_qp_offset_plus3", pps_act_cr_qp_offset_plus3);
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("pps_palette_predictor_initializers_present_flag", pps_palette_predictor_initializers_present_flag);
+		if(pps_palette_predictor_initializers_present_flag){
+			dumpObject.addUnitField("pps_num_palette_predictor_initializer", pps_num_palette_predictor_initializer);
+			if(pps_num_palette_predictor_initializer > 0){
+				dumpObject.startValueUnitFieldList("monochrome_palette_flag", monochrome_palette_flag);
+
+				dumpObject.addUnitField("luma_bit_depth_entry_minus8", luma_bit_depth_entry_minus8);
+				if(!monochrome_palette_flag){
+					dumpObject.addUnitField("chroma_bit_depth_entry_minus8", chroma_bit_depth_entry_minus8);
 				}
+				for(uint8_t comp = 0;comp < (monochrome_palette_flag ? 1 : 3);++comp){
+					for(uint32_t i = 0;i < pps_num_palette_predictor_initializer;++i){
+						auto str = StringFormatter::formatString("pps_palette_predictor_initializer", pps_palette_predictor_initializer[comp][i], comp, i);
+						dumpObject.addUnitFieldListItem(str.c_str());
+					}
+				}
+				dumpObject.endValueUnitFieldList();
 			}
 		}
+		dumpObject.endValueUnitFieldList();
 	}
-	fields.addItem(std::move(pps_palette_predictor_initializers_present_flagField));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265PPS::H265PPS():
@@ -264,85 +294,115 @@ H265PPS::H265PPS(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh
 
 H265PPS::~H265PPS(){}
 
-UnitFieldList H265PPS::dump_fields(){
-	UnitFieldList fields = UnitFieldList("Picture Parameter Set", H265NAL::dump_fields());
-	if(!completelyParsed) return fields;
-	fields.addItem(UnitField("pps_pic_parameter_set_id", pps_pic_parameter_set_id));
-	fields.addItem(UnitField("pps_seq_parameter_set_id", pps_seq_parameter_set_id));
-	fields.addItem(UnitField("dependent_slice_segments_enabled_flag", dependent_slice_segments_enabled_flag));
-	fields.addItem(UnitField("output_flag_present_flagd", output_flag_present_flag));
-	fields.addItem(UnitField("num_extra_slice_header_bitser_set_id", num_extra_slice_header_bits));
-	fields.addItem(UnitField("sign_data_hiding_enabled_flag", sign_data_hiding_enabled_flag));
-	fields.addItem(UnitField("cabac_init_present_flag", cabac_init_present_flag));
-	fields.addItem(UnitField("num_ref_idx_l0_default_active_minus1", num_ref_idx_l0_default_active_minus1));
-	fields.addItem(UnitField("num_ref_idx_l1_default_active_minus1", num_ref_idx_l1_default_active_minus1));
-	fields.addItem(UnitField("init_qp_minus26", init_qp_minus26));
-	fields.addItem(UnitField("constrained_intra_pred_flag", constrained_intra_pred_flag));
-	fields.addItem(UnitField("transform_skip_enabled_flag", transform_skip_enabled_flag));
-	ValueUnitFieldList cu_qp_delta_enabled_flagField = ValueUnitFieldList("cu_qp_delta_enabled_flag", cu_qp_delta_enabled_flag);
-	if(cu_qp_delta_enabled_flag){
-		cu_qp_delta_enabled_flagField.addItem(UnitField("diff_cu_qp_delta_depth", diff_cu_qp_delta_depth));
-	}
-	fields.addItem(std::move(cu_qp_delta_enabled_flagField));
-	fields.addItem(UnitField("pps_cb_qp_offset", pps_cb_qp_offset));
-	fields.addItem(UnitField("pps_cr_qp_offset", pps_cr_qp_offset));
-	fields.addItem(UnitField("pps_slice_chroma_qp_offsets_present_flag", pps_slice_chroma_qp_offsets_present_flag));
-	fields.addItem(UnitField("weighted_pred_flag", weighted_pred_flag));
-	fields.addItem(UnitField("weighted_bipred_flag", weighted_bipred_flag));
-	fields.addItem(UnitField("transquant_bypass_enabled_flag", transquant_bypass_enabled_flag));
-	fields.addItem(UnitField("entropy_coding_sync_enabled_flag", entropy_coding_sync_enabled_flag));
-	ValueUnitFieldList tiles_enabled_flagField = ValueUnitFieldList("tiles_enabled_flag", tiles_enabled_flag);
-	if(tiles_enabled_flag){
-		tiles_enabled_flagField.addItem(UnitField("num_tile_columns_minus1", num_tile_columns_minus1));
-		tiles_enabled_flagField.addItem(UnitField("num_tile_rows_minus1", num_tile_rows_minus1));
-		ValueUnitFieldList uniform_spacing_flagField = ValueUnitFieldList("uniform_spacing_flag", uniform_spacing_flag);
-		if(!uniform_spacing_flag){
-			for(uint32_t i = 0;i < num_tile_columns_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("column_width_minus1", column_width_minus1[i], i));
-			for(uint32_t i = 0;i < num_tile_rows_minus1;++i) uniform_spacing_flagField.addItem(IdxUnitField("row_height_minus1", row_height_minus1[i], i));
+void H265PPS::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("Picture Parameter Set");
+	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
+		H265NAL::dump(dumpObject);
+
+		if (!completelyParsed) {
+			break;
 		}
-		tiles_enabled_flagField.addItem(std::move(uniform_spacing_flagField));
 		
-		tiles_enabled_flagField.addItem(UnitField("loop_filter_across_tiles_enabled_flag", loop_filter_across_tiles_enabled_flag));
-	}
-	fields.addItem(std::move(tiles_enabled_flagField));
-	fields.addItem(UnitField("pps_loop_filter_across_slices_enabled_flag", pps_loop_filter_across_slices_enabled_flag));
-	ValueUnitFieldList deblocking_filter_control_present_flagField = ValueUnitFieldList("deblocking_filter_control_present_flag", deblocking_filter_control_present_flag);
-	if(deblocking_filter_control_present_flag){
-		deblocking_filter_control_present_flagField.addItem(UnitField("deblocking_filter_override_enabled_flag", deblocking_filter_override_enabled_flag));
-		ValueUnitFieldList pps_deblocking_filter_disabled_flagField = ValueUnitFieldList("pps_deblocking_filter_disabled_flag", pps_deblocking_filter_disabled_flag);
-		if(!pps_deblocking_filter_disabled_flag){
-			pps_deblocking_filter_disabled_flagField.addItem(UnitField("pps_beta_offset_div2", pps_beta_offset_div2));
-			pps_deblocking_filter_disabled_flagField.addItem(UnitField("pps_tc_offset_div2", pps_tc_offset_div2));
+		dumpObject.addUnitField("pps_pic_parameter_set_id", pps_pic_parameter_set_id);
+		dumpObject.addUnitField("pps_seq_parameter_set_id", pps_seq_parameter_set_id);
+		dumpObject.addUnitField("dependent_slice_segments_enabled_flag", dependent_slice_segments_enabled_flag);
+		dumpObject.addUnitField("output_flag_present_flagd", output_flag_present_flag);
+		dumpObject.addUnitField("num_extra_slice_header_bitser_set_id", num_extra_slice_header_bits);
+		dumpObject.addUnitField("sign_data_hiding_enabled_flag", sign_data_hiding_enabled_flag);
+		dumpObject.addUnitField("cabac_init_present_flag", cabac_init_present_flag);
+		dumpObject.addUnitField("num_ref_idx_l0_default_active_minus1", num_ref_idx_l0_default_active_minus1);
+		dumpObject.addUnitField("num_ref_idx_l1_default_active_minus1", num_ref_idx_l1_default_active_minus1);
+		dumpObject.addUnitField("init_qp_minus26", init_qp_minus26);
+		dumpObject.addUnitField("constrained_intra_pred_flag", constrained_intra_pred_flag);
+		dumpObject.addUnitField("transform_skip_enabled_flag", transform_skip_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("cu_qp_delta_enabled_flag", cu_qp_delta_enabled_flag);
+		if(cu_qp_delta_enabled_flag){
+			dumpObject.addUnitField("diff_cu_qp_delta_depth", diff_cu_qp_delta_depth);
 		}
-		deblocking_filter_control_present_flagField.addItem(std::move(pps_deblocking_filter_disabled_flagField));
+		dumpObject.endValueUnitFieldList();
+		
+		dumpObject.addUnitField("pps_cb_qp_offset", pps_cb_qp_offset);
+		dumpObject.addUnitField("pps_cr_qp_offset", pps_cr_qp_offset);
+		dumpObject.addUnitField("pps_slice_chroma_qp_offsets_present_flag", pps_slice_chroma_qp_offsets_present_flag);
+		dumpObject.addUnitField("weighted_pred_flag", weighted_pred_flag);
+		dumpObject.addUnitField("weighted_bipred_flag", weighted_bipred_flag);
+		dumpObject.addUnitField("transquant_bypass_enabled_flag", transquant_bypass_enabled_flag);
+		dumpObject.addUnitField("entropy_coding_sync_enabled_flag", entropy_coding_sync_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("tiles_enabled_flag", tiles_enabled_flag);
+		if(tiles_enabled_flag){
+			dumpObject.addUnitField("num_tile_columns_minus1", num_tile_columns_minus1);
+			dumpObject.addUnitField("num_tile_rows_minus1", num_tile_rows_minus1);
+			dumpObject.startValueUnitFieldList("uniform_spacing_flag", uniform_spacing_flag);
+			if(!uniform_spacing_flag){
+				for(uint32_t i = 0;i < num_tile_columns_minus1;++i){
+					dumpObject.addIdxUnitField("column_width_minus1", i, column_width_minus1[i]);
+				}
+				for(uint32_t i = 0;i < num_tile_rows_minus1;++i){
+					dumpObject.addIdxUnitField("row_height_minus1", i, row_height_minus1[i]);
+				}
+			}
+			dumpObject.endValueUnitFieldList();
+
+			dumpObject.addUnitField("loop_filter_across_tiles_enabled_flag", loop_filter_across_tiles_enabled_flag);
+		}
+		dumpObject.endValueUnitFieldList();
+		
+		dumpObject.addUnitField("pps_loop_filter_across_slices_enabled_flag", pps_loop_filter_across_slices_enabled_flag);
+
+		dumpObject.startValueUnitFieldList("deblocking_filter_control_present_flag", deblocking_filter_control_present_flag);
+		if(deblocking_filter_control_present_flag){
+			dumpObject.addUnitField("deblocking_filter_override_enabled_flag", deblocking_filter_override_enabled_flag);
+			dumpObject.startValueUnitFieldList("pps_deblocking_filter_disabled_flag", pps_deblocking_filter_disabled_flag);
+			if(!pps_deblocking_filter_disabled_flag){
+				dumpObject.addUnitField("pps_beta_offset_div2", pps_beta_offset_div2);
+				dumpObject.addUnitField("pps_tc_offset_div2", pps_tc_offset_div2);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
+
+		dumpObject.startValueUnitFieldList("pps_scaling_list_data_present_flag", pps_scaling_list_data_present_flag);
+		if(pps_scaling_list_data_present_flag){
+			scaling_list_data.dump(dumpObject);
+		}
+		dumpObject.endValueUnitFieldList();
+		
+		dumpObject.addUnitField("lists_modification_present_flag", lists_modification_present_flag);
+		dumpObject.addUnitField("log2_parallel_merge_level_minus2", log2_parallel_merge_level_minus2);
+		dumpObject.addUnitField("slice_segment_header_extension_present_flag", slice_segment_header_extension_present_flag);
+
+		dumpObject.startValueUnitFieldList("pps_extension_present_flag", pps_extension_present_flag);
+		if(pps_extension_present_flag){
+			dumpObject.startValueUnitFieldList("pps_range_extension_flag", pps_range_extension_flag);
+			if(pps_range_extension_flag){
+				pps_range_extension.dump(dumpObject);
+			}
+			dumpObject.endValueUnitFieldList();
+
+			dumpObject.startValueUnitFieldList("pps_multilayer_extension_flag", pps_multilayer_extension_flag);
+			if(pps_multilayer_extension_flag){
+				pps_multilayer_extension.dump(dumpObject);
+			}
+			dumpObject.endValueUnitFieldList();
+
+			dumpObject.startValueUnitFieldList("pps_3d_extension_flag", pps_3d_extension_flag);
+			if(pps_3d_extension_flag){
+				pps_3d_extension.dump(dumpObject);
+			}
+			dumpObject.endValueUnitFieldList();
+
+			dumpObject.startValueUnitFieldList("pps_scc_extension_flag", pps_scc_extension_flag);
+			if(pps_scc_extension_flag){
+				pps_scc_extension.dump(dumpObject);
+			}
+			dumpObject.endValueUnitFieldList();
+		}
+		dumpObject.endValueUnitFieldList();
 	}
-	fields.addItem(std::move(deblocking_filter_control_present_flagField));
-	ValueUnitFieldList pps_scaling_list_data_present_flagField = ValueUnitFieldList("pps_scaling_list_data_present_flag", pps_scaling_list_data_present_flag);
-	if(pps_scaling_list_data_present_flag)pps_scaling_list_data_present_flagField.addItem(scaling_list_data.dump_fields());
-	fields.addItem(std::move(pps_scaling_list_data_present_flagField));
-	fields.addItem(UnitField("lists_modification_present_flag", lists_modification_present_flag));
-	fields.addItem(UnitField("log2_parallel_merge_level_minus2", log2_parallel_merge_level_minus2));
-	fields.addItem(UnitField("slice_segment_header_extension_present_flag", slice_segment_header_extension_present_flag));
-	ValueUnitFieldList pps_extension_present_flagField = ValueUnitFieldList("pps_extension_present_flag", pps_extension_present_flag);
-	if(pps_extension_present_flag){
-		ValueUnitFieldList pps_range_extension_flagField = ValueUnitFieldList("pps_range_extension_flag", pps_range_extension_flag);
-		pps_extension_present_flagField.addItem(std::move(pps_range_extension_flagField));
-		if(pps_range_extension_flag) pps_range_extension_flagField.addItem(pps_range_extension.dump_fields());
-		
-		ValueUnitFieldList pps_multilayer_extension_flagField = ValueUnitFieldList("pps_multilayer_extension_flag", pps_multilayer_extension_flag);
-		pps_extension_present_flagField.addItem(std::move(pps_multilayer_extension_flagField));
-		if(pps_multilayer_extension_flag) pps_multilayer_extension_flagField.addItem(pps_multilayer_extension.dump_fields());
-		
-		ValueUnitFieldList pps_3d_extension_flagField = ValueUnitFieldList("pps_3d_extension_flag", pps_3d_extension_flag);
-		pps_extension_present_flagField.addItem(std::move(pps_3d_extension_flagField));
-		if(pps_3d_extension_flag) pps_3d_extension_flagField.addItem(pps_3d_extension.dump_fields());
-		
-		ValueUnitFieldList pps_scc_extension_flagField = ValueUnitFieldList("pps_scc_extension_flag", pps_scc_extension_flag);
-		pps_extension_present_flagField.addItem(std::move(pps_scc_extension_flagField));
-		if(pps_scc_extension_flag) pps_scc_extension_flagField.addItem(pps_scc_extension.dump_fields());
-	}
-	fields.addItem(std::move(pps_extension_present_flagField));
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H265PPS::validate(){

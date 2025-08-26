@@ -1,7 +1,6 @@
 #include <algorithm>
 
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265HrdParameters.h"
 
@@ -10,18 +9,22 @@ H265SubLayerHrdParameters::H265SubLayerHrdParameters()
 
 }
 
-UnitFieldList H265SubLayerHrdParameters::dump_fields(uint8_t sub_pic_hrd_params_present_flag){
-	UnitFieldList fields = UnitFieldList("Sub-HRD Parameters");
-	for(uint32_t i = 0;i < bit_rate_du_value_minus1.size();++i){
-		fields.addItem(IdxUnitField("bit_rate_value_minus1", bit_rate_value_minus1[i], i));
-		fields.addItem(IdxUnitField("cpb_size_value_minus1", cpb_size_value_minus1[i], i));
-		if(sub_pic_hrd_params_present_flag){
-			fields.addItem(IdxUnitField("cpb_size_du_value_minus1", cpb_size_du_value_minus1[i], i));
-			fields.addItem(IdxUnitField("bit_rate_du_value_minus1", bit_rate_du_value_minus1[i], i));
+void H265SubLayerHrdParameters::dump(H26XDumpObject& dumpObject, uint8_t sub_pic_hrd_params_present_flag) const
+{
+	dumpObject.startUnitFieldList("Sub-HRD Parameters");
+	{
+		for(uint32_t i = 0;i < bit_rate_du_value_minus1.size();++i) {
+			dumpObject.addIdxUnitField("bit_rate_value_minus1", i, bit_rate_value_minus1[i]);
+			dumpObject.addIdxUnitField("cpb_size_value_minus1", i, cpb_size_value_minus1[i]);
+			if (sub_pic_hrd_params_present_flag) {
+				dumpObject.addIdxUnitField("cpb_size_du_value_minus1", i, cpb_size_du_value_minus1[i]);
+				dumpObject.addIdxUnitField("bit_rate_du_value_minus1", i, bit_rate_du_value_minus1[i]);
+			}
+			dumpObject.addIdxUnitField("cbr_flag", i, cbr_flag[i]);
+
 		}
-		fields.addItem(IdxUnitField("cbr_flag", cbr_flag[i], i));
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 H265HrdParameters::H265HrdParameters()
@@ -41,42 +44,58 @@ H265HrdParameters::H265HrdParameters()
 	dpb_output_delay_length_minus1 = 0;
 }
 
-UnitFieldList H265HrdParameters::dump_fields(uint8_t commonInfPresentFlag){
-	UnitFieldList fields = UnitFieldList("HRD Parameters");
+void H265HrdParameters::dump(H26XDumpObject& dumpObject, uint8_t commonInfPresentFlag) const
+{
+	dumpObject.startUnitFieldList("HRD Parameters");
 	if(commonInfPresentFlag){
-		fields.addItem(UnitField("nal_hrd_parameters_present_flag", nal_hrd_parameters_present_flag));
-		fields.addItem(UnitField("vcl_hrd_parameters_present_flag", vcl_hrd_parameters_present_flag));
-		if(nal_hrd_parameters_present_flag || vcl_hrd_parameters_present_flag){
-			ValueUnitFieldList sub_pic_hrd_params_present_flagField = ValueUnitFieldList("sub_pic_hrd_params_present_flag", sub_pic_hrd_params_present_flag);
+		dumpObject.addUnitField("nal_hrd_parameters_present_flag", nal_hrd_parameters_present_flag);
+		dumpObject.addUnitField("vcl_hrd_parameters_present_flag", vcl_hrd_parameters_present_flag);
+		if(nal_hrd_parameters_present_flag || vcl_hrd_parameters_present_flag)
+		{
+			dumpObject.startValueUnitFieldList("sub_pic_hrd_params_present_flag", sub_pic_hrd_params_present_flag);
 			if(sub_pic_hrd_params_present_flag){
-				sub_pic_hrd_params_present_flagField.addItem(UnitField("tick_divisor_minus2", tick_divisor_minus2));
-				sub_pic_hrd_params_present_flagField.addItem(UnitField("du_cpb_removal_delay_increment_length_minus1", du_cpb_removal_delay_increment_length_minus1));
-				sub_pic_hrd_params_present_flagField.addItem(UnitField("sub_pic_cpb_params_in_pic_timing_sei_flag", sub_pic_cpb_params_in_pic_timing_sei_flag));
-				sub_pic_hrd_params_present_flagField.addItem(UnitField("dpb_output_delay_du_length_minus1", dpb_output_delay_du_length_minus1));
+				dumpObject.addUnitField("tick_divisor_minus2", tick_divisor_minus2);
+				dumpObject.addUnitField("du_cpb_removal_delay_increment_length_minus1", du_cpb_removal_delay_increment_length_minus1);
+				dumpObject.addUnitField("sub_pic_cpb_params_in_pic_timing_sei_flag", sub_pic_cpb_params_in_pic_timing_sei_flag);
+				dumpObject.addUnitField("dpb_output_delay_du_length_minus1", dpb_output_delay_du_length_minus1);
 			}
-			fields.addItem(std::move(sub_pic_hrd_params_present_flagField));
-			fields.addItem(UnitField("bit_rate_scale", bit_rate_scale));
-			fields.addItem(UnitField("cpb_size_scale", cpb_size_scale));
-			if(sub_pic_hrd_params_present_flag) fields.addItem(UnitField("cpb_size_du_scale", cpb_size_du_scale));
-			fields.addItem(UnitField("initial_cpb_removal_delay_length_minus1", initial_cpb_removal_delay_length_minus1));
-			fields.addItem(UnitField("au_cpb_removal_delay_length_minus1", au_cpb_removal_delay_length_minus1));
-			fields.addItem(UnitField("dpb_output_delay_length_minus1", dpb_output_delay_length_minus1));
+			dumpObject.endValueUnitFieldList();
+			dumpObject.addUnitField("bit_rate_scale", bit_rate_scale);
+			dumpObject.addUnitField("cpb_size_scale", cpb_size_scale);
+			if(sub_pic_hrd_params_present_flag){
+				dumpObject.addUnitField("cpb_size_du_scale", cpb_size_du_scale);
+			}
+			dumpObject.addUnitField("initial_cpb_removal_delay_length_minus1", initial_cpb_removal_delay_length_minus1);
+			dumpObject.addUnitField("au_cpb_removal_delay_length_minus1", au_cpb_removal_delay_length_minus1);
+			dumpObject.addUnitField("dpb_output_delay_length_minus1", dpb_output_delay_length_minus1);
 		}
 	}
-	for(uint32_t i = 0;i < fixed_pic_rate_general_flag.size();++i){
-		IdxValueUnitFieldList fixed_pic_rate_general_flagField = IdxValueUnitFieldList("fixed_pic_rate_general_flag", fixed_pic_rate_general_flag[i], i);
-		IdxValueUnitFieldList fixed_pic_rate_within_cvs_flagField = IdxValueUnitFieldList("fixed_pic_rate_within_cvs_flag", fixed_pic_rate_within_cvs_flag[i], i);
+	for(uint32_t i = 0;i < fixed_pic_rate_general_flag.size();++i)
+	{
+		dumpObject.startIdxValueUnitFieldList("fixed_pic_rate_general_flag", i, fixed_pic_rate_general_flag[i]);
 		if(!fixed_pic_rate_general_flag[i]) {
-			fixed_pic_rate_general_flagField.addItem(std::move(fixed_pic_rate_within_cvs_flagField));
+			dumpObject.startIdxValueUnitFieldList("fixed_pic_rate_within_cvs_flag", fixed_pic_rate_within_cvs_flag[i], i);
+			if(fixed_pic_rate_within_cvs_flag[i]){
+				dumpObject.addIdxUnitField("elemental_duration_in_tc_minus1", i, elemental_duration_in_tc_minus1[i]);
+			}else{
+				dumpObject.addIdxUnitField("low_delay_hrd_flag", i, low_delay_hrd_flag[i]);
+			}
+			dumpObject.endIdxValueUnitFieldList();
 		}
-		fields.addItem(std::move(fixed_pic_rate_general_flagField));
-		if(fixed_pic_rate_within_cvs_flag[i]) fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("elemental_duration_in_tc_minus1", elemental_duration_in_tc_minus1[i], i));
-		else fixed_pic_rate_within_cvs_flagField.addItem(IdxUnitField("low_delay_hrd_flag", low_delay_hrd_flag[i], i));
-		if(!low_delay_hrd_flag[i]) fields.addItem(IdxUnitField("cpb_cnt_minus1", cpb_cnt_minus1[i], i));
-		if(nal_hrd_parameters_present_flag) fields.addItem(nal_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag));
-		if(vcl_hrd_parameters_present_flag) fields.addItem(vcl_sub_layer_hrd_parameters[i].dump_fields(sub_pic_hrd_params_present_flag));
+		dumpObject.endIdxValueUnitFieldList();
+
+
+		if(!low_delay_hrd_flag[i]){
+			dumpObject.addIdxUnitField("cpb_cnt_minus1", i, cpb_cnt_minus1[i]);
+		}
+		if(nal_hrd_parameters_present_flag){
+			nal_sub_layer_hrd_parameters[i].dump(dumpObject, sub_pic_hrd_params_present_flag);
+		}
+		if(vcl_hrd_parameters_present_flag){
+			vcl_sub_layer_hrd_parameters[i].dump(dumpObject, sub_pic_hrd_params_present_flag);
+		}
 	}
-	return fields;
+	dumpObject.endUnitFieldList();
 }
 
 void H265HrdParameters::validate(){

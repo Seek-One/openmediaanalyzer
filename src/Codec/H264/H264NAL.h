@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "../H26X/H26XDumpObject.h"
+
 class UnitFieldList;
 
 struct H264NAL {
@@ -46,7 +48,7 @@ struct H264NAL {
 	std::vector<std::string> minorErrors;
 	std::vector<std::string> majorErrors;
 
-	virtual UnitFieldList dump_fields();
+	virtual void dump(H26XDumpObject& dumpObject) const;
 	virtual void validate();
 };
 

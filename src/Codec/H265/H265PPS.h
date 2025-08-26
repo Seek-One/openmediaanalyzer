@@ -20,7 +20,7 @@ struct H265PPSRangeExtension {
 	uint8_t log2_sao_offset_scale_luma;
 	uint8_t log2_sao_offset_scale_chroma;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265PPSColourMappingOctants {
@@ -90,7 +90,7 @@ struct H265PPSMultilayerExtension {
 	uint8_t colour_mapping_enabled_flag;
 	H265PPSColourMappingTable colour_mapping_table;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265PPSDeltaLookupTable {
@@ -115,7 +115,7 @@ struct H265PPS3DExtension {
 	std::array<std::vector<uint8_t>, 64> dlt_value_flag;
 	std::array<H265PPSDeltaLookupTable, 64> delta_dlt;
 
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265PPSSCCExtension {
@@ -134,7 +134,7 @@ struct H265PPSSCCExtension {
 	uint8_t luma_bit_depth_entry_minus8;
 	uint8_t chroma_bit_depth_entry_minus8;
 	std::array<std::vector<uint32_t>, 3> pps_palette_predictor_initializer;
-	UnitFieldList dump_fields();
+	void dump(H26XDumpObject& dumpObject) const;
 };
 
 struct H265PPS : public H265NAL {
@@ -197,7 +197,7 @@ struct H265PPS : public H265NAL {
 
 	static inline std::unordered_map<uint8_t, H265PPS*> PPSMap;
 
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	void validate() override;
 };
 

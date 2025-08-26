@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "../H26X/H26XDumpObject.h"
+
 class UnitFieldList;
 
 struct H265NAL {
@@ -64,8 +66,7 @@ struct H265NAL {
 	bool isTSA() const;
 	bool isSTSA() const;
 
-
-	virtual UnitFieldList dump_fields();
+	virtual void dump(H26XDumpObject& dumpObject) const;
 	virtual void validate();
 };
 

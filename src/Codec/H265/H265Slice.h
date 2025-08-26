@@ -21,7 +21,7 @@ struct RefPicListsModification {
 	uint8_t ref_pic_list_modification_flag_l1;
 	std::vector<uint32_t> list_entry_l1;
 
-	UnitFieldList dump_fields(const H265Slice& slice) const;
+	void dump(H26XDumpObject& dumpObject, const H265Slice& slice) const;
 	std::vector<std::string> minorErrors;
 	std::vector<std::string> majorErrors;
 	void validate(const H265Slice& h265Slice);
@@ -47,7 +47,7 @@ struct H265PredWeightTable {
 
 	std::vector<std::string> minorErrors;
 	std::vector<std::string> majorErrors;
-	UnitFieldList dump_fields(const H265Slice& h265Slice);
+	void dump(H26XDumpObject& dumpObject, const H265Slice& h265Slice) const;
 	void validate(const H265Slice& h265Slice);
 };
 
@@ -146,7 +146,7 @@ struct H265Slice : public H265NAL {
 	std::vector<H265AccessUnit*> RefPicList0; // 8.3.4 (For P-slice)
 	std::vector<H265AccessUnit*> RefPicList1; // 8.3.4 (For B-slice)
 
-	UnitFieldList dump_fields() override;
+	void dump(H26XDumpObject& dumpObject) const override;
 	H265PPS* getPPS() const;
 	H265SPS* getSPS() const;
 	H265VPS* getVPS() const;

@@ -2,7 +2,6 @@
 
 #include "../H26X/H26XUtils.h"
 #include "../../StringHelpers/StringFormatter.h"
-#include "../../StringHelpers/UnitFieldList.h"
 
 #include "H265NAL.h"
 
@@ -103,16 +102,18 @@ bool H265NAL::isSTSA() const{
 	return false;
 }
 
-UnitFieldList H265NAL::dump_fields(){
-	UnitFieldList fields = UnitFieldList("NAL Unit");
-	fields.addItem(UnitField("forbidden_zero_bit", forbidden_zero_bit));
-	fields.addItem(UnitField("nal_unit_type", nal_unit_type));
-	fields.addItem(UnitField("nuh_layer_id", nuh_layer_id));
-	fields.addItem(UnitField("TemporalId", TemporalId));
-	return fields;
+void H265NAL::dump(H26XDumpObject& dumpObject) const
+{
+	dumpObject.startUnitFieldList("NAL Unit");
+	dumpObject.addUnitField("forbidden_zero_bit", forbidden_zero_bit);
+	dumpObject.addUnitField("nal_unit_type", nal_unit_type);
+	dumpObject.addUnitField("nuh_layer_id", nuh_layer_id);
+	dumpObject.addUnitField("TemporalId", TemporalId);
+	dumpObject.endUnitFieldList();
 }
 
-void H265NAL::validate(){
+void H265NAL::validate()
+{
 	if(forbidden_zero_bit != 0) minorErrors.push_back("[NAL header] forbidden_zero_bit not equal to 0");
 	if(nuh_layer_id > 62) minorErrors.push_back(StringFormatter::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
 	if(nuh_temporal_id_plus1 == 0) minorErrors.push_back("[NAL header] nuh_temporal_id_plus1 equal to 0");

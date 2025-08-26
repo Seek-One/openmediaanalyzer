@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "../H26X/H26XDumpObject.h"
 #include "H264NAL.h"
 
 struct H264AUD : public H264NAL {
@@ -23,8 +24,8 @@ struct H264AUD : public H264NAL {
     };
 
     uint8_t primary_pic_type;
-    
-	UnitFieldList dump_fields() override;
+
+	void dump(H26XDumpObject& dumpObject) const;
     void validate() override;
 };
 

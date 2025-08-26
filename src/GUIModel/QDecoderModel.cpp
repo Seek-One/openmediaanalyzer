@@ -24,9 +24,9 @@
 #include "../Codec/H265/H265SPS.h"
 #include "../Codec/H265/H265PPS.h"
 #include "../Codec/H265/H265Slice.h"
-#include "../StringHelpers/UnitFieldList.h"
 
 #include "QDecoderModel.h"
+#include "GUIController/QH26XDumpObject.h"
 
 QDecoderModel::QDecoderModel():
     m_isLiveStream(false),
@@ -49,62 +49,93 @@ QDecoderModel::~QDecoderModel(){
     while(!m_requestedFrames.empty()) m_requestedFrames.pop();
 }
 
-void buildH264SPSView(QDecoderModel* pDecoderModel){
-    QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
-    QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H264SPS::SPSMap){
-        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
+void buildH264SPSView(QDecoderModel* pDecoderModel)
+{
+	auto pModel = new QStandardItemModel(0, 2);
+	pModel->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+	pModel->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
+
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(pModel);
+
+    for(auto entry : H264SPS::SPSMap)
+	{
+		auto pNalUnit = entry.second;
+		pNalUnit->dump(itemH26XObjectDump);
     }
-    emit pDecoderModel->updateSPSInfoView(model);
+    emit pDecoderModel->updateSPSInfoView(pModel);
 }
 
-void buildH264PPSView(QDecoderModel* pDecoderModel){
-    QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
-    QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H264PPS::PPSMap){
-        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
-    }
-    emit pDecoderModel->updatePPSInfoView(model);
+void buildH264PPSView(QDecoderModel* pDecoderModel)
+{
+	auto pModel = new QStandardItemModel(0, 2);
+	pModel->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+	pModel->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
+
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(pModel);
+
+	for(auto entry : H264PPS::PPSMap){
+		auto pNalUnit = entry.second;
+		pNalUnit->dump(itemH26XObjectDump);
+	}
+
+    emit pDecoderModel->updatePPSInfoView(pModel);
 }
 
-void buildVPSView(QDecoderModel* pDecoderModel){
-    QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
-    QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H265VPS::VPSMap){
-        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
-    }
-    emit pDecoderModel->updateVPSInfoView(model);
+void buildVPSView(QDecoderModel* pDecoderModel)
+{
+	auto pModel = new QStandardItemModel(0, 2);
+	pModel->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+	pModel->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
+
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(pModel);
+
+	for(auto entry : H265VPS::VPSMap){
+		auto pNalUnit = entry.second;
+		pNalUnit->dump(itemH26XObjectDump);
+	}
+
+    emit pDecoderModel->updateVPSInfoView(pModel);
 }
 
-void buildH265SPSView(QDecoderModel* pDecoderModel){
-    QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
-    QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H265SPS::SPSMap){
-        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
-    }
-    emit pDecoderModel->updateSPSInfoView(model);
+void buildH265SPSView(QDecoderModel* pDecoderModel)
+{
+	auto pModel = new QStandardItemModel(0, 2);
+	pModel->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+	pModel->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
+
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(pModel);
+
+	for(auto entry : H265SPS::SPSMap){
+		auto pNalUnit = entry.second;
+		pNalUnit->dump(itemH26XObjectDump);
+	}
+
+    emit pDecoderModel->updateSPSInfoView(pModel);
 }
 
-void buildH265PPSView(QDecoderModel* pDecoderModel){
-    QStandardItemModel* model = new QStandardItemModel(0, 2);
-    model->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
-    QStandardItem* root = model->invisibleRootItem();
-    for(auto entry : H265PPS::PPSMap){
-        root->appendRow(entry.second->dump_fields().toQtStandardItemRow());
-    }
-    emit pDecoderModel->updatePPSInfoView(model);
+void buildH265PPSView(QDecoderModel* pDecoderModel)
+{
+	auto pModel = new QStandardItemModel(0, 2);
+	pModel->setHorizontalHeaderItem(0, new QStandardItem(QDecoderModel::tr("field")));
+	pModel->setHorizontalHeaderItem(1, new QStandardItem(QDecoderModel::tr("value")));
+
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(pModel);
+
+	for(auto entry : H265PPS::PPSMap){
+		auto pNalUnit = entry.second;
+		pNalUnit->dump(itemH26XObjectDump);
+	}
+
+    emit pDecoderModel->updatePPSInfoView(pModel);
 }
 
-void QDecoderModel::newVideoStream(bool isLiveStream){
+void QDecoderModel::newVideoStream(bool isLiveStream)
+{
     m_isLiveStream = isLiveStream;
 
     if(m_pH264Stream) delete m_pH264Stream;
@@ -390,97 +421,101 @@ QStringList majorErrorListFromAccessUnit(const std::variant<const H264AccessUnit
     return errors;
 }
 
-void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit){
-    if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
+void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit)
+{
+	QH26XDumpObject itemH26XObjectDump;
+	itemH26XObjectDump.setModel(model);
+	
+	if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H264AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H264NAL::UnitType_AUD:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H264NAL::UnitType_NonIDRFrame:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H264NAL::UnitType_IDRFrame:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H264NAL::UnitType_PPS:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H264NAL::UnitType_SPS:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H264NAL::UnitType_SEI:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 default:
                     continue;
             }
         }
-    } else  if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
+    } else if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H265AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
                 case H265NAL::UnitType_TRAIL_N:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_TRAIL_R:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_TSA_N:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_TSA_R:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_STSA_N:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_STSA_R:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_RADL_N:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_RADL_R:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_RASL_N:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_RASL_R:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_BLA_W_LP:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_BLA_W_RADL:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_BLA_N_LP:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_IDR_W_RADL:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_IDR_N_LP:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_CRA_NUT:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_VPS:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_SPS:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_PPS:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_SEI_PREFIX:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 case H265NAL::UnitType_SEI_SUFFIX:
-                    model->appendRow(NALUnit->dump_fields().toQtStandardItemRow());
+                    NALUnit->dump(itemH26XObjectDump);
                     break;
                 default:
                     continue;

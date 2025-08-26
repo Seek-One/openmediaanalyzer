@@ -828,6 +828,12 @@ H265ShortTermRefPicSet H265BitstreamReader::readShortTermRefPicSet(uint32_t iSho
 		int32_t deltaRps = (1 - 2 * shortTermRefPicSet.delta_rps_sign) * (shortTermRefPicSet.abs_delta_rps_minus1 + 1); // 7-60
 		const H265ShortTermRefPicSet& RefRps = h265SPS.short_term_ref_pic_set[RefRpsIdx];
 
+		auto iTabSizeDeltaPoc = RefRps.NumPositivePics + RefRps.NumNegativePics + RefRps.NumDeltaPocs + 1;
+		shortTermRefPicSet.DeltaPocS0.resize(iTabSizeDeltaPoc);
+		shortTermRefPicSet.UsedByCurrPicS0.resize(iTabSizeDeltaPoc);
+		shortTermRefPicSet.DeltaPocS1.resize(iTabSizeDeltaPoc);
+		shortTermRefPicSet.UsedByCurrPicS1.resize(iTabSizeDeltaPoc);
+
 		uint32_t i = 0;
 		for (int32_t j = ((int)RefRps.NumPositivePics - 1); j >= 0; j--) {
 			int32_t dPoc = RefRps.DeltaPocS1[j] + deltaRps;

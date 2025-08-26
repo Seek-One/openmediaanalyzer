@@ -1,4 +1,5 @@
 #include "Codec/H26X/H26XBitstreamReader.h"
+#include "Codec/H26X/H26XErrorsMsg.h"
 #include "Codec/H264/H264SEI.h"
 #include "Codec/H264/H264GOP.h"
 #include "Codec/H264/H264SPS.h"

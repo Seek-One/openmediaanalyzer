@@ -16,6 +16,19 @@ H265InvalidSamplesParsing::H265InvalidSamplesParsing(const char* szDirTestFile)
 	m_szDirTestFile = szDirTestFile;
 }
 
+bool H265InvalidSamplesParsing::hasError(const H26XErrors& errors, H26XError::Level level, const std::string& szErrorMsg)
+{
+	for(const H26XError& error : errors)
+	{
+		if((level == H26XError::Unknown) || (error.level() == level)){
+			if(error.message() == szErrorMsg){
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void H265InvalidSamplesParsing::loadStream(const QString& szDirName, H265Stream& stream, const bool expectedPacketParsingResult){
 	QDir dirFrame = QDir(QString("%0/stream-samples/%1").arg(m_szDirTestFile, szDirName));
 
@@ -30,23 +43,26 @@ void H265InvalidSamplesParsing::loadStream(const QString& szDirName, H265Stream&
 	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()) == expectedPacketParsingResult);
 }
 
-void H265InvalidSamplesParsing::test_h265FramesOutOfOrderBitstream(){
+void H265InvalidSamplesParsing::test_h265FramesOutOfOrderBitstream()
+{
 	H265Stream stream;
 	loadStream("h265-out-of-order", stream, true);
 	stream.lastPacketParsed();
-	QVERIFY(!stream.majorErrors.empty());
-	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] Out of order frames detected") != stream.majorErrors.end());
+	QVERIFY(stream.errors.hasMajorErrors());
+	QVERIFY(hasError(stream.errors, H26XError::Major, "[GOP] Out of order frames detected"));
 }
-void H265InvalidSamplesParsing::test_h265MissingIFrameBitstream(){
+
+void H265InvalidSamplesParsing::test_h265MissingIFrameBitstream()
+{
 	H265Stream stream;
 	loadStream("h265-missing-i-frame", stream, true);
 	stream.lastPacketParsed();
-	QVERIFY(!stream.majorErrors.empty());
-	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), "[GOP] No I-frame detected") != stream.majorErrors.end());
+	QVERIFY(stream.errors.hasMajorErrors());
+	QVERIFY(hasError(stream.errors, H26XError::Major, "[GOP] No I-frame detected"));
 	std::vector<H265AccessUnit*> firstGOPUnits = stream.getGOPs().front()->getAccessUnits();
 	for(const H265AccessUnit* pAccessUnit : firstGOPUnits){
-		QVERIFY(!pAccessUnit->majorErrors.empty());
-		QVERIFY(std::find(pAccessUnit->majorErrors.begin(), pAccessUnit->majorErrors.end(), "No reference I-frame") != pAccessUnit->majorErrors.end());
+		QVERIFY(pAccessUnit->errors.hasMajorErrors());
+		QVERIFY(hasError(pAccessUnit->errors, H26XError::Major, "No reference I-frame"));
 	}
 }
 
@@ -58,8 +74,8 @@ void H265InvalidSamplesParsing::test_h265MissingPPSBitstream(){
 	for(const H265AccessUnit* pAccessUnit : pAccessUnits){
 		H265Slice* pSlice = pAccessUnit->slice();
 		QVERIFY(pSlice != nullptr);
-		QVERIFY(!pSlice->majorErrors.empty());
-		QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown PPS (0)") != pSlice->majorErrors.end());
+		QVERIFY(pAccessUnit->errors.hasMajorErrors());
+		QVERIFY(hasError(pSlice->errors, H26XError::Major, "[Slice] reference to unknown PPS (0)"));
 	}
 }
 void H265InvalidSamplesParsing::test_h265MissingSPSBitstream(){
@@ -68,12 +84,12 @@ void H265InvalidSamplesParsing::test_h265MissingSPSBitstream(){
 	stream.lastPacketParsed();
 	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
 	H265PPS* pPPS = pAccessUnits.front()->slice()->getPPS();
-	QVERIFY(std::find(pPPS->majorErrors.begin(), pPPS->majorErrors.end(), "[PPS] reference to unknown SPS (0)") != pPPS->majorErrors.end());
+	QVERIFY(hasError(pPPS->errors, H26XError::Major, "[PPS] reference to unknown SPS (0)"));
 	for(const H265AccessUnit* pAccessUnit : pAccessUnits){
 		H265Slice* pSlice = pAccessUnit->slice();
 		QVERIFY(pSlice != nullptr);
-		QVERIFY(!pSlice->majorErrors.empty());
-		QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown SPS (0)") != pSlice->majorErrors.end());
+		QVERIFY(pSlice->errors.hasMajorErrors());
+		QVERIFY(hasError(pSlice->errors, H26XError::Major, "[Slice] reference to unknown SPS (0)"));
 	}
 }
 void H265InvalidSamplesParsing::test_h265MissingVPSBitstream(){
@@ -82,12 +98,12 @@ void H265InvalidSamplesParsing::test_h265MissingVPSBitstream(){
 	stream.lastPacketParsed();
 	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
 	H265SPS* pSPS = pAccessUnits.front()->slice()->getSPS();
-	QVERIFY(std::find(pSPS->majorErrors.begin(), pSPS->majorErrors.end(), "[SPS] reference to unknown VPS (0)") != pSPS->majorErrors.end());
+	QVERIFY(hasError(pSPS->errors, H26XError::Major, "[SPS] reference to unknown VPS (0)"));
 	for(const H265AccessUnit* pAccessUnit : pAccessUnits){
 		H265Slice* pSlice = pAccessUnit->slice();
 		QVERIFY(pSlice != nullptr);
-		QVERIFY(!pSlice->majorErrors.empty());
-		QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown VPS (0)") != pSlice->majorErrors.end());
+		QVERIFY(pSlice->errors.hasMajorErrors());
+		QVERIFY(hasError(pSlice->errors, H26XError::Major, "[Slice] reference to unknown VPS (0)"));
 	}
 
 }
@@ -97,11 +113,13 @@ void H265InvalidSamplesParsing::test_h265SkippedFrameBitstream(){
 	stream.lastPacketParsed();
 	const uint16_t SKIPPED_FRAME_NUM = 12;
 	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
-	for(H265AccessUnit* pAccessUnit : pAccessUnits) QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
+	for(H265AccessUnit* pAccessUnit : pAccessUnits){
+		QVERIFY(pAccessUnit->frameNumber().value() != SKIPPED_FRAME_NUM);
+	}
 	H265Slice* postSkippedFrameSlice = pAccessUnits[SKIPPED_FRAME_NUM]->slice(); // POC #13
 	QVERIFY(postSkippedFrameSlice != nullptr);
-	QVERIFY(!postSkippedFrameSlice->majorErrors.empty());
-	QVERIFY(std::find(postSkippedFrameSlice->majorErrors.begin(), postSkippedFrameSlice->majorErrors.end(), "[Slice] Missing reference frames : [12]") != postSkippedFrameSlice->majorErrors.end());
+	QVERIFY(postSkippedFrameSlice->errors.hasMajorErrors());
+	QVERIFY(hasError(postSkippedFrameSlice->errors, H26XError::Major, "[Slice] Missing reference frames : [12]"));
 }
 
 void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()
@@ -109,7 +127,7 @@ void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()
 	H265Stream stream;
 	loadStream("h265-end-of-stream", stream, true);	
 	QVERIFY(stream.getGOPs().size() == 1);
-	QVERIFY(std::find(stream.majorErrors.begin(), stream.majorErrors.end(), std::string("[NAL Header] ")+std::string(END_OF_STREAM_ERR_MSG)) != stream.majorErrors.end());
+	QVERIFY(hasError(stream.errors, H26XError::Major, std::string("[NAL Header] ")+std::string(END_OF_STREAM_ERR_MSG)));
 	std::vector<H265AccessUnit*> pAccessUnits = stream.getAccessUnits();
 	QVERIFY(pAccessUnits.size() == 2);
 	H265AccessUnit* pFirstAccessUnit = pAccessUnits.front();
@@ -117,25 +135,25 @@ void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()
 	std::vector<H265NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
 
 	H265SPS* pSPS = (H265SPS*)pFirstAccessUnitNALUnits[0];
-	QVERIFY(!pSPS->majorErrors.empty());
-	QVERIFY(std::find(pSPS->majorErrors.begin(), pSPS->majorErrors.end(), std::string("[SPS] ")+std::string(END_OF_STREAM_ERR_MSG)) != pSPS->majorErrors.end());
+	QVERIFY(pSPS->errors.hasMajorErrors());
+	QVERIFY(hasError(pSPS->errors, H26XError::Major, std::string("[SPS] ")+std::string(END_OF_STREAM_ERR_MSG)));
 	
 	H265PPS* pPPS = (H265PPS*)pFirstAccessUnitNALUnits[1];
-	QVERIFY(!pPPS->majorErrors.empty());
-	QVERIFY(std::find(pPPS->majorErrors.begin(), pPPS->majorErrors.end(), std::string("[PPS] ")+std::string(END_OF_STREAM_ERR_MSG)) != pPPS->majorErrors.end());
+	QVERIFY(pPPS->errors.hasMajorErrors());
+	QVERIFY(hasError(pPPS->errors, H26XError::Major, std::string("[PPS] ")+std::string(END_OF_STREAM_ERR_MSG)));
 	
 	H265SEI* pSEI = (H265SEI*)pFirstAccessUnitNALUnits[2];
-	QVERIFY(!pSEI->minorErrors.empty());
-	QVERIFY(std::find(pSEI->minorErrors.begin(), pSEI->minorErrors.end(), "[SEI] Payload size exceeds remaining bitstream length left") != pSEI->minorErrors.end());
+	QVERIFY(!pSEI->errors.hasMinorErrors());
+	QVERIFY(hasError(pSEI->errors, H26XError::Minor, "[SEI] Payload size exceeds remaining bitstream length left"));
 	
 	H265Slice* pSlice = (H265Slice*)pFirstAccessUnitNALUnits[3];
-	QVERIFY(!pSlice->majorErrors.empty());
-	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), "[Slice] reference to unknown VPS (0)") != pSlice->majorErrors.end());
+	QVERIFY(pSlice->errors.hasMajorErrors());
+	QVERIFY(hasError(pSlice->errors, H26XError::Major, "[Slice] reference to unknown VPS (0)"));
 
 	QVERIFY(pAccessUnits.back()->size() == 1);
 	pSlice = (H265Slice*)pAccessUnits.back()->getNALUnits().front();
-	QVERIFY(!pSlice->majorErrors.empty());
-	QVERIFY(std::find(pSlice->majorErrors.begin(), pSlice->majorErrors.end(), std::string("[Slice] ")+std::string(END_OF_STREAM_ERR_MSG)) != pSlice->majorErrors.end());
+	QVERIFY(!pSlice->errors.hasMajorErrors());
+	QVERIFY(hasError(pSlice->errors, H26XError::Major, std::string("[Slice] ")+std::string(END_OF_STREAM_ERR_MSG)));
 }
 
 

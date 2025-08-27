@@ -23,6 +23,8 @@ private:
 	QByteArray loadFrame(const QDir& dirFrame, const QString& szFilename);
 	void loadStream(const QString& szDirName, H265Stream& stream, const bool expectedPacketParsingResult);
 
+	static bool hasError(const H26XErrors& errors, H26XError::Level level, const std::string& szErrorMsg);
+
 private:
 	const char* m_szDirTestFile;
 };

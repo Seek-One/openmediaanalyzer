@@ -25,7 +25,7 @@ struct H264AUD : public H264NAL {
 
     uint8_t primary_pic_type;
 
-	void dump(H26XDumpObject& dumpObject) const;
+	void dump(H26XDumpObject& dumpObject) const override;
     void validate() override;
 };
 

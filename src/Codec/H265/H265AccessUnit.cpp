@@ -1,13 +1,11 @@
-#include <iostream>
 #include <algorithm>
 #include <numeric>
 
+#include "../H26X/H26XUtils.h"
 #include "H265NAL.h"
 #include "H265Slice.h"
 #include "H265PPS.h"
 #include "H265SPS.h"
-
-#include "../../StringHelpers/StringFormatter.h"
 
 #include "H265AccessUnit.h"
 
@@ -159,7 +157,7 @@ void H265AccessUnit::validate(){
             case H265NAL::UnitType_SPS:
             case H265NAL::UnitType_PPS:
             case H265NAL::UnitType_SEI_PREFIX:
-                errors.add(H26XError::Minor, StringFormatter::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
+                errors.add(H26XError::Minor, H26XUtils::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
             default: continue;
         }
     }

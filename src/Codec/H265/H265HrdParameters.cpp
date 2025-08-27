@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "../../StringHelpers/StringFormatter.h"
+#include "../H26X/H26XUtils.h"
 
 #include "H265HrdParameters.h"
 
@@ -102,39 +102,39 @@ void H265HrdParameters::validate(){
 	for(uint32_t i = 0;i < fixed_pic_rate_general_flag.size();++i){
 		if(fixed_pic_rate_within_cvs_flag[i]) {
 			if(elemental_duration_in_tc_minus1[i] > 2047) {
-				errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] elemental_duration_in_tc_minus1[%d] value (%ld) not in valid range (0..2047)", i, elemental_duration_in_tc_minus1[i]));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] elemental_duration_in_tc_minus1[%d] value (%ld) not in valid range (0..2047)", i, elemental_duration_in_tc_minus1[i]));
 			}
 		}
-		if(cpb_cnt_minus1[i] > 31) errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] cpb_cnt_minus1[%d] value (%ld) not in valid range (0..31)", i, cpb_cnt_minus1[i]));
+		if(cpb_cnt_minus1[i] > 31) errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] cpb_cnt_minus1[%d] value (%ld) not in valid range (0..31)", i, cpb_cnt_minus1[i]));
 		if(nal_hrd_parameters_present_flag){
 			for(int j = 0;j <= cpb_cnt_minus1[i];++j){
 				if(nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] == UINT32_MAX){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 				}
 				if(nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] == UINT32_MAX){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 				}
 				if(j > 0){
 					if(nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j-1]){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 					}
 					if(nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j-1]){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 					}
 				}
 				if(sub_pic_hrd_params_present_flag){
 					if(nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] == UINT32_MAX){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 					}
 					if(nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] == UINT32_MAX){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 					}
 					if(j > 0){
 						if(nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j-1]){
-							errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+							errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, nal_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 						}
 						if(nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] <= nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j-1]){
-							errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+							errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] nal_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, nal_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 						}
 					}
 				}
@@ -144,32 +144,32 @@ void H265HrdParameters::validate(){
 
 			for(int j = 0;j <= cpb_cnt_minus1[i];++j){
 				if(vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] == UINT32_MAX){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 				}
 				if(vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] == UINT32_MAX){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 				}
 				if(j > 0){
 					if(vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j-1]){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_value_minus1[%d] value (%ld) less or equal to previous bit rate value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_value_minus1[j]));
 					}
 					if(vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j-1]){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_value_minus1[%d] value (%ld) less or equal to previous cpb size value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_value_minus1[j]));
 					}
 				}
 				if(sub_pic_hrd_params_present_flag){
 					if(vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] == UINT32_MAX){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 					}
 					if(vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] == UINT32_MAX){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) not in valid range (0..4294967294)", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 					}
 					if(j > 0){
 						if(vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j-1]){
-							errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
+							errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].cpb_size_du_value_minus1[%d] value (%ld) less or equal to previous cpb value du value", i, j, vcl_sub_layer_hrd_parameters[i].cpb_size_du_value_minus1[j]));
 						}
 						if(vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j] <= vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j-1]){
-							errors.add(H26XError::Minor, StringFormatter::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
+							errors.add(H26XError::Minor, H26XUtils::formatString("[HRD parameters] vcl_sub_layer_hrd_parameters[%d].bit_rate_du_value_minus1[%d] value (%ld) less or equal to previous bit rate du value", i, j, vcl_sub_layer_hrd_parameters[i].bit_rate_du_value_minus1[j]));
 						}
 					}
 				}

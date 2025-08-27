@@ -1,10 +1,8 @@
-#include <iostream>
-#include <cstring>
 #include <sstream>
 #include <cmath>
 
+#include "../H26X/H26XUtils.h"
 #include "H264SPS.h"
-#include "../../StringHelpers/StringFormatter.h"
 
 #include "H264SEI.h"
 
@@ -95,12 +93,12 @@ void H264SEIBufferingPeriod::validate()
 {
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Buffering period] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Buffering period] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pH264SPS = referencedSPS->second;
 	if(seq_parameter_set_id > 31){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Buffering period] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Buffering period] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
 	}
 
 	if(pH264SPS->nal_hrd_parameters_present_flag){
@@ -109,7 +107,7 @@ void H264SEIBufferingPeriod::validate()
 			int BitRate = (pH264SPS->nal_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->nal_bit_rate_scale));
 			uint32_t delay_limit = 90000 * (CpbSize/BitRate);
 			if(nal_initial_cpb_removal_delay[SchedSelIdx] == 0 || nal_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Buffering period] nal_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, nal_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Buffering period] nal_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, nal_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
 		}
 	}
@@ -120,7 +118,7 @@ void H264SEIBufferingPeriod::validate()
 			int BitRate = (pH264SPS->vcl_bit_rate_value_minus1[SchedSelIdx]+1)*(pow(2, 6+pH264SPS->vcl_bit_rate_scale));
 			uint32_t delay_limit = 90000 * (CpbSize/BitRate);
 			if(vcl_initial_cpb_removal_delay[SchedSelIdx] == 0 || vcl_initial_cpb_removal_delay[SchedSelIdx] > delay_limit){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Buffering period] vcl_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, vcl_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Buffering period] vcl_initial_cpb_removal_delay[%d] value (%ld) not in valid range (1..{})", SchedSelIdx, vcl_initial_cpb_removal_delay[SchedSelIdx], delay_limit));
 			}
 		}
 	}
@@ -194,12 +192,12 @@ void H264SEIPicTiming::validate()
 {
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	if(pSps->pic_struct_present_flag){
-		if(pic_struct > 8) errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] pic_struct value (%ld) not in valid range (0..8)", pic_struct));
+		if(pic_struct > 8) errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] pic_struct value (%ld) not in valid range (0..8)", pic_struct));
 		int NumClockTS = 0;
 		switch(pic_struct){
 			case 0: case 1: case 2: 
@@ -215,19 +213,19 @@ void H264SEIPicTiming::validate()
 		for(int i = 0;i < NumClockTS;++i){
 			if(clock_timestamp_flag[i]){
 				if(ct_type[i] > 2){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] ct_type[%d] value (%ld) not in valid range (0..2)", i, ct_type[i]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] ct_type[%d] value (%ld) not in valid range (0..2)", i, ct_type[i]));
 				}
 				if(counting_type[i] > 6){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] counting_type[%d] value (%ld) not in valid range (0..6)", i, counting_type[i]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] counting_type[%d] value (%ld) not in valid range (0..6)", i, counting_type[i]));
 				}
 				if(seconds_value[i] > 59){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] seconds_value[%d] value (%ld) not in valid range (0..59)", i, seconds_value[i]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] seconds_value[%d] value (%ld) not in valid range (0..59)", i, seconds_value[i]));
 				}
 				if(minutes_value[i] > 59){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] minutes_value[%d] value (%ld) not in valid range (0..59)", i, minutes_value[i]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] minutes_value[%d] value (%ld) not in valid range (0..59)", i, minutes_value[i]));
 				}
 				if(hours_value[i] > 23){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Pic timing] hours_value[%d] value (%ld) not in valid range (0..23)", i, hours_value[i]));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Pic timing] hours_value[%d] value (%ld) not in valid range (0..23)", i, hours_value[i]));
 				}
 			}
 		}
@@ -283,13 +281,13 @@ void H264SEIRecoveryPoint::dump(H26XDumpObject& dumpObject) const
 void H264SEIRecoveryPoint::validate(){
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()) {
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Recovery point] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Recovery point] unknown reference to a SPS unit (%ld)", seq_parameter_set_id));
 		return;
 	}
 	H264SPS* pSps = referencedSPS->second;
 	uint32_t MaxNumFrames = pSps->MaxFrameNumber;
 	if(recovery_frame_cnt > MaxNumFrames-1){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Recovery point] recovery_frame_cnt value (%ld) not in valid range (0..{})", recovery_frame_cnt, MaxNumFrames-1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Recovery point] recovery_frame_cnt value (%ld) not in valid range (0..{})", recovery_frame_cnt, MaxNumFrames-1));
 	}
 }
 
@@ -302,6 +300,6 @@ void H264SEIFullFrameFreeze::dump(H26XDumpObject& dumpObject) const
 
 void H264SEIFullFrameFreeze::validate(){
 	if(full_frame_freeze_repetition_period > 16384){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SEI Full frame freeze] full_frame_freeze_repetition_period value (%ld) not in valid range (0..16384)", full_frame_freeze_repetition_period));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SEI Full frame freeze] full_frame_freeze_repetition_period value (%ld) not in valid range (0..16384)", full_frame_freeze_repetition_period));
 	}
 }

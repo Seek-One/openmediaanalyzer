@@ -4,9 +4,8 @@
 
 #include <QStandardItem>
 
+#include "../Codec/H26X/H26XUtils.h"
 #include "../GUIModel/QDecoderModel.h"
-
-#include "../StringHelpers/StringFormatter.h"
 
 #include "QH26XDumpObject.h"
 
@@ -47,7 +46,7 @@ void QH26XDumpObject::addUnitField(const char* szFieldName, int64_t value)
 void QH26XDumpObject::addIdxUnitField(const char* szFieldName, int idx, int64_t value)
 {
 	QList<QStandardItem*> listItems;
-	auto szFieldNameTmp = StringFormatter::formatString("%s[%hu]", szFieldName, idx);
+	auto szFieldNameTmp = H26XUtils::formatString("%s[%hu]", szFieldName, idx);
 	listItems.append(new QStandardItem(szFieldNameTmp.c_str()));
 	listItems.append(new QStandardItem(QString::number(value)));
 	m_pCurrentItem->appendRow(listItems);
@@ -56,7 +55,7 @@ void QH26XDumpObject::addIdxUnitField(const char* szFieldName, int idx, int64_t 
 void QH26XDumpObject::addDblIdxUnitField(const char* szFieldName, int idx1, int idx2, int64_t value)
 {
 	QList<QStandardItem*> listItems;
-	auto szFieldNameTmp = StringFormatter::formatString("%s[%hu][%hu]", szFieldName, idx1, idx2);
+	auto szFieldNameTmp = H26XUtils::formatString("%s[%hu][%hu]", szFieldName, idx1, idx2);
 	listItems.append(new QStandardItem(szFieldNameTmp.c_str()));
 	listItems.append(new QStandardItem(QString::number(value)));
 	m_pCurrentItem->appendRow(listItems);
@@ -105,7 +104,7 @@ void QH26XDumpObject::endValueUnitFieldList()
 void QH26XDumpObject::startIdxValueUnitFieldList(const char* szFieldName, int idx, int64_t value)
 {
 	QList<QStandardItem*> listItems;
-	auto szFieldNameTmp = StringFormatter::formatString("%s[%hu]", szFieldName, idx);
+	auto szFieldNameTmp = H26XUtils::formatString("%s[%hu]", szFieldName, idx);
 	auto pItem = new QStandardItem(szFieldNameTmp.c_str());
 	listItems.append(pItem);
 	listItems.append(new QStandardItem(QString::number(value)));

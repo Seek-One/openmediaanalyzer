@@ -1,7 +1,6 @@
 #include <string>
 
-#include "../../StringHelpers/StringFormatter.h"
-
+#include "../H26X/H26XUtils.h"
 #include "H265ScalingList.h"
 
 static int32_t g_defaultIntraScalingList[64] = {
@@ -60,10 +59,10 @@ void H265ScalingList::dump(H26XDumpObject& dumpObject) const
 	dumpObject.startUnitFieldList("scaling_list_data");
 	for(int sizeId = 0; sizeId < 4; sizeId++)
 	{
-		dumpObject.startUnitFieldList(StringFormatter::formatString("sizeId[%d]", sizeId).c_str());
+		dumpObject.startUnitFieldList(H26XUtils::formatString("sizeId[%d]", sizeId).c_str());
 		for(int matrixId = 0; matrixId < 6; matrixId += (sizeId == 3 ? 3 : 1))
 		{
-			dumpObject.startUnitFieldList(StringFormatter::formatString("matrixId[%d]", sizeId).c_str());
+			dumpObject.startUnitFieldList(H26XUtils::formatString("matrixId[%d]", sizeId).c_str());
 			dumpObject.addDblIdxUnitField("scaling_list_pred_mode_flag", sizeId, matrixId, scaling_list_pred_mode_flag[sizeId][matrixId]);
 			if(!scaling_list_pred_mode_flag[sizeId][matrixId]){
 				dumpObject.addDblIdxUnitField("scaling_list_pred_matrix_id_delta", sizeId, matrixId, scaling_list_pred_matrix_id_delta[sizeId][matrixId]);
@@ -74,9 +73,9 @@ void H265ScalingList::dump(H26XDumpObject& dumpObject) const
 				}
 
 				for(int i = 0; i<coefNum; i++){
-					dumpObject.startUnitFieldList(StringFormatter::formatString("coefNum[%d]", i).c_str());
-					dumpObject.addDblIdxUnitField(StringFormatter::formatString("scaling_list_delta_coef[%d]", i).c_str(), sizeId, matrixId, scaling_list_delta_coef[sizeId][matrixId][i]);
-					dumpObject.addDblIdxUnitField(StringFormatter::formatString("ScalingList[%d]", i).c_str(), sizeId, matrixId, ScalingList[sizeId][matrixId][i]);
+					dumpObject.startUnitFieldList(H26XUtils::formatString("coefNum[%d]", i).c_str());
+					dumpObject.addDblIdxUnitField(H26XUtils::formatString("scaling_list_delta_coef[%d]", i).c_str(), sizeId, matrixId, scaling_list_delta_coef[sizeId][matrixId][i]);
+					dumpObject.addDblIdxUnitField(H26XUtils::formatString("ScalingList[%d]", i).c_str(), sizeId, matrixId, ScalingList[sizeId][matrixId][i]);
 					dumpObject.endUnitFieldList();
 				}
 			}

@@ -1,10 +1,6 @@
 #ifndef TOOLKIT_CODEC_UTILS_H265NAL_H_
 #define TOOLKIT_CODEC_UTILS_H265NAL_H_
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
 #include "../H26X/H26XNAL.h"
 
 struct H265NAL : public H26XNAL

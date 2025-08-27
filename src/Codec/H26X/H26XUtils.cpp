@@ -1,3 +1,5 @@
+#include <cstdarg>
+
 #include "H26XUtils.h"
 
 const uint8_t g_startCode3Bytes[3] = {0x00, 0x00, 0x01};
@@ -20,3 +22,26 @@ const uint8_t g_rasterScan8x8[64] = {
 	58, 59, 52, 45, 38, 31, 39, 46,
 	53, 60, 61, 54, 47, 55, 62, 63
 };
+
+std::string H26XUtils::formatString(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	va_list args_copy;
+	va_copy(args_copy, args);
+	int size = std::vsnprintf(nullptr, 0, fmt, args_copy);
+	va_end(args_copy);
+
+	if (size < 0) {
+		va_end(args);
+		return std::string();
+	}
+
+	std::string result(size, '\0');
+
+	std::vsnprintf(&result[0], size + 1, fmt, args);
+	va_end(args);
+
+	return result;
+}

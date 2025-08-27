@@ -1,11 +1,10 @@
 
 #include <algorithm>
 
+#include "../H26X/H26XUtils.h"
 #include "H265SPS.h"
-#include "../../StringHelpers/StringFormatter.h"
 
 #include "H265PPS.h"
-
 
 H265PPSRangeExtension::H265PPSRangeExtension(){
 	log2_max_transform_skip_block_size_minus2 = 0;
@@ -230,7 +229,7 @@ void H265PPSSCCExtension::dump(H26XDumpObject& dumpObject) const
 				}
 				for(uint8_t comp = 0;comp < (monochrome_palette_flag ? 1 : 3);++comp){
 					for(uint32_t i = 0;i < pps_num_palette_predictor_initializer;++i){
-						auto str = StringFormatter::formatString("pps_palette_predictor_initializer", pps_palette_predictor_initializer[comp][i], comp, i);
+						auto str = H26XUtils::formatString("pps_palette_predictor_initializer", pps_palette_predictor_initializer[comp][i], comp, i);
 						dumpObject.addUnitFieldListItem(str.c_str());
 					}
 				}
@@ -411,55 +410,55 @@ void H265PPS::validate(){
 		return;
 	}
 	if(pps_pic_parameter_set_id > 63){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_pic_parameter_set_id value (%ld) not in valid range (0..63)", pps_pic_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_pic_parameter_set_id value (%ld) not in valid range (0..63)", pps_pic_parameter_set_id));
 	}
 	if(pps_seq_parameter_set_id > 15){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_seq_parameter_set_id value(%ld) not in valid range (0..63)", pps_seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_seq_parameter_set_id value(%ld) not in valid range (0..63)", pps_seq_parameter_set_id));
 	}
 	auto referencedSPS = H265SPS::SPSMap.find(pps_seq_parameter_set_id);
 	H265SPS* pSps = nullptr;
 	if(referencedSPS == H265SPS::SPSMap.end()) {
-		errors.add(H26XError::Major, StringFormatter::formatString("[PPS] reference to unknown SPS (%ld)", pps_seq_parameter_set_id));
+		errors.add(H26XError::Major, H26XUtils::formatString("[PPS] reference to unknown SPS (%ld)", pps_seq_parameter_set_id));
 		return;
 	}
 	pSps = referencedSPS->second;
 	if(num_extra_slice_header_bits > 2){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_extra_slice_header_bits value (%ld) not in valid range (0..2)", num_extra_slice_header_bits));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_extra_slice_header_bits value (%ld) not in valid range (0..2)", num_extra_slice_header_bits));
 	}
 	if(num_ref_idx_l0_default_active_minus1 > 14){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_ref_idx_l0_default_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l0_default_active_minus1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_ref_idx_l0_default_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l0_default_active_minus1));
 	}
 	if(num_ref_idx_l1_default_active_minus1 > 14){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_ref_idx_l1_default_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l1_default_active_minus1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_ref_idx_l1_default_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l1_default_active_minus1));
 	}
 	if(init_qp_minus26 < -26 - pSps->QpBdOffsetY || init_qp_minus26 > 25){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] init_qp_minus26 value (%ld) not in valid range ({}..25)", init_qp_minus26, -26 - pSps->QpBdOffsetY));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] init_qp_minus26 value (%ld) not in valid range ({}..25)", init_qp_minus26, -26 - pSps->QpBdOffsetY));
 	}
 	if(diff_cu_qp_delta_depth > pSps->log2_diff_max_min_luma_coding_block_size){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] diff_cu_qp_delta_depth value (%ld) not in valid range (0..{})", diff_cu_qp_delta_depth, pSps->log2_diff_max_min_luma_coding_block_size));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] diff_cu_qp_delta_depth value (%ld) not in valid range (0..{})", diff_cu_qp_delta_depth, pSps->log2_diff_max_min_luma_coding_block_size));
 	}
 	if(pps_cb_qp_offset < -12 || pps_cb_qp_offset > 12){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_cb_qp_offset value (%ld) not in valid range (-12..12)", pps_cb_qp_offset));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_cb_qp_offset value (%ld) not in valid range (-12..12)", pps_cb_qp_offset));
 	}
 	if(pps_cr_qp_offset < -12 || pps_cr_qp_offset > 12){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_cr_qp_offset value (%ld) not in valid range (-12..12)", pps_cr_qp_offset));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_cr_qp_offset value (%ld) not in valid range (-12..12)", pps_cr_qp_offset));
 	}
 	if(num_tile_columns_minus1 > pSps->PicWidthInCtbsY-1){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_tile_columns_minus1 value (%ld) not in valid range (0..{})", num_tile_columns_minus1, pSps->PicWidthInCtbsY-1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_tile_columns_minus1 value (%ld) not in valid range (0..{})", num_tile_columns_minus1, pSps->PicWidthInCtbsY-1));
 	}
 	if(num_tile_rows_minus1 > pSps->PicHeightInCtbsY-1){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_tile_rows_minus1 value (%ld) not in valid range (0..{})", num_tile_rows_minus1, pSps->PicHeightInCtbsY-1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_tile_rows_minus1 value (%ld) not in valid range (0..{})", num_tile_rows_minus1, pSps->PicHeightInCtbsY-1));
 	}
 	if(tiles_enabled_flag && num_tile_columns_minus1 == 0 && num_tile_rows_minus1 == 0){
 		errors.add(H26XError::Minor, "[PPS] num_tile_columns_minus1 and num_tile_rows_minus1 both equal to 0 with set tiles_enabled_flag");
 	}
 	if(pps_beta_offset_div2 < -6 || pps_beta_offset_div2 > 6){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_beta_offset_div2 value (%ld) not in valid range (-6..6)", pps_beta_offset_div2));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_beta_offset_div2 value (%ld) not in valid range (-6..6)", pps_beta_offset_div2));
 	}
 	if(pps_tc_offset_div2 < -6 || pps_tc_offset_div2 > 6){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pps_tc_offset_div2 value (%ld) not in valid range (-6..6)", pps_tc_offset_div2));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pps_tc_offset_div2 value (%ld) not in valid range (-6..6)", pps_tc_offset_div2));
 	}
 	if((uint32_t)log2_parallel_merge_level_minus2 > pSps->CtbLog2SizeY-2){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] log2_parallel_merge_level_minus2 value (%ld) not in valid range (0..{})", log2_parallel_merge_level_minus2, pSps->CtbLog2SizeY-2));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] log2_parallel_merge_level_minus2 value (%ld) not in valid range (0..{})", log2_parallel_merge_level_minus2, pSps->CtbLog2SizeY-2));
 	}
 }

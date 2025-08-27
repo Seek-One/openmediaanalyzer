@@ -1,7 +1,5 @@
-#include <cstring>
-
+#include "../H26X/H26XUtils.h"
 #include "H264SPS.h"
-#include "../../StringHelpers/StringFormatter.h"
 
 #include "H264PPS.h"
 
@@ -142,12 +140,12 @@ void H264PPS::validate(){
 	H264NAL::validate();
 	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
 	}
 	H264SPS* h264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		errors.add(H26XError::Major, StringFormatter::formatString("[PPS] reference to unknown SPS (%ld)", seq_parameter_set_id));
+		errors.add(H26XError::Major, H26XUtils::formatString("[PPS] reference to unknown SPS (%ld)", seq_parameter_set_id));
 		return;
 	}
 	h264SPS = referencedSPS->second;
@@ -157,7 +155,7 @@ void H264PPS::validate(){
 			case 0:
 				for (uint32_t iGroup = 0; iGroup <= num_slice_groups_minus1; iGroup++) {
 					if(run_length_minus1[iGroup] > h264SPS->PicSizeInMapUnits-1){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] run_length_minus1[%d] value (%ld) not in valid range (0..{})", iGroup, run_length_minus1[iGroup], h264SPS->PicSizeInMapUnits-1));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] run_length_minus1[%d] value (%ld) not in valid range (0..{})", iGroup, run_length_minus1[iGroup], h264SPS->PicSizeInMapUnits-1));
 					}
 				}
 				break;
@@ -165,10 +163,10 @@ void H264PPS::validate(){
 			case 2:
 				for (uint32_t iGroup = 0; iGroup < num_slice_groups_minus1; iGroup++) {
 					if(top_left[iGroup] > bottom_right[iGroup]){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] top_left[%d] value (%ld) should be less than or equal to bottom_right[%d] value (%ld)", iGroup, top_left[iGroup], iGroup, bottom_right[iGroup]));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] top_left[%d] value (%ld) should be less than or equal to bottom_right[%d] value (%ld)", iGroup, top_left[iGroup], iGroup, bottom_right[iGroup]));
 					}
 					if(top_left[iGroup] % h264SPS->PicWidthInMbs > bottom_right[iGroup] % h264SPS->PicWidthInMbs){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] top_left[%d]%PicWidthInMbs value (%ld) should be less than or equal to bottom_right[%d]%PicWidthInMbs value (%ld)", iGroup, top_left[iGroup]%h264SPS->PicWidthInMbs, iGroup, bottom_right[iGroup]%h264SPS->PicWidthInMbs));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] top_left[%d]%PicWidthInMbs value (%ld) should be less than or equal to bottom_right[%d]%PicWidthInMbs value (%ld)", iGroup, top_left[iGroup]%h264SPS->PicWidthInMbs, iGroup, bottom_right[iGroup]%h264SPS->PicWidthInMbs));
 					}
 				}
 				break;
@@ -176,41 +174,41 @@ void H264PPS::validate(){
 			case 4:
 			case 5:
 				if(slice_group_change_rate_minus1 > h264SPS->PicSizeInMapUnits-1){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] slice_group_change_rate_minus1 value (%ld) not in valid range (0..{})", slice_group_change_rate_minus1, h264SPS->PicSizeInMapUnits-1));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] slice_group_change_rate_minus1 value (%ld) not in valid range (0..{})", slice_group_change_rate_minus1, h264SPS->PicSizeInMapUnits-1));
 				}
 				break;
 			case 6:
 				if(pic_size_in_map_units_minus1 != h264SPS->PicSizeInMapUnits-1){
-					errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pic_size_in_map_units_minus1 value (%ld) should be equal to {}", pic_size_in_map_units_minus1, h264SPS->PicSizeInMapUnits-1));
+					errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pic_size_in_map_units_minus1 value (%ld) should be equal to {}", pic_size_in_map_units_minus1, h264SPS->PicSizeInMapUnits-1));
 				}
 				for (uint32_t i = 0; i <= pic_size_in_map_units_minus1; i++) {
 					if(slice_group_id[i] > num_slice_groups_minus1){
-						errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] slice_group_id[%d] value (%ld) not in valid range (0..{})", i, slice_group_id[i], num_slice_groups_minus1));
+						errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] slice_group_id[%d] value (%ld) not in valid range (0..{})", i, slice_group_id[i], num_slice_groups_minus1));
 					}
 				}
 				break;
 			default:
-				errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] slice_group_map_type value (%ld) not in valid range (0..6)", slice_group_map_type));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] slice_group_map_type value (%ld) not in valid range (0..6)", slice_group_map_type));
 				break;
 		}
 	}
 	if(num_ref_idx_l0_active_minus1 > 31){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_ref_idx_l0_active_minus1 value (%ld) not in valid range (0..31)", num_ref_idx_l0_active_minus1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_ref_idx_l0_active_minus1 value (%ld) not in valid range (0..31)", num_ref_idx_l0_active_minus1));
 	}
 	if(num_ref_idx_l1_active_minus1 > 31){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] num_ref_idx_l1_active_minus1 value (%ld) not in valid range (0..31)", num_ref_idx_l1_active_minus1));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] num_ref_idx_l1_active_minus1 value (%ld) not in valid range (0..31)", num_ref_idx_l1_active_minus1));
 	}
 
 	if(weighted_bipred_idc > 2){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] weighted_bipred_idc value (%ld) not in valid range (0..2)", weighted_bipred_idc));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] weighted_bipred_idc value (%ld) not in valid range (0..2)", weighted_bipred_idc));
 	}
 	if(pic_init_qp_minus26 < -26 - h264SPS->QpBdOffsetY || pic_init_qp_minus26 > 25){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pic_init_qp_minus26 value (%ld) not in valid range ({}..25)", pic_init_qp_minus26, -26 - h264SPS->QpBdOffsetY));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pic_init_qp_minus26 value (%ld) not in valid range ({}..25)", pic_init_qp_minus26, -26 - h264SPS->QpBdOffsetY));
 	}
 	if(pic_init_qs_minus26 < -26 || pic_init_qs_minus26 > 25){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] pic_init_qs_minus26 value (%ld) not in valid range (-26..25)", pic_init_qs_minus26));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] pic_init_qs_minus26 value (%ld) not in valid range (-26..25)", pic_init_qs_minus26));
 	}
 	if(chroma_qp_index_offset < -12 || chroma_qp_index_offset > 12){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[PPS] chroma_qp_index_offset value (%ld) not in valid range (-12..12)", chroma_qp_index_offset));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] chroma_qp_index_offset value (%ld) not in valid range (-12..12)", chroma_qp_index_offset));
 	}
 }

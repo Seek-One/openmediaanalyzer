@@ -1,7 +1,4 @@
-#include <cstring>
-#include <string>
-
-#include "../../StringHelpers/StringFormatter.h"
+#include "../H26X/H26XUtils.h"
 
 #include "H265ProfileTierLevel.h"
 
@@ -145,17 +142,17 @@ void H265ProfileTierLevel::validate(uint8_t iProfilePresentFlag){
 	}
 	for (uint8_t i = 0; i < sub_layer_profile_present_flag.size(); ++i) {
 		if(!iProfilePresentFlag && sub_layer_profile_present_flag[i]){
-			errors.add(H26XError::Minor, StringFormatter::formatString("[Profile tier level] sub_layer_profile_present_flag[%d] set (profilePresentFlag not set)", i));
+			errors.add(H26XError::Minor, H26XUtils::formatString("[Profile tier level] sub_layer_profile_present_flag[%d] set (profilePresentFlag not set)", i));
 		}
 	}
 
 	for (uint8_t i = 0; i < sub_layer_profile_present_flag.size(); ++i) {
 		if (sub_layer_profile_present_flag[i]) {
 			if(sub_layer_profile_space[i] != 0){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[Profile tier level] sub_layer_profile_space[%d] not equal to 0", i));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[Profile tier level] sub_layer_profile_space[%d] not equal to 0", i));
 			}
 			if(!sub_layer_profile_compatibility_flag[i][sub_layer_profile_idc[i]]){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[Profile tier level] sub_layer_profile_compatibility_flag[%d][sub_layer_profile_idc[%d]] not set", i, i));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[Profile tier level] sub_layer_profile_compatibility_flag[%d][sub_layer_profile_idc[%d]] not set", i, i));
 			}
 		}
 	}

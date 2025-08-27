@@ -1,7 +1,6 @@
 #include <cstring>
 
 #include "../H26X/H26XUtils.h"
-#include "../../StringHelpers/StringFormatter.h"
 
 #include "H265NAL.h"
 
@@ -31,25 +30,25 @@ bool H265NAL::isSlice() const
 bool H265NAL::isSlice(UnitType nal_unit_type)
 {
 	switch (nal_unit_type) {
-		case H265NAL::UnitType_TRAIL_N:
-		case H265NAL::UnitType_TRAIL_R:
-		case H265NAL::UnitType_TSA_N:
-		case H265NAL::UnitType_TSA_R:
-		case H265NAL::UnitType_STSA_N:
-		case H265NAL::UnitType_STSA_R:
-		case H265NAL::UnitType_RADL_N:
-		case H265NAL::UnitType_RADL_R:
-		case H265NAL::UnitType_RASL_N:
-		case H265NAL::UnitType_RASL_R:
-		case H265NAL::UnitType_BLA_W_LP:
-		case H265NAL::UnitType_BLA_W_RADL:
-		case H265NAL::UnitType_BLA_N_LP:
-		case H265NAL::UnitType_IDR_W_RADL:
-		case H265NAL::UnitType_IDR_N_LP:
-		case H265NAL::UnitType_CRA_NUT:
-			return true;
-		default:
-			break;
+	case H265NAL::UnitType_TRAIL_N:
+	case H265NAL::UnitType_TRAIL_R:
+	case H265NAL::UnitType_TSA_N:
+	case H265NAL::UnitType_TSA_R:
+	case H265NAL::UnitType_STSA_N:
+	case H265NAL::UnitType_STSA_R:
+	case H265NAL::UnitType_RADL_N:
+	case H265NAL::UnitType_RADL_R:
+	case H265NAL::UnitType_RASL_N:
+	case H265NAL::UnitType_RASL_R:
+	case H265NAL::UnitType_BLA_W_LP:
+	case H265NAL::UnitType_BLA_W_RADL:
+	case H265NAL::UnitType_BLA_N_LP:
+	case H265NAL::UnitType_IDR_W_RADL:
+	case H265NAL::UnitType_IDR_N_LP:
+	case H265NAL::UnitType_CRA_NUT:
+		return true;
+	default:
+		break;
 	}
 	return false;
 }
@@ -118,7 +117,7 @@ void H265NAL::validate()
 		errors.add(H26XError::Minor, "[NAL header] forbidden_zero_bit not equal to 0");
 	}
 	if(nuh_layer_id > 62){
-		errors.add(H26XError::Minor, StringFormatter::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
 	}
 	if(nuh_temporal_id_plus1 == 0){
 		errors.add(H26XError::Minor, "[NAL header] nuh_temporal_id_plus1 equal to 0");

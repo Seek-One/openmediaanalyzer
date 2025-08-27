@@ -1,7 +1,4 @@
-#include <cstring>
-#include <iostream>
-
-#include "../../StringHelpers/StringFormatter.h"
+#include "../H26X/H26XUtils.h"
 
 #include "H264SPS.h"
 
@@ -335,7 +332,7 @@ void H264SPS::validate(){
 	H264NAL::validate();
 	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));
 	}
 	switch(profile_idc) {
 		case 100:
@@ -351,10 +348,10 @@ void H264SPS::validate(){
 		case 139:
 		case 134:
 			if(bit_depth_luma_minus8 > 6){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] bit_depth_luma_minus8 value (%ld) not in valid range (0..6)", bit_depth_luma_minus8));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] bit_depth_luma_minus8 value (%ld) not in valid range (0..6)", bit_depth_luma_minus8));
 			}
 			if(bit_depth_chroma_minus8 > 6){
-				errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] bit_depth_chroma_minus8 value (%ld) not in valid range (0..6)", bit_depth_chroma_minus8));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] bit_depth_chroma_minus8 value (%ld) not in valid range (0..6)", bit_depth_chroma_minus8));
 			}
 			break;
 		default:
@@ -362,28 +359,28 @@ void H264SPS::validate(){
 	}
 
 	if(log2_max_frame_num_minus4 > 12){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] log2_max_frame_num_minus4 value (%ld) not in valid range (0..12)", log2_max_frame_num_minus4));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] log2_max_frame_num_minus4 value (%ld) not in valid range (0..12)", log2_max_frame_num_minus4));
 	}
 	if(pic_order_cnt_type > 2){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] pic_order_cnt_type (%ld) not in valid range (0..2)", pic_order_cnt_type));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] pic_order_cnt_type (%ld) not in valid range (0..2)", pic_order_cnt_type));
 	}
 	if (pic_order_cnt_type == 0) {
 		if(log2_max_pic_order_cnt_lsb_minus4 > 12){
-			errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] log2_max_pic_order_cnt_lsb_minus4 value (%ld) not in valid range (0..12)", log2_max_frame_num_minus4));
+			errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] log2_max_pic_order_cnt_lsb_minus4 value (%ld) not in valid range (0..12)", log2_max_frame_num_minus4));
 		}
 	} else if (pic_order_cnt_type == 1) {
 		if(num_ref_frames_in_pic_order_cnt_cycle > 255){
-			errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] num_ref_frames_in_pic_order_cnt_cycle value (%ld) not in valid range (0..255)", num_ref_frames_in_pic_order_cnt_cycle));
+			errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] num_ref_frames_in_pic_order_cnt_cycle value (%ld) not in valid range (0..255)", num_ref_frames_in_pic_order_cnt_cycle));
 		}
 	}
 	if(max_num_ref_frames > MaxDpbFrames){
-		errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] max_num_ref_frames value (%ld) not in valid range (0..{})", max_num_ref_frames, MaxDpbFrames));
+		errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] max_num_ref_frames value (%ld) not in valid range (0..{})", max_num_ref_frames, MaxDpbFrames));
 	}
 
 	if (ChromaArrayType >= 1 && ChromaArrayType <= 3) {
 		if (separate_colour_plane_flag == 0) {
 			if (chroma_format_idc > 3) {
-				errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] chroma_format_idc value (%ld) not in valid range (0..3)", chroma_format_idc));
+				errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] chroma_format_idc value (%ld) not in valid range (0..3)", chroma_format_idc));
 			}
 		}
 	}
@@ -391,11 +388,11 @@ void H264SPS::validate(){
 	if(frame_cropping_flag){
 		uint32_t frame_crop_left_limit = PicWidthInSamplesL/CropUnitX - frame_crop_right_offset+1; 
 		if(frame_crop_left_offset > frame_crop_left_limit){
-			errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] frame_crop_left_offset value (%ld) not in valid range (0..{})", frame_crop_left_offset, frame_crop_left_limit));
+			errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] frame_crop_left_offset value (%ld) not in valid range (0..{})", frame_crop_left_offset, frame_crop_left_limit));
 		};
 		uint32_t frame_crop_top_limit = 16*FrameHeightInMbs/CropUnitY - frame_crop_bottom_offset+1;
 		if(frame_crop_top_offset > frame_crop_top_limit){
-			errors.add(H26XError::Minor, StringFormatter::formatString("[SPS] frame_crop_top_offset value (%ld) not in valid range (0..{})", frame_crop_top_offset, frame_crop_top_limit));
+			errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] frame_crop_top_offset value (%ld) not in valid range (0..{})", frame_crop_top_offset, frame_crop_top_limit));
 		}
 	}
 }

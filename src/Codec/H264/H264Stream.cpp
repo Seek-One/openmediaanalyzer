@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "../H26X/H26XErrorsMsg.h"
 #include "H264BitstreamReader.h"
 #include "H264GOP.h"
 #include "H264AccessUnit.h"
@@ -101,18 +102,15 @@ bool H264Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
    completes the processing of the very last GOP
    which is normally done upon detecting a new GOP 
  */
-void H264Stream::lastPacketParsed(){
+void H264Stream::lastPacketParsed()
+{
 	H264GOP* lastGOP = m_GOPs.back().get();
 	lastGOP->accessUnits.back()->decodable = true;
 	lastGOP->validate();
 
-	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
-	lastGOP->minorErrors.clear();
-	for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
-
-	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
-	lastGOP->majorErrors.clear();
-	for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+	errors.add(lastGOP->errors);
+	lastGOP->errors.clear();
+	errors.clear(ERR_MSG_LIMIT);
 }
 
 // returns true if curr marks the beginning of a new access unit
@@ -149,7 +147,9 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 {
 	H264BitstreamReader bitstreamReader(pNALData, iNALLength);
 	bool previousUnitIsVLC = false;
-	if(m_GOPs.empty()) m_GOPs.push_back(std::make_unique<H264GOP>());
+	if(m_GOPs.empty()){
+		m_GOPs.push_back(std::make_unique<H264GOP>());
+	}
 	if(!m_pCurrentAccessUnit) {
 		m_pCurrentAccessUnit = new H264AccessUnit();
 		m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
@@ -160,7 +160,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 	} 
 	try { bitstreamReader.readNALHeader(m_currentNAL);
 	} catch(const std::runtime_error& e) { 
-		majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));
+		errors.add(H26XError::Major, std::string("[NAL Header] ").append(e.what()));
 		return false;
 	}
 
@@ -176,10 +176,12 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 				bitstreamReader.readSPS(*pSps);
 				m_pActiveSPS = pSps;
 			} catch(const std::runtime_error& e) { 
-				pSps->majorErrors.push_back(std::string("[SPS] ").append(e.what()));
+				pSps->errors.add(H26XError::Major, std::string("[SPS] ").append(e.what()));
 				pSps->completelyParsed = false;
 			}
-			if(previousUnitIsVLC) newAccessUnit();
+			if(previousUnitIsVLC){
+				newAccessUnit();
+			}
 			H264SPS::SPSMap.insert_or_assign(pSps->seq_parameter_set_id, pSps);
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264SPS>(pSps));
 			break;
@@ -188,7 +190,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H264PPS* pPps = new H264PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readPPS(*pPps);
 			} catch(const std::runtime_error& e) { 
-				pPps->majorErrors.push_back(std::string("[PPS] ").append(e.what()));
+				pPps->errors.add(H26XError::Major, std::string("[PPS] ").append(e.what()));
 				pPps->completelyParsed = false;
 			}
 			if(previousUnitIsVLC) newAccessUnit();	
@@ -202,7 +204,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H264Slice* pSlice = new H264Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, m_currentNAL.nal_unit_type, iNALLength, pNALData);
 			try { bitstreamReader.readSlice(*pSlice);
 			} catch(const std::runtime_error& e) { 
-				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
+				pSlice->errors.add(H26XError::Major, std::string("[Slice] ").append(e.what()));
 				pSlice->completelyParsed = false;
 			}
 			if(previousUnitIsVLC){
@@ -221,13 +223,9 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 					previousGOP->accessUnits.back()->decodable = true;
 					previousGOP->validate();
 
-					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());
-					previousGOP->minorErrors.clear();
-					for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
-
-					majorErrors.insert(majorErrors.end(), previousGOP->majorErrors.begin(), previousGOP->majorErrors.end());
-					previousGOP->majorErrors.clear();
-					for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+					errors.add(previousGOP->errors);
+					previousGOP->errors.clear();
+					errors.clear(ERR_MSG_LIMIT);
 				}
 				if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) m_GOPs.back()->hasIDR = true;
 			} 
@@ -240,7 +238,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			try { 
 				bitstreamReader.readSEI(*pSei, m_pActiveSPS);
 			} catch(const std::runtime_error& e) { 
-				pSei->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
+				pSei->errors.add(H26XError::Minor, std::string("[SEI] ").append(e.what()));
 				pSei->completelyParsed = false;
 			}
 			if(previousUnitIsVLC) newAccessUnit();
@@ -251,7 +249,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H264AUD* pAud = new H264AUD(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
 			try { bitstreamReader.readAUD(*pAud);
 			} catch(const std::runtime_error& e) { 
-				pAud->minorErrors.push_back(std::string("[AUD] ").append(e.what()));
+				pAud->errors.add(H26XError::Minor, std::string("[AUD] ").append(e.what()));
 				pAud->completelyParsed = false;
 			}
 			if(previousUnitIsVLC) newAccessUnit();	
@@ -259,23 +257,25 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			break;
 		}
 		default:
-			majorErrors.push_back("Unhandled NAL type detected");
+			errors.add(H26XError::Major, "Unhandled NAL type detected");
 			std::cerr << "[H264::Stream] NAL: Unhandled nal type " << m_currentNAL.nal_unit_type << "\n";
 			break;
 	}
 	return true;
 }
 
-void H264Stream::validateFrameNum(H264Slice* pSlice){
-	if(!pSlice->getSPS() || !pSlice->majorErrors.empty()) return;
+void H264Stream::validateFrameNum(H264Slice* pSlice)
+{
+	if(!pSlice->getSPS() || !pSlice->errors.empty()){
+		return;
+	}
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	pAccessUnits.pop_back(); // remove the current access unit
 	// frame_num of an IDR picure equal to 0 : already covered in H264Slice::validate();
 	if(pSlice->nal_unit_type == H264NAL::UnitType_IDRFrame) {
 		pSlice->PrevRefFrameNum = 0;
 		return;
-	}
-	else {
+	}else {
 		// gaps : rarely allowed and entails more checks/processing, do later if time allows it
 		// bool foundGaps = false;
 		// for(auto it = pAccessUnits.rbegin();it != pAccessUnits.rend()-1;++it){
@@ -298,7 +298,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 
 		if(!foundPrevFrame){
-			pSlice->minorErrors.push_back("[Slice frame number] Couldn't derive PrevRefFrameNumber");
+			pSlice->errors.add(H26XError::Minor, "[Slice frame number] Couldn't derive PrevRefFrameNumber");
 			return;
 		}
 	}	
@@ -327,7 +327,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 		}
 		bool precedingPreviousReference = precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice() && precedingPreviousAccessUnit->primary_coded_slice()->nal_ref_idc == 0;
 		if(!consecutive || !oppositeParities || (!precedingIsIDR && !markingPictureOperation && !precedingPreviousPrimaryPic && !precedingPreviousReference)){
-			pSlice->minorErrors.push_back("[Slice frame number] frame_num shouldn't be equal to PrevRefFrameNum");
+			pSlice->errors.add(H26XError::Minor, "[Slice frame number] frame_num shouldn't be equal to PrevRefFrameNum");
 			return;
 		}
 	} else {
@@ -342,14 +342,14 @@ void H264Stream::validateFrameNum(H264Slice* pSlice){
 			H264Slice* previousSlice = pAccessUnit->slice();
 			if(previousSlice && previousSlice->nal_ref_idc != 0 && !previousSlice->drpm.long_term_reference_flag){
 				if(std::find(UnusedShortTermFrameNums.begin(), UnusedShortTermFrameNums.end(), previousSlice->frame_num) != UnusedShortTermFrameNums.end()){
-					pSlice->minorErrors.push_back("[Slice frame number] Previous frame/field has a frame_num marked as unused");
+					pSlice->errors.add(H26XError::Minor, "[Slice frame number] Previous frame/field has a frame_num marked as unused");
 					return;
 				}
 			}
 		}
 		if(!pSlice->getSPS()->gaps_in_frame_num_value_allowed_flag){
 			if(pSlice->frame_num != ((pSlice->PrevRefFrameNum+1)%MaxFrameNum)){
-				pSlice->minorErrors.push_back("[Slice frame number] frame_num isn't directly succeeding PrevRefFrameNum");
+				pSlice->errors.add(H26XError::Minor, "[Slice frame number] frame_num isn't directly succeeding PrevRefFrameNum");
 				return;
 			}
 		} else {

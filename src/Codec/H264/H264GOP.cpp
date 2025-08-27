@@ -51,19 +51,31 @@ void H264GOP::validate(){
     bool noSPSorPPS = true;
     uint16_t maxFrameNumber = 0;
     uint16_t minFrameNumber = 0;
-    if(accessUnits.front()->slice()) maxFrameNumber = minFrameNumber = accessUnits.front()->slice()->frame_num;
+    if(accessUnits.front()->slice()){
+		maxFrameNumber = minFrameNumber = accessUnits.front()->slice()->frame_num;
+	}
     std::unordered_set<uint16_t> seenFrameNumbers;
     for(const std::unique_ptr<H264AccessUnit>& accessUnit : accessUnits){   
         accessUnit->validate();     
-        if(accessUnit->empty() || !accessUnit->slice()) continue;
+        if(accessUnit->empty() || !accessUnit->slice()){
+			continue;
+		}
         const H264Slice* pSlice = accessUnit->slice();
-        if(pSlice->slice_type == H264Slice::SliceType_I) encounteredIFrame = true;
-        if(!pSlice->getPPS() || !pSlice->getSPS()) continue;
-        if(!encounteredIFrame) accessUnit->majorErrors.push_back("No reference I-frame");
+        if(pSlice->slice_type == H264Slice::SliceType_I){
+			encounteredIFrame = true;
+		}
+        if(!pSlice->getPPS() || !pSlice->getSPS()){
+			continue;
+		}
+        if(!encounteredIFrame){
+			accessUnit->errors.add(H26XError::Major, "No reference I-frame");
+		}
         noSPSorPPS = false;
-        if(pSlice->frame_num > maxFrameNumber) maxFrameNumber = pSlice->frame_num;
+        if(pSlice->frame_num > maxFrameNumber){
+			maxFrameNumber = pSlice->frame_num;
+		}
         if(pSlice->frame_num < prevFrameNumber && (prevFrameNumber + 1)%pSlice->getSPS()->MaxFrameNumber != pSlice->frame_num) {
-            majorErrors.push_back("[GOP] Out of order frames detected");
+            errors.add(H26XError::Major, "[GOP] Out of order frames detected");
         }
         prevFrameNumber = pSlice->frame_num;
         seenFrameNumbers.insert(pSlice->frame_num);
@@ -72,22 +84,22 @@ void H264GOP::validate(){
         bool frameSkipped = false;
         for(uint16_t i = minFrameNumber+1;i < maxFrameNumber && !frameSkipped;++i){
             if(seenFrameNumbers.find(i) == seenFrameNumbers.end()){
-                majorErrors.push_back("[GOP] Skipped frames detected");
+                errors.add(H26XError::Major, "[GOP] Skipped frames detected");
                 frameSkipped = true;
             } 
         }
     }
-    if(!encounteredIFrame) majorErrors.push_back("[GOP] No I-frame detected");
+    if(!encounteredIFrame) errors.add(H26XError::Major, "[GOP] No I-frame detected");
 }
 
 bool H264GOP::hasMajorErrors() const {
-    return !majorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
+    return !errors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
         return accessUnit->hasMajorErrors();
     });
 }
 
 bool H264GOP::hasMinorErrors() const {
-    return !minorErrors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
+    return !errors.empty() || std::any_of(accessUnits.begin(), accessUnits.end(), [](const std::unique_ptr<H264AccessUnit>& accessUnit){
         return accessUnit->hasMinorErrors();
     });
 }

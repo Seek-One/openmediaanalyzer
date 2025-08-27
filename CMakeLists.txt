@@ -167,9 +167,13 @@ set(CODEC_SOURCES
     src/Codec/H26X/H26XBitstreamReader.h
 	src/Codec/H26X/H26XDumpObject.h
 	src/Codec/H26X/H26XDumpObject.cpp
+	src/Codec/H26X/H26XErrors.h
+	src/Codec/H26X/H26XErrors.cpp
 	src/Codec/H26X/H26XErrorsMsg.h
     src/Codec/H26X/H26XMath.cpp
     src/Codec/H26X/H26XMath.h
+	src/Codec/H26X/H26XNAL.cpp
+	src/Codec/H26X/H26XNAL.h
     src/Codec/H26X/H26XStream.cpp
     src/Codec/H26X/H26XStream.h
 	src/Codec/H26X/H26XTypes.h

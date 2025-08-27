@@ -95,43 +95,73 @@ void H265VPS::dump(H26XDumpObject& dumpObject) const
 void H265VPS::validate()
 {
 	H265NAL::validate();
-	if(!completelyParsed) return;
-	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0) minorErrors.push_back("[VPS] vps_max_layers_minus1 not greater than 0");
-	if(vps_max_layers_minus1 > 62) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_layers_minus1 value (%ld) not in valid range (0..62)", vps_max_layers_minus1));
-	if(vps_max_sub_layers_minus1 > 6) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_sub_layers_minus1 value (%ld) not in valid range (0..6)", vps_max_sub_layers_minus1));
-	if(vps_max_sub_layers_minus1 == 0 && !vps_temporal_id_nesting_flag) minorErrors.push_back("[VPS] vps_temporal_id_nesting_flag not set (singular temporal sub-layer)");
+	if(!completelyParsed){
+		return;
+	}
+	if(!vps_base_layer_internal_flag && vps_max_layers_minus1 == 0){
+		errors.add(H26XError::Minor, "[VPS] vps_max_layers_minus1 not greater than 0");
+	}
+	if(vps_max_layers_minus1 > 62){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_layers_minus1 value (%ld) not in valid range (0..62)", vps_max_layers_minus1));
+	}
+	if(vps_max_sub_layers_minus1 > 6){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_sub_layers_minus1 value (%ld) not in valid range (0..6)", vps_max_sub_layers_minus1));
+	}
+	if(vps_max_sub_layers_minus1 == 0 && !vps_temporal_id_nesting_flag){
+		errors.add(H26XError::Minor, "[VPS] vps_temporal_id_nesting_flag not set (singular temporal sub-layer)");
+	}
 	profile_tier_level.validate(1);
-	minorErrors.insert(minorErrors.end(), profile_tier_level.errors.begin(), profile_tier_level.errors.end());
+	errors.add(profile_tier_level.errors);
 	profile_tier_level.errors.clear();
-	if(!vps_base_layer_internal_flag && vps_sub_layer_ordering_info_present_flag) minorErrors.push_back("[VPS] vps_sub_layer_ordering_info_present_flag set (no base layer)");
+	if(!vps_base_layer_internal_flag && vps_sub_layer_ordering_info_present_flag){
+		errors.add(H26XError::Minor, "[VPS] vps_sub_layer_ordering_info_present_flag set (no base layer)");
+	}
 	for (uint8_t i = (vps_sub_layer_ordering_info_present_flag ? 0 : vps_max_sub_layers_minus1); i <= vps_max_sub_layers_minus1; ++i) {
 		if(!vps_base_layer_internal_flag){
-			if(vps_max_dec_pic_buffering_minus1[i] != 0) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_dec_pic_buffering_minus1[%d] value (%ld) not 0 (no base layer)", i, vps_max_dec_pic_buffering_minus1[i]));
-			if(vps_max_num_reorder_pics[i] != 0) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_num_reorder_pics[%d] value (%ld) not 0 (no base layer)", i, vps_max_num_reorder_pics[i]));
-			if(vps_max_latency_increase_plus1[i] != 0) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_latency_increase_plus1[%d] value (%ld) not 0 (no base layer)", i, vps_max_latency_increase_plus1[i]));
+			if(vps_max_dec_pic_buffering_minus1[i] != 0){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_dec_pic_buffering_minus1[%d] value (%ld) not 0 (no base layer)", i, vps_max_dec_pic_buffering_minus1[i]));
+			}
+			if(vps_max_num_reorder_pics[i] != 0){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_num_reorder_pics[%d] value (%ld) not 0 (no base layer)", i, vps_max_num_reorder_pics[i]));
+			}
+			if(vps_max_latency_increase_plus1[i] != 0){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_latency_increase_plus1[%d] value (%ld) not 0 (no base layer)", i, vps_max_latency_increase_plus1[i]));
+			}
 		}
 	}
-	if(vps_max_layer_id > 62) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_max_layer_id value (%ld) not in valid range (0..62)", vps_max_layer_id));
-	if(vps_num_layer_sets_minus1 > 1023) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_layer_sets_minus1 value (%ld) not in valid range (0..1023)", vps_num_layer_sets_minus1));
+	if(vps_max_layer_id > 62){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_max_layer_id value (%ld) not in valid range (0..62)", vps_max_layer_id));
+	}
+	if(vps_num_layer_sets_minus1 > 1023){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_num_layer_sets_minus1 value (%ld) not in valid range (0..1023)", vps_num_layer_sets_minus1));
+	}
 	if (vps_timing_info_present_flag) {
-		if(vps_num_units_in_tick == 0) minorErrors.push_back("[VPS] vps_num_units_in_tick not greater than 0");
-		if(vps_time_scale == 0) minorErrors.push_back("[VPS] vps_time_scale not greater than 0");
-		if (vps_poc_proportional_to_timing_flag) {
-			if(vps_num_ticks_poc_diff_one_minus1 == UINT32_MAX) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_ticks_poc_diff_one_minus1 value (%ld) not in valid range (0..4294967294)", vps_num_ticks_poc_diff_one_minus1));
+		if(vps_num_units_in_tick == 0){
+			errors.add(H26XError::Minor, "[VPS] vps_num_units_in_tick not greater than 0");
 		}
-		if(vps_num_hrd_parameters > vps_num_layer_sets_minus1+1u) minorErrors.push_back(StringFormatter::formatString("[VPS] vps_num_hrd_parameters value (%ld) not in valid range (0..{})", vps_num_hrd_parameters, vps_num_layer_sets_minus1+1));
+		if(vps_time_scale == 0){
+			errors.add(H26XError::Minor, "[VPS] vps_time_scale not greater than 0");
+		}
+		if (vps_poc_proportional_to_timing_flag) {
+			if(vps_num_ticks_poc_diff_one_minus1 == UINT32_MAX){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_num_ticks_poc_diff_one_minus1 value (%ld) not in valid range (0..4294967294)", vps_num_ticks_poc_diff_one_minus1));
+			}
+		}
+		if(vps_num_hrd_parameters > vps_num_layer_sets_minus1+1u){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] vps_num_hrd_parameters value (%ld) not in valid range (0..{})", vps_num_hrd_parameters, vps_num_layer_sets_minus1+1));
+		}
 		for (uint32_t i = 0; i < vps_num_hrd_parameters; ++i) {
 			if((!vps_base_layer_internal_flag && hrd_layer_set_idx[i] == 0) || hrd_layer_set_idx[i] > vps_num_layer_sets_minus1){
-				minorErrors.push_back(StringFormatter::formatString("[VPS] hrd_layer_set_idx[%d] value (%ld) not in valid range ({}..{})", i, hrd_layer_set_idx[i], (vps_base_layer_internal_flag ? 0 : 1), vps_num_layer_sets_minus1));
+				errors.add(H26XError::Minor, StringFormatter::formatString("[VPS] hrd_layer_set_idx[%d] value (%ld) not in valid range ({}..{})", i, hrd_layer_set_idx[i], (vps_base_layer_internal_flag ? 0 : 1), vps_num_layer_sets_minus1));
 			}
 			hrd_parameters[i].validate();
-			minorErrors.insert(minorErrors.end(), hrd_parameters[i].errors.begin(), hrd_parameters[i].errors.end());
+			errors.add(hrd_parameters[i].errors);
 			hrd_parameters[i].errors.clear();
 		}
 		std::unordered_set<uint32_t> seen_hrd_layer_set_idx;
 		for(uint32_t hrd_layer_set_index : hrd_layer_set_idx) {
 			if(!seen_hrd_layer_set_idx.insert(hrd_layer_set_index).second){
-				minorErrors.push_back("[VPS] Duplicate values of hrd_layer_set_idx detected");
+				errors.add(H26XError::Minor, "[VPS] Duplicate values of hrd_layer_set_idx detected");
 				break;
 			}
 		}

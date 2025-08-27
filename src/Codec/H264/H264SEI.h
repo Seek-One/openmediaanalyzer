@@ -19,7 +19,7 @@ struct H264SEIMessage {
 	virtual ~H264SEIMessage() = default;
 	uint8_t payloadType;
 
-	std::vector<std::string> errors;
+	H26XErrors errors;
 	virtual void dump(H26XDumpObject& dumpObject) const;
 	virtual void validate();
 };

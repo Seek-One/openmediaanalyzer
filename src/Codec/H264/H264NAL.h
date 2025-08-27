@@ -5,11 +5,10 @@
 #include <string>
 #include <vector>
 
-#include "../H26X/H26XDumpObject.h"
+#include "../H26X/H26XNAL.h"
 
-class UnitFieldList;
-
-struct H264NAL {
+struct H264NAL : public H26XNAL
+{
 	enum UnitType {
 		UnitType_Unspecified = 0x00,
 		UnitType_NonIDRFrame = 0x01, // Non-IDR Frame
@@ -43,13 +42,8 @@ struct H264NAL {
 	uint32_t nal_size;
 	uint8_t* nal_data;
 
-	bool completelyParsed;
-
-	std::vector<std::string> minorErrors;
-	std::vector<std::string> majorErrors;
-
-	virtual void dump(H26XDumpObject& dumpObject) const;
-	virtual void validate();
+	virtual void dump(H26XDumpObject& dumpObject) const override;
+	virtual void validate() override;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264NAL_H_

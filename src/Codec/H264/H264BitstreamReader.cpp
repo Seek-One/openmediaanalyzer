@@ -717,7 +717,7 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS* activeSPS){
 				break;
 			case SEI_PIC_TIMING:
 				if(activeSPS) readSEIPicTiming(h264SEI, *activeSPS);
-				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
+				else h264SEI.errors.add(H26XError::Minor, "[SEI] no valid SPS to reference");
 				break;
 			case SEI_FILLER_PAYLOAD:
 				readSEIFillerPayload(h264SEI, payloadSize);
@@ -727,7 +727,7 @@ void H264BitstreamReader::readSEI(H264SEI& h264SEI, const H264SPS* activeSPS){
 				break;
 			case SEI_RECOVERY_POINT:
 				if(activeSPS) readSEIRecoveryPoint(h264SEI, *activeSPS);
-				else h264SEI.minorErrors.push_back("[SEI] no valid SPS to reference");
+				else h264SEI.errors.add(H26XError::Minor, "[SEI] no valid SPS to reference");
 				break;
 			case SEI_FULL_FRAME_FREEZE:
 				readSEIFullFrameFreeze(h264SEI);

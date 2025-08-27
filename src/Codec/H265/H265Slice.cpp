@@ -41,10 +41,10 @@ void RefPicListsModification::dump(H26XDumpObject& dumpObject, const H265Slice& 
 void RefPicListsModification::validate(const H265Slice& h265Slice){
 	uint32_t list_entry_limit = h265Slice.NumPicTotalCurr-1;
 	for(uint32_t i = 0;i < list_entry_l0.size();++i){
-		if(list_entry_l0[i] > list_entry_limit) minorErrors.push_back(StringFormatter::formatString("[Slice RPLM] list_entry_l0[%d] value (%ld) not in valid range (0..{})", i, list_entry_l0[i], list_entry_limit));
+		if(list_entry_l0[i] > list_entry_limit) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice RPLM] list_entry_l0[%d] value (%ld) not in valid range (0..{})", i, list_entry_l0[i], list_entry_limit));
 	}
 	for(uint32_t i = 0;i < list_entry_l1.size();++i){
-		if(list_entry_l1[i] > list_entry_limit) minorErrors.push_back(StringFormatter::formatString("[Slice RPLM] list_entry_l1[%d] value (%ld) not in valid range (0..{})", i, list_entry_l1[i], list_entry_limit));
+		if(list_entry_l1[i] > list_entry_limit) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice RPLM] list_entry_l1[%d] value (%ld) not in valid range (0..{})", i, list_entry_l1[i], list_entry_limit));
 	}
 }
 
@@ -123,7 +123,8 @@ void H265PredWeightTable::dump(H26XDumpObject& dumpObject, const H265Slice& h265
 	dumpObject.endUnitFieldList();
 }
 
-void H265PredWeightTable::validate(const H265Slice& h265Slice){
+void H265PredWeightTable::validate(const H265Slice& h265Slice)
+{
 	H265SPS* h265SPS = h265Slice.getSPS();
 	int16_t delta_chroma_offset_lower_bound = INT16_MIN;
 	int16_t delta_chroma_offset_upper_bound = INT16_MAX;
@@ -131,28 +132,36 @@ void H265PredWeightTable::validate(const H265Slice& h265Slice){
 		delta_chroma_offset_lower_bound = -4*h265SPS->sps_range_extension.WpOffsetHalfRangeC;
 		delta_chroma_offset_upper_bound = 4*h265SPS->sps_range_extension.WpOffsetHalfRangeC-1;
 	}
-	if(luma_log2_weight_denom > 7) minorErrors.push_back(StringFormatter::formatString("[Slice PWT] luma_log2_weight_denom value (%ld) not in valid range (0..7)", luma_log2_weight_denom));
-	if(delta_chroma_log2_weight_denom > 7-luma_log2_weight_denom) minorErrors.push_back(StringFormatter::formatString("[Slice PWT] delta_chroma_log2_weight_denom value (%ld) not in valid range (0..{})", delta_chroma_log2_weight_denom, 7-luma_log2_weight_denom));
+	if(luma_log2_weight_denom > 7){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] luma_log2_weight_denom value (%ld) not in valid range (0..7)", luma_log2_weight_denom));
+	}
+	if(delta_chroma_log2_weight_denom > 7-luma_log2_weight_denom){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] delta_chroma_log2_weight_denom value (%ld) not in valid range (0..{})", delta_chroma_log2_weight_denom, 7-luma_log2_weight_denom));
+	}
 	for(int i = 0;i < 15;++i){
 		if(luma_weight_l0_flag[i]){
-			if(delta_luma_weight_l0[i] < -128 || delta_luma_weight_l0[i] > 127) minorErrors.push_back(StringFormatter::formatString("[Slice PWT] delta_luma_weight_l0[%d] value (%ld) not in valid range (-128..127)", i, delta_luma_weight_l0[i]));
+			if(delta_luma_weight_l0[i] < -128 || delta_luma_weight_l0[i] > 127){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] delta_luma_weight_l0[%d] value (%ld) not in valid range (-128..127)", i, delta_luma_weight_l0[i]));
+			}
 		}
 		if(chroma_weight_l0_flag[i]){
 			for(int j = 0;j < 2;++j){
-				if(delta_chroma_weight_l0[i][j] < -128 || delta_chroma_weight_l0[i][j] > 127) minorErrors.push_back(StringFormatter::formatString("delta_chroma_weight[%d][%d] value (%ld) not in valid range (-128..127)", i, j, delta_chroma_weight_l0[i][j]));
+				if(delta_chroma_weight_l0[i][j] < -128 || delta_chroma_weight_l0[i][j] > 127){
+					errors.add(H26XError::Minor, StringFormatter::formatString("delta_chroma_weight[%d][%d] value (%ld) not in valid range (-128..127)", i, j, delta_chroma_weight_l0[i][j]));
+				}
 				if(delta_chroma_offset_l0[i][j] < delta_chroma_offset_lower_bound || delta_chroma_offset_l0[i][j] > delta_chroma_offset_upper_bound){
-					minorErrors.push_back(StringFormatter::formatString("[Slice PWT] delta_chroma_offset_l0[%d][%d] value (%ld) not in valid range ({}..{})", i, j, delta_chroma_offset_l0[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
+					errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] delta_chroma_offset_l0[%d][%d] value (%ld) not in valid range ({}..{})", i, j, delta_chroma_offset_l0[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
 				}
 			}
 		}
 		if(luma_weight_l1_flag[i]){
-			if(delta_luma_weight_l1[i] < -128 || delta_luma_weight_l1[i] > 127) minorErrors.push_back(StringFormatter::formatString("[Slice PWT] delta_luma_weight_l1[%d] value (%ld) not in valid range (-128..127)", i, delta_luma_weight_l1[i]));
+			if(delta_luma_weight_l1[i] < -128 || delta_luma_weight_l1[i] > 127) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] delta_luma_weight_l1[%d] value (%ld) not in valid range (-128..127)", i, delta_luma_weight_l1[i]));
 		}
 		if(chroma_weight_l1_flag[i]){
 			for(int j = 0;j < 2;++j){
-				if(delta_chroma_weight_l1[i][j] < -128 || delta_chroma_weight_l1[i][j] > 127) minorErrors.push_back(StringFormatter::formatString("delta_chroma_weight[%d][%d] value (%ld) not in valid range (-128..127)", i, j, delta_chroma_weight_l1[i][j]));
+				if(delta_chroma_weight_l1[i][j] < -128 || delta_chroma_weight_l1[i][j] > 127) errors.add(H26XError::Minor, StringFormatter::formatString("delta_chroma_weight[%d][%d] value (%ld) not in valid range (-128..127)", i, j, delta_chroma_weight_l1[i][j]));
 				if(delta_chroma_offset_l1[i][j] < delta_chroma_offset_lower_bound || delta_chroma_offset_l1[i][j] > delta_chroma_offset_upper_bound){
-					minorErrors.push_back(StringFormatter::formatString("[Slice PWT] delta_chroma_offset_l1[%d][%d] value (%ld) not in valid range ({}..{})", i, j, delta_chroma_offset_l1[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
+					errors.add(H26XError::Minor, StringFormatter::formatString("[Slice PWT] delta_chroma_offset_l1[%d][%d] value (%ld) not in valid range ({}..{})", i, j, delta_chroma_offset_l1[i][j], delta_chroma_offset_lower_bound, delta_chroma_offset_upper_bound));
 				}
 			}
 		}
@@ -429,104 +438,139 @@ H265SPS* H265Slice::getSPS() const{
 	return referencedSPS->second;
 }
 
-H265VPS* H265Slice::getVPS() const{
+H265VPS* H265Slice::getVPS() const
+{
 	H265SPS* pSps = getSPS();
-	if(!pSps) return nullptr;
+	if(!pSps){
+		return nullptr;
+	}
 	auto referencedVPS = H265VPS::VPSMap.find(pSps->sps_video_parameter_set_id);
-	if(referencedVPS == H265VPS::VPSMap.end()) return nullptr;
+	if(referencedVPS == H265VPS::VPSMap.end()){
+		return nullptr;
+	}
 	return referencedVPS->second;
 }
 
 void H265Slice::validate(){
 	H265NAL::validate();
 	if(!completelyParsed) return;
-	if(slice_pic_parameter_set_id > 63) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_pic_parameter_set_id value (%ld) not in valid range (0..63)", slice_pic_parameter_set_id));
+	if(slice_pic_parameter_set_id > 63){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_pic_parameter_set_id value (%ld) not in valid range (0..63)", slice_pic_parameter_set_id));
+	}
 	H265PPS* pPps = getPPS();
 	if(!pPps){
-		majorErrors.push_back(StringFormatter::formatString("[Slice] reference to unknown PPS (%ld)", slice_pic_parameter_set_id));
+		errors.add(H26XError::Major, StringFormatter::formatString("[Slice] reference to unknown PPS (%ld)", slice_pic_parameter_set_id));
 		return;
 	}
 	H265SPS* pSps = getSPS();
 	if(!pSps){
-		majorErrors.push_back(StringFormatter::formatString("[Slice] reference to unknown SPS (%ld)", pPps->pps_seq_parameter_set_id));
+		errors.add(H26XError::Major, StringFormatter::formatString("[Slice] reference to unknown SPS (%ld)", pPps->pps_seq_parameter_set_id));
 		return;
 	}
 	H265VPS* pVps = getVPS();
 	if(!pVps) {
-		majorErrors.push_back(StringFormatter::formatString("[Slice] reference to unknown VPS (%ld)", pSps->sps_video_parameter_set_id));
+		errors.add(H26XError::Major, StringFormatter::formatString("[Slice] reference to unknown VPS (%ld)", pSps->sps_video_parameter_set_id));
 		return;
 	}
 	if(!pPps->completelyParsed){
-		majorErrors.push_back("[Slice] referenced PPS is incomplete");
+		errors.add(H26XError::Major, "[Slice] referenced PPS is incomplete");
 		return;
 	}
 	if(!pSps->completelyParsed){
-		majorErrors.push_back("[Slice] referenced SPS is incomplete");
+		errors.add(H26XError::Major, "[Slice] referenced SPS is incomplete");
 		return;
 	}
 	if(!pVps->completelyParsed){
-		majorErrors.push_back("[Slice] referenced VPS is incomplete");
+		errors.add(H26XError::Major, "[Slice] referenced VPS is incomplete");
 		return;
 	}
-	if(pPps->TemporalId > TemporalId) minorErrors.push_back("[Slice] referenced PPS has a greater TemporalId value");
-	if(pPps->nuh_layer_id > nuh_layer_id) minorErrors.push_back("[Slice] referenced PPS has a greater nuh_layer_id value");
-	if(pSps->nuh_layer_id > nuh_layer_id) minorErrors.push_back("[Slice] referenced SPS has a greater nuh_layer_id value");
-	if(slice_segment_address > pSps->PicSizeInCtbsY-1) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_segment_address value (%ld) not in valid range (0..{})", slice_segment_address, pSps->PicSizeInCtbsY-1));
+	if(pPps->TemporalId > TemporalId){
+		errors.add(H26XError::Minor, "[Slice] referenced PPS has a greater TemporalId value");
+	}
+	if(pPps->nuh_layer_id > nuh_layer_id){
+		errors.add(H26XError::Minor, "[Slice] referenced PPS has a greater nuh_layer_id value");
+	}
+	if(pSps->nuh_layer_id > nuh_layer_id){
+		errors.add(H26XError::Minor, "[Slice] referenced SPS has a greater nuh_layer_id value");
+	}
+	if(slice_segment_address > pSps->PicSizeInCtbsY-1){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_segment_address value (%ld) not in valid range (0..{})", slice_segment_address, pSps->PicSizeInCtbsY-1));
+	}
 	if(!pPps->dependent_slice_segments_enabled_flag){
-		if(slice_type > 2) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_type value (%ld) not in valid range (0..2)", slice_type));
+		if(slice_type > 2){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_type value (%ld) not in valid range (0..2)", slice_type));
+		}
 		if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23 &&
 			nuh_layer_id == 0 && !pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag &&
-			slice_type != 2) minorErrors.push_back("[Slice] slice_type value of an IRAP picture not equal to 2");
-		if(pSps->sps_max_dec_pic_buffering_minus1[TemporalId] == 0 && nuh_layer_id == 0 &&
-			!pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag && slice_type != 2) {
-			minorErrors.push_back("[Slice] slice_type value not equal to 2");
+			slice_type != 2)
+		{
+			errors.add(H26XError::Minor, "[Slice] slice_type value of an IRAP picture not equal to 2");
 		}
-		if(colour_plane_id > 2) minorErrors.push_back(StringFormatter::formatString("[Slice] colour_plane_id value (%ld) not in valid range (0..2)", colour_plane_id));
+		if(pSps->sps_max_dec_pic_buffering_minus1[TemporalId] == 0 && nuh_layer_id == 0 &&
+			!pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag && slice_type != 2)
+		{
+			errors.add(H26XError::Minor, "[Slice] slice_type value not equal to 2");
+		}
+		if(colour_plane_id > 2){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] colour_plane_id value (%ld) not in valid range (0..2)", colour_plane_id));
+		}
 	}
-	if(slice_pic_order_cnt_lsb > pSps->MaxPicOrderCntLsb-1) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_pic_order_cnt_lsb value (%ld) not in valid range (0..{})", slice_pic_order_cnt_lsb, pSps->MaxPicOrderCntLsb-1));
-	if(short_term_ref_pic_set_idx > pSps->num_short_term_ref_pic_sets-1) minorErrors.push_back(StringFormatter::formatString("[Slice] short_term_ref_pic_set_idx value (%ld) not in valid range (0..{})", short_term_ref_pic_set_idx, pSps->num_short_term_ref_pic_sets-1));
-	if(num_long_term_sps > pSps->num_long_term_ref_pics_sps) minorErrors.push_back(StringFormatter::formatString("[Slice] num_long_term_sps value (%ld) not in valid range (0..{})", num_long_term_sps, pSps->num_long_term_ref_pics_sps));
+	if(slice_pic_order_cnt_lsb > pSps->MaxPicOrderCntLsb-1){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_pic_order_cnt_lsb value (%ld) not in valid range (0..{})", slice_pic_order_cnt_lsb, pSps->MaxPicOrderCntLsb-1));
+	}
+	if(short_term_ref_pic_set_idx > pSps->num_short_term_ref_pic_sets-1){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] short_term_ref_pic_set_idx value (%ld) not in valid range (0..{})", short_term_ref_pic_set_idx, pSps->num_short_term_ref_pic_sets-1));
+	}
+	if(num_long_term_sps > pSps->num_long_term_ref_pics_sps){
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] num_long_term_sps value (%ld) not in valid range (0..{})", num_long_term_sps, pSps->num_long_term_ref_pics_sps));
+	}
 	uint32_t num_long_term_pics_limit = pSps->sps_max_dec_pic_buffering_minus1[TemporalId] - 
 										pSps->short_term_ref_pic_set[CurrRpsIdx].NumNegativePics -
 										pSps->short_term_ref_pic_set[CurrRpsIdx].NumPositivePics -
 										num_long_term_sps - pPps->TwoVersionsOfCurrDecPicFlag;
 	if(nuh_layer_id == 0 && num_long_term_pics > num_long_term_pics_limit){
-		minorErrors.push_back(StringFormatter::formatString("[Slice] num_long_term_pics value (%ld) not in valid range (0..{})", num_long_term_pics, num_long_term_pics_limit));
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] num_long_term_pics value (%ld) not in valid range (0..{})", num_long_term_pics, num_long_term_pics_limit));
 	}
 	for(uint32_t i = 0;i < lt_idx_sps.size();++i){
-		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1) minorErrors.push_back(StringFormatter::formatString("[Slice] lt_idx_sps[%d] value (%ld) not in valid range (0..{})", i, lt_idx_sps[i], pSps->num_long_term_ref_pics_sps-1));
+		if(lt_idx_sps[i] > pSps->num_long_term_ref_pics_sps-1){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] lt_idx_sps[%d] value (%ld) not in valid range (0..{})", i, lt_idx_sps[i], pSps->num_long_term_ref_pics_sps-1));
+		}
 	}
 	uint32_t delta_poc_msb_cycle_lt_limit = 1 << (32 - pSps->log2_max_pic_order_cnt_lsb_minus4-4);
 	for(uint32_t i = 0;i < delta_poc_msb_cycle_lt.size();++i){
-		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit) minorErrors.push_back(StringFormatter::formatString("[Slice] delta_poc_msb_cycle_lt[%d] value (%ld) not in valid range (0..{})", i, delta_poc_msb_cycle_lt[i], delta_poc_msb_cycle_lt_limit));
+		if(delta_poc_msb_cycle_lt[i] > delta_poc_msb_cycle_lt_limit){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] delta_poc_msb_cycle_lt[%d] value (%ld) not in valid range (0..{})", i, delta_poc_msb_cycle_lt[i], delta_poc_msb_cycle_lt_limit));
+		}
 	}
 	if(slice_type == SliceType_P || slice_type == SliceType_B){
 		if(num_ref_idx_active_override_flag){
-			if(num_ref_idx_l0_active_minus1 > 14) minorErrors.push_back(StringFormatter::formatString("[Slice] num_ref_idx_l0_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l0_active_minus1));
-			if(num_ref_idx_l1_active_minus1 > 14) minorErrors.push_back(StringFormatter::formatString("[Slice] num_ref_idx_l1_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l1_active_minus1));
+			if(num_ref_idx_l0_active_minus1 > 14){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] num_ref_idx_l0_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l0_active_minus1));
+			}
+			if(num_ref_idx_l1_active_minus1 > 14){
+				errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] num_ref_idx_l1_active_minus1 value (%ld) not in valid range (0..14)", num_ref_idx_l1_active_minus1));
+			}
 		}
 		if(pPps->lists_modification_present_flag && NumPicTotalCurr > 1){
 			ref_pic_lists_modification.validate(*this);
-			minorErrors.insert(minorErrors.end(), ref_pic_lists_modification.minorErrors.begin(), ref_pic_lists_modification.minorErrors.end());
-			majorErrors.insert(majorErrors.end(), ref_pic_lists_modification.majorErrors.begin(), ref_pic_lists_modification.majorErrors.end());
-			ref_pic_lists_modification.minorErrors.clear();
-			ref_pic_lists_modification.majorErrors.clear();
+			errors.add(ref_pic_lists_modification.errors);
+			ref_pic_lists_modification.errors.clear();
 		}
 		if(collocated_ref_idx > num_ref_idx_l1_active_minus1){
-			minorErrors.push_back(StringFormatter::formatString("[Slice] collocated_ref_idx value (%ld) not in valid range (0..{})", collocated_ref_idx, num_ref_idx_l1_active_minus1));
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] collocated_ref_idx value (%ld) not in valid range (0..{})", collocated_ref_idx, num_ref_idx_l1_active_minus1));
 		}
 		pred_weight_table.validate(*this);
-		minorErrors.insert(minorErrors.end(), pred_weight_table.minorErrors.begin(), pred_weight_table.minorErrors.end());
-		majorErrors.insert(majorErrors.end(), pred_weight_table.majorErrors.begin(), pred_weight_table.majorErrors.end());
-		pred_weight_table.minorErrors.clear();
-		pred_weight_table.majorErrors.clear();
-		if(five_minus_max_num_merge_cand > 4) minorErrors.push_back(StringFormatter::formatString("[Slice] five_minus_max_num_merge_cand value (%ld) not in valid range (0..4)", five_minus_max_num_merge_cand));
+		errors.add(pred_weight_table.errors);
+		pred_weight_table.errors.clear();
+		if(five_minus_max_num_merge_cand > 4){
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] five_minus_max_num_merge_cand value (%ld) not in valid range (0..4)", five_minus_max_num_merge_cand));
+		}
 	}
-	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) minorErrors.push_back(StringFormatter::formatString("[Slice] SliceQpY value (%ld) not in valid range ({}..51)", SliceQpY, -pSps->QpBdOffsetY));
-	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_cb_qp_offset value (%ld) not in valid range (-12..12)", slice_cb_qp_offset));
-	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_cr_qp_offset value (%ld) not in valid range (-12..12)", slice_cr_qp_offset));
-	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_beta_offset_div2 value (%ld) not in valid range (-6..6)", slice_beta_offset_div2));
-	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) minorErrors.push_back(StringFormatter::formatString("[Slice] slice_tc_offset_div2 value (%ld) not in valid range (-6..6)", slice_tc_offset_div2));
+	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] SliceQpY value (%ld) not in valid range ({}..51)", SliceQpY, -pSps->QpBdOffsetY));
+	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_cb_qp_offset value (%ld) not in valid range (-12..12)", slice_cb_qp_offset));
+	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_cr_qp_offset value (%ld) not in valid range (-12..12)", slice_cr_qp_offset));
+	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_beta_offset_div2 value (%ld) not in valid range (-6..6)", slice_beta_offset_div2));
+	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] slice_tc_offset_div2 value (%ld) not in valid range (-6..6)", slice_tc_offset_div2));
 	uint32_t num_entry_point_offsets_limit = num_entry_point_offsets;
 	if(!pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = pSps->PicHeightInCtbsY-1;
@@ -535,6 +579,6 @@ void H265Slice::validate(){
 	} else if (pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = (pPps->num_tile_columns_minus1+1)*pSps->PicHeightInCtbsY-1;
 	}
-	if(num_entry_point_offsets > num_entry_point_offsets_limit) minorErrors.push_back(StringFormatter::formatString("[Slice] num_entry_point_offsets value (%ld) not in valid range (0..{})", num_entry_point_offsets, num_entry_point_offsets_limit)); 
-	if(offset_len_minus1 > 31) minorErrors.push_back(StringFormatter::formatString("[Slice] offset_len_minus1 value (%ld) not in valid range (0..31)", offset_len_minus1)); 
+	if(num_entry_point_offsets > num_entry_point_offsets_limit) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] num_entry_point_offsets value (%ld) not in valid range (0..{})", num_entry_point_offsets, num_entry_point_offsets_limit)); 
+	if(offset_len_minus1 > 31) errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] offset_len_minus1 value (%ld) not in valid range (0..31)", offset_len_minus1)); 
 }

@@ -6,6 +6,8 @@
 #include <memory>
 #include <optional>
 
+#include "../H26X/H26XErrors.h"
+
 struct H264AccessUnit;
 struct H264Slice;
 
@@ -24,8 +26,8 @@ struct H264GOP {
     std::vector<std::unique_ptr<H264AccessUnit>> accessUnits;
     bool hasIDR;
     bool hasSlice;
-    std::vector<std::string> minorErrors;
-    std::vector<std::string> majorErrors;
+
+	H26XErrors errors;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H264GOP_H_

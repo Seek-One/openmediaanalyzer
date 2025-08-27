@@ -89,9 +89,13 @@ void QAccessUnitModel::setSliceType(){
 void QAccessUnitModel::setStatus(){
     if(m_status >= Status_REFERENCED_IFRAME_MISSING && m_status <= Status_OUT_OF_ORDER) return;
     if(isH264()){
-        if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMajorErrors()) m_status = Status_INVALID_STRUCTURE;
-        else if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMinorErrors()) m_status = Status_NON_CONFORMING;
-        else m_status = Status_OK;
+        if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMajorErrors()){
+			m_status = Status_INVALID_STRUCTURE;
+		}else if(std::get<const H264AccessUnit*>(m_pAccessUnit)->hasMinorErrors()){
+			m_status = Status_NON_CONFORMING;
+		}else{
+			m_status = Status_OK;
+		}
     } else if(isH265()){
         if(std::get<const H265AccessUnit*>(m_pAccessUnit)->hasMajorErrors()) m_status = Status_INVALID_STRUCTURE;
         else if(std::get<const H265AccessUnit*>(m_pAccessUnit)->hasMinorErrors()) m_status = Status_NON_CONFORMING;

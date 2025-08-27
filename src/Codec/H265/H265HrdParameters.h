@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 
+#include "../H26X/H26XErrors.h"
 #include "../H26X/H26XDumpObject.h"
 
 struct H265SubLayerHrdParameters {
@@ -44,7 +45,7 @@ struct H265HrdParameters {
 	std::vector<H265SubLayerHrdParameters> nal_sub_layer_hrd_parameters;
 	std::vector<H265SubLayerHrdParameters> vcl_sub_layer_hrd_parameters;
 
-	std::vector<std::string> errors;
+	H26XErrors errors;
 
 	void dump(H26XDumpObject& dumpObject, uint8_t commonInfPresentFlag) const;
 	void validate();

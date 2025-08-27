@@ -11,7 +11,7 @@ H265NAL::H265NAL():
 
 H265NAL::H265NAL(uint8_t forbiddenZeroBit, UnitType nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, const uint8_t* nalData):
 	forbidden_zero_bit(forbiddenZeroBit), nal_unit_type(nalUnitType), nuh_layer_id(nuhLayerId), nuh_temporal_id_plus1(nuhTemporalIdPlus1), 
-	TemporalId(nuh_temporal_id_plus1-1), nal_size(nalSize+3), nal_data(nullptr), completelyParsed(true)
+	TemporalId(nuh_temporal_id_plus1-1), nal_size(nalSize+3), nal_data(nullptr)
 {
 	if(nalData == nullptr) return;
 	nal_data = new uint8_t[nal_size];
@@ -114,12 +114,24 @@ void H265NAL::dump(H26XDumpObject& dumpObject) const
 
 void H265NAL::validate()
 {
-	if(forbidden_zero_bit != 0) minorErrors.push_back("[NAL header] forbidden_zero_bit not equal to 0");
-	if(nuh_layer_id > 62) minorErrors.push_back(StringFormatter::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
-	if(nuh_temporal_id_plus1 == 0) minorErrors.push_back("[NAL header] nuh_temporal_id_plus1 equal to 0");
-	if(isIRAP() && TemporalId != 0) minorErrors.push_back("[NAL header] TemporalId of IRAP picture not equal to 0");
-	else if(TemporalId == 0){
-		if(isTSA()) minorErrors.push_back("[NAL header] TemporalId of TSA picture equal to 0");
-		else if (isSTSA() && nuh_layer_id == 0) minorErrors.push_back("[NAL header] TemporalId of base layer STSA picture equal to 0");
-	} else if(nal_unit_type == UnitType::UnitType_VPS || nal_unit_type == UnitType_SPS) minorErrors.push_back("[NAL header] TemporalId of VPS/SPS not equal to 0");
+	if(forbidden_zero_bit != 0){
+		errors.add(H26XError::Minor, "[NAL header] forbidden_zero_bit not equal to 0");
+	}
+	if(nuh_layer_id > 62){
+		errors.add(H26XError::Minor, StringFormatter::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
+	}
+	if(nuh_temporal_id_plus1 == 0){
+		errors.add(H26XError::Minor, "[NAL header] nuh_temporal_id_plus1 equal to 0");
+	}
+	if(isIRAP() && TemporalId != 0){
+		errors.add(H26XError::Minor, "[NAL header] TemporalId of IRAP picture not equal to 0");
+	}else if(TemporalId == 0){
+		if(isTSA()){
+			errors.add(H26XError::Minor, "[NAL header] TemporalId of TSA picture equal to 0");
+		}else if (isSTSA() && nuh_layer_id == 0){
+			errors.add(H26XError::Minor, "[NAL header] TemporalId of base layer STSA picture equal to 0");
+		}
+	} else if(nal_unit_type == UnitType::UnitType_VPS || nal_unit_type == UnitType_SPS){
+		errors.add(H26XError::Minor, "[NAL header] TemporalId of VPS/SPS not equal to 0");
+	}
 }

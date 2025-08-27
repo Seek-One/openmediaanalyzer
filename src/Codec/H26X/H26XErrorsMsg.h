@@ -7,6 +7,8 @@
 
 #include <stdexcept>
 
+#define ERR_MSG_LIMIT 16
+
 #define END_OF_STREAM_ERR_MSG "Prematurely reached end of bitstream during parsing"
 
 #endif //TOOLKIT_CODEC_UTILS_H26X_H26XERRORSMSG_H

@@ -7,6 +7,8 @@
 #include <memory>
 #include <optional>
 
+#include "../H26X/H26XErrors.h"
+
 struct H265NAL;
 struct H265Slice;
 
@@ -40,8 +42,7 @@ struct H265AccessUnit {
     std::vector<std::unique_ptr<H265NAL>> NALUnits;
     int32_t PicOrderCntVal;
     uint32_t PicOrderCntMsb;
-    std::vector<std::string> minorErrors;
-    std::vector<std::string> majorErrors;
+	H26XErrors errors;
     ReferenceStatus status;
     bool decodable;
 };

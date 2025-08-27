@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <sstream>
 
+#include "../H26X/H26XErrorsMsg.h"
+
 #include "H265BitstreamReader.h"
 #include "H265AccessUnit.h"
 #include "H265GOP.h"
@@ -90,18 +92,15 @@ bool H265Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
    completes the processing of the very last GOP
    which is normally done upon detecting a new GOP 
  */
-void H265Stream::lastPacketParsed(){
+void H265Stream::lastPacketParsed()
+{
 	H265GOP* lastGOP = m_GOPs.back().get();
 	lastGOP->setAccessUnitDecodability();
 	lastGOP->validate();
 
-	minorErrors.insert(minorErrors.end(), lastGOP->minorErrors.begin(), lastGOP->minorErrors.end());
-	lastGOP->minorErrors.clear();
-	for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
-
-	majorErrors.insert(majorErrors.end(), lastGOP->majorErrors.begin(), lastGOP->majorErrors.end());
-	lastGOP->majorErrors.clear();
-	for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+	errors.add(lastGOP->errors);
+	lastGOP->errors.clear();
+	errors.clear(ERR_MSG_LIMIT);
 }
 
 bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
@@ -111,7 +110,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 	try {
 		bitstreamReader.readNALHeader(m_currentNAL);
 	} catch(const std::runtime_error& e) {
-		majorErrors.push_back(std::string("[NAL Header] ").append(e.what()));
+		errors.add(H26XError::Major, std::string("[NAL Header] ").append(e.what()));
 	}
 
 	if(!m_pCurrentAccessUnit) {
@@ -127,7 +126,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			try{
 				bitstreamReader.readVPS(*m_pActiveVPS);
 			} catch(const std::runtime_error& e){ 
-				m_pActiveVPS->majorErrors.push_back(std::string("[VPS] ").append(e.what()));
+				m_pActiveVPS->errors.add(H26XError::Major, std::string("[VPS] ").append(e.what()));
 				m_pActiveVPS->completelyParsed = false;
 			}
 			if(m_pActiveVPS->nuh_layer_id == 0 && currentAccessUnitSlice){
@@ -142,7 +141,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			try {
 				bitstreamReader.readSPS(*m_pActiveSPS);
 			} catch(const std::runtime_error& e){ 
-				m_pActiveSPS->majorErrors.push_back(std::string("[SPS] ").append(e.what())); 
+				m_pActiveSPS->errors.add(H26XError::Major, std::string("[SPS] ").append(e.what()));
 				m_pActiveSPS->completelyParsed = false;
 			}
 			if(m_pActiveSPS->nuh_layer_id == 0 && currentAccessUnitSlice){
@@ -157,7 +156,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			try {
 				bitstreamReader.readPPS(*m_pActivePPS);
 			} catch(const std::runtime_error& e){ 
-				m_pActivePPS->majorErrors.push_back(std::string("[PPS] ").append(e.what())); 
+				m_pActivePPS->errors.add(H26XError::Major, std::string("[PPS] ").append(e.what()));
 				m_pActivePPS->completelyParsed = false;
 			}
 			if(m_pActivePPS->nuh_layer_id == 0 && currentAccessUnitSlice){
@@ -172,7 +171,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H265SEI* pSEI = new H265SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try { bitstreamReader.readSEI(*pSEI);
 			} catch(const std::runtime_error& e){ 
-				pSEI->minorErrors.push_back(std::string("[SEI] ").append(e.what()));
+				pSEI->errors.add(H26XError::Minor, std::string("[SEI] ").append(e.what()));
 				pSEI->completelyParsed = false;
 			}
 			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
@@ -188,7 +187,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			if(firstPicture || endOfSequenceFlag) pSlice->NoRaslOutputFlag = 1;
 			try { bitstreamReader.readSlice(*pSlice, getAccessUnits(), m_pNextAccessUnit);
 			} catch(const std::runtime_error& e){ 
-				pSlice->majorErrors.push_back(std::string("[Slice] ").append(e.what()));
+				pSlice->errors.add(H26XError::Major, std::string("[Slice] ").append(e.what()));
 				pSlice->completelyParsed = false;
 			}
 			if(pSlice->nuh_layer_id == 0 && pSlice->first_slice_segment_in_pic_flag && m_pCurrentAccessUnit->slice()){
@@ -206,13 +205,9 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 					previousGOP->setAccessUnitDecodability();
 					previousGOP->validate();
 
-					minorErrors.insert(minorErrors.end(), previousGOP->minorErrors.begin(), previousGOP->minorErrors.end());
-					previousGOP->minorErrors.clear();
-					for(uint32_t i = 0;minorErrors.size() > ERR_MSG_LIMIT && i < minorErrors.size() - ERR_MSG_LIMIT;++i) minorErrors.pop_front();
-
-					majorErrors.insert(majorErrors.end(), previousGOP->majorErrors.begin(), previousGOP->majorErrors.end());
-					previousGOP->majorErrors.clear();
-					for(uint32_t i = 0;majorErrors.size() > ERR_MSG_LIMIT && i < majorErrors.size() - ERR_MSG_LIMIT;++i) majorErrors.pop_front();
+					errors.add(previousGOP->errors);
+					previousGOP->errors.clear();
+					errors.clear(ERR_MSG_LIMIT);
 				}
 				if(pSlice->isIDR()) m_GOPs.back()->hasIDR = true;
 			} 
@@ -230,20 +225,27 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 	return true;
 }
 
-void H265Stream::checkPrevRefPicList(H265AccessUnit* pCurrentAccessUnit, H265Slice* pSlice){
+void H265Stream::checkPrevRefPicList(H265AccessUnit* pCurrentAccessUnit, H265Slice* pSlice)
+{
 	std::unordered_set<int32_t> seenPOC, missingPOC;
-	for(H265AccessUnit* pAccessUnit : m_GOPs.back()->getAccessUnits()) seenPOC.insert(pAccessUnit->PicOrderCntVal);
+	for(H265AccessUnit* pAccessUnit : m_GOPs.back()->getAccessUnits()){
+		seenPOC.insert(pAccessUnit->PicOrderCntVal);
+	}
 	for(int32_t previousShortTermRefFramePOC : pSlice->PocStCurrBefore){
-		if(seenPOC.find(previousShortTermRefFramePOC) == seenPOC.end()) missingPOC.insert(previousShortTermRefFramePOC);
+		if(seenPOC.find(previousShortTermRefFramePOC) == seenPOC.end()){
+			missingPOC.insert(previousShortTermRefFramePOC);
+		}
 	}
 	if(!missingPOC.empty()){
         std::ostringstream missingPOCStr;
 		missingPOCStr << "[Slice] Missing reference frames : [" << (*missingPOC.begin());
         auto missingPOCIt = missingPOC.begin();
         missingPOCIt++;
-        for(;missingPOCIt != missingPOC.end();missingPOCIt++) missingPOCStr << (*missingPOCIt) << ", ";
+        for(;missingPOCIt != missingPOC.end();missingPOCIt++){
+			missingPOCStr << (*missingPOCIt) << ", ";
+		}
         missingPOCStr << "]";
-        pSlice->majorErrors.push_back(missingPOCStr.str());
+        pSlice->errors.add(H26XError::Major, missingPOCStr.str());
     } 
 }
 

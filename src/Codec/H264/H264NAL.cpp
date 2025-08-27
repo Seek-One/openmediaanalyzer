@@ -10,9 +10,11 @@ H264NAL::H264NAL():
 {}
 
 H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, const uint8_t* nalData):
-	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(UnitType_Unspecified), nal_size(nalSize+3), nal_data(nullptr), completelyParsed(true)
+	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(UnitType_Unspecified), nal_size(nalSize+3), nal_data(nullptr)
 {
-	if(nalData == nullptr) return;
+	if(nalData == nullptr){
+		return;
+	}
 	nal_data = new uint8_t[nal_size];
 	std::memcpy(nal_data, g_startCode3Bytes, 3);
 	std::memcpy(nal_data+3, nalData, nalSize);
@@ -31,20 +33,21 @@ void H264NAL::dump(H26XDumpObject& dumpObject) const
 	dumpObject.endUnitFieldList();
 }
 
-void H264NAL::validate(){
+void H264NAL::validate()
+{
 	if (forbidden_zero_bit != 0) {
-		minorErrors.push_back("[NAL Header] forbidden_zero_bit not equal to 0");
+		errors.add(H26XError::Minor, "[NAL Header] forbidden_zero_bit not equal to 0");
 	}
 	if(nal_ref_idc == 0){
 		switch(nal_unit_type){
 			case UnitType_SPS:
-				minorErrors.push_back("[NAL Header] Sequence parameter set marked as unimportant");
+				errors.add(H26XError::Minor, "[NAL Header] Sequence parameter set marked as unimportant");
 				break;
 			case UnitType_PPS:
-				minorErrors.push_back("[NAL Header] Picture parameter set marked as unimportant");
+				errors.add(H26XError::Minor, "[NAL Header] Picture parameter set marked as unimportant");
 				break;
 			case UnitType_IDRFrame:
-				minorErrors.push_back("[NAL Header] IDR frame marked as unimportant");
+				errors.add(H26XError::Minor, "[NAL Header] IDR frame marked as unimportant");
 				break;
 			default:
 				break;

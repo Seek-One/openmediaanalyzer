@@ -238,12 +238,20 @@ void QDecoderModel::h264PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     checkForNewGOP();
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
-    std::transform(m_pH264Stream->minorErrors.begin(), m_pH264Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-        return QString(err.c_str());
-    });
-    std::transform(m_pH264Stream->majorErrors.begin(), m_pH264Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-        return QString(err.c_str());
-    });
+
+	for(const auto& error : m_pH264Stream->errors)
+	{
+		switch(error.level()){
+		case H26XError::Minor:
+			m_minorStreamErrors.append(QString::fromStdString(error.message()));
+			break;
+		case H26XError::Major:
+			m_majorStreamErrors.append(QString::fromStdString(error.message()));
+			break;
+		default:
+			break;
+		}
+	}
 
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
@@ -305,7 +313,9 @@ void QDecoderModel::h265FileLoaded(uint8_t* fileContent, quint32 fileSize){
 void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     uint32_t accessUnitCountBefore = m_pH265Stream->accessUnitCount();
     m_pH265Stream->parsePacket(fileContent, fileSize);
-    if(m_liveContent) decodeH265GOP(m_currentGOPModel);
+    if(m_liveContent){
+		decodeH265GOP(m_currentGOPModel);
+	}
     delete[] fileContent;
     uint32_t accessUnitCountDiff = m_pH265Stream->accessUnitCount() - accessUnitCountBefore;
     m_frameCount += accessUnitCountDiff;
@@ -313,12 +323,18 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     checkForNewGOP();
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
-    std::transform(m_pH265Stream->minorErrors.begin(), m_pH265Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-        return QString(err.c_str());
-    });
-    std::transform(m_pH265Stream->majorErrors.begin(), m_pH265Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-        return QString(err.c_str());
-    });
+	for(const auto& error : m_pH265Stream->errors){
+		switch(error.level()){
+		case H26XError::Minor:
+			m_minorStreamErrors.append(QString::fromStdString(error.message()));
+			break;
+		case H26XError::Major:
+			m_majorStreamErrors.append(QString::fromStdString(error.message()));
+			break;
+		default:
+			break;
+		}
+	}
     if(accessUnitCountDiff == 0) emit updateTimelineUnits();
     else {
         QVector<QSharedPointer<QAccessUnitModel>> pAccessUnitModels = QVector<QSharedPointer<QAccessUnitModel>>();
@@ -354,8 +370,11 @@ void QDecoderModel::h265PacketLoaded(uint8_t* fileContent, quint32 fileSize){
     updateH265Metrics();
 }
 
-void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
-    if(m_requestedFrames.empty()) return;
+void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture)
+{
+    if(m_requestedFrames.empty()){
+		return;
+	}
     if(m_isLiveStream && m_liveContent){
         for(QSharedPointer<QAccessUnitModel>& pAccessUnitModel : m_currentGOPModel){
             if(pAccessUnitModel->m_id == m_requestedFrames.front()->m_id){
@@ -364,58 +383,80 @@ void QDecoderModel::pictureReceived(QSharedPointer<QImage> pPicture){
             }
         }
     } else m_decodedFrames[m_requestedFrames.front()->m_id] = pPicture;
-    if((m_isLiveStream && m_liveContent) || (m_pSelectedFrameModel && m_requestedFrames.front()->m_id == m_pSelectedFrameModel->m_id)) emit updateVideoFrameViewImage(pPicture);
+    if((m_isLiveStream && m_liveContent) || (m_pSelectedFrameModel && m_requestedFrames.front()->m_id == m_pSelectedFrameModel->m_id)){
+		emit updateVideoFrameViewImage(pPicture);
+	}
     m_requestedFrames.pop();
-    if(!m_isLiveStream && m_requestedFrames.empty()) QGuiApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+    if(!m_isLiveStream && m_requestedFrames.empty()){
+		QGuiApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+	}
 }
 
-QStringList minorErrorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit){
+QStringList minorErrorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit)
+{
     QStringList errors;
     if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
         const H264AccessUnit* h264AccessUnit = std::get<const H264AccessUnit*>(accessUnit);
-        std::transform(h264AccessUnit->minorErrors.begin(), h264AccessUnit->minorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-            return err.c_str();
-        });
+		for(const auto& error : h264AccessUnit->errors){
+			if(error.level() == H26XError::Minor) {
+				errors.append(QString::fromStdString(error.message()));
+			}
+		}
         for(auto& NALUnit : h264AccessUnit->getNALUnits()){
-            std::transform(NALUnit->minorErrors.begin(), NALUnit->minorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-                return err.c_str();
-            });
+			for(const auto& error : NALUnit->errors){
+				if(error.level() == H26XError::Minor) {
+					errors.append(QString::fromStdString(error.message()));
+				}
+			}
         }
     } else if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
         const H265AccessUnit* h265AccessUnit = std::get<const H265AccessUnit*>(accessUnit);
-        std::transform(h265AccessUnit->minorErrors.begin(), h265AccessUnit->minorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-            return err.c_str();
-        });
+		for(const auto& error : h265AccessUnit->errors){
+			if(error.level() == H26XError::Minor) {
+				errors.append(QString::fromStdString(error.message()));
+			}
+		}
         for(auto& NALUnit : h265AccessUnit->getNALUnits()){
-            std::transform(NALUnit->minorErrors.begin(), NALUnit->minorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-                return err.c_str();
-            });
+			for(const auto& error : NALUnit->errors){
+				if(error.level() == H26XError::Minor) {
+					errors.append(QString::fromStdString(error.message()));
+				}
+			}
         }
     }
     return errors;
 }
 
-QStringList majorErrorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit){
+QStringList majorErrorListFromAccessUnit(const std::variant<const H264AccessUnit*, const H265AccessUnit*> accessUnit)
+{
     QStringList errors;
     if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
         const H264AccessUnit* h264AccessUnit = std::get<const H264AccessUnit*>(accessUnit);
-        std::transform(h264AccessUnit->majorErrors.begin(), h264AccessUnit->majorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-            return err.c_str();
-        });
+		for(const auto& error : h264AccessUnit->errors){
+			if(error.level() == H26XError::Major) {
+				errors.append(QString::fromStdString(error.message()));
+			}
+		}
         for(auto& NALUnit : h264AccessUnit->getNALUnits()){
-            std::transform(NALUnit->majorErrors.begin(), NALUnit->majorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-                return err.c_str();
-            });
+			for(const auto& error : NALUnit->errors){
+				if(error.level() == H26XError::Major) {
+					errors.append(QString::fromStdString(error.message()));
+				}
+			}
         }
     } else if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
         const H265AccessUnit* h265AccessUnit = std::get<const H265AccessUnit*>(accessUnit);
-        std::transform(h265AccessUnit->majorErrors.begin(), h265AccessUnit->majorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-            return err.c_str();
-        });
+		for(const auto& error : h265AccessUnit->errors){
+			if(error.level() == H26XError::Major) {
+				errors.append(QString::fromStdString(error.message()));
+			}
+		}
         for(auto& NALUnit : h265AccessUnit->getNALUnits()){
-            std::transform(NALUnit->majorErrors.begin(), NALUnit->majorErrors.end(), std::back_inserter(errors), [](const std::string& err){
-                return err.c_str();
-            });
+			for(const auto& error : NALUnit->errors){
+				if(error.level() == H26XError::Major) {
+					errors.append(QString::fromStdString(error.message()));
+				}
+			}
         }
     }
     return errors;
@@ -642,7 +683,8 @@ void QDecoderModel::GOPCountLimitUpdated(int val){
     m_GOPCountLimit = std::clamp(val, GOP_COUNT_LIMIT_MIN, GOP_COUNT_LIMIT_MAX);
 }
 
-void QDecoderModel::folderLoaded(){
+void QDecoderModel::folderLoaded()
+{
     m_minorStreamErrors.clear();
     m_majorStreamErrors.clear();
 
@@ -650,12 +692,18 @@ void QDecoderModel::folderLoaded(){
     std::deque<H265GOP*> h265GOPs = m_pH265Stream->getGOPs();
     if(!h264GOPs.empty()){
         m_pH264Stream->lastPacketParsed();
-        std::transform(m_pH264Stream->minorErrors.begin(), m_pH264Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        std::transform(m_pH264Stream->majorErrors.begin(), m_pH264Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
+		for(const auto& error : m_pH264Stream->errors){
+			switch(error.level()){
+			case H26XError::Major:
+				m_majorStreamErrors.append(QString::fromStdString(error.message()));
+				break;
+			case H26XError::Minor:
+				m_minorStreamErrors.append(QString::fromStdString(error.message()));
+				break;
+			default:
+				break;
+			}
+		}
         decodeH264GOP(m_currentGOPModel);
         updateH264Validity();
         updateH264Status();
@@ -677,12 +725,18 @@ void QDecoderModel::folderLoaded(){
         }
     } else if(!h265GOPs.empty()){
         m_pH265Stream->lastPacketParsed();
-        std::transform(m_pH265Stream->minorErrors.begin(), m_pH265Stream->minorErrors.end(), std::back_inserter(m_minorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
-        std::transform(m_pH265Stream->majorErrors.begin(), m_pH265Stream->majorErrors.end(), std::back_inserter(m_majorStreamErrors), [](const std::string& err){
-            return QString(err.c_str());
-        });
+		for(const auto& error : m_pH265Stream->errors){
+			switch(error.level()){
+				case H26XError::Major:
+					m_majorStreamErrors.append(QString::fromStdString(error.message()));
+					break;
+				case H26XError::Minor:
+					m_minorStreamErrors.append(QString::fromStdString(error.message()));
+					break;
+				default:
+					break;
+			}
+		}
         decodeH265GOP(m_currentGOPModel);
         updateH265Validity();
         updateH265Status();
@@ -732,17 +786,20 @@ void QDecoderModel::emitH264SPSErrors(){
     QStringList minorErrors, majorErrors;
     for(auto SPSEntry : H264SPS::SPSMap){
         H264SPS* pSps = SPSEntry.second;
-        if(!pSps->minorErrors.empty()){
+        if(!pSps->errors.empty()){
             minorErrors.push_back(tr("SPS #") + QString::number(pSps->seq_parameter_set_id));
-            std::transform(pSps->minorErrors.begin(), pSps->minorErrors.end(), std::back_inserter(minorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
-        if(!pSps->majorErrors.empty()){
-            majorErrors.push_back(tr("SPS #") + QString::number(pSps->seq_parameter_set_id));
-            std::transform(pSps->majorErrors.begin(), pSps->majorErrors.end(), std::back_inserter(majorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
+			for(const auto& err : pSps->errors){
+				switch(err.level()){
+				case H26XError::Minor:
+					minorErrors.push_back(" - " + QString::fromStdString(err.message()));
+					break;
+				case H26XError::Major:
+					majorErrors.push_back(" - " + QString::fromStdString(err.message()));
+					break;
+				default:
+					break;
+				}
+			}
         }
     }
     emit updateErrorView(tr("SPS errors"), minorErrors, majorErrors);
@@ -752,38 +809,39 @@ void QDecoderModel::emitH264PPSErrors(){
     QStringList minorErrors, majorErrors;
     for(auto PPSEntry : H264PPS::PPSMap){
         H264PPS* pPps = PPSEntry.second;
-        if(!pPps->minorErrors.empty()){
-            minorErrors.push_back("PPS #" + QString::number(pPps->pic_parameter_set_id));
-            std::transform(pPps->minorErrors.begin(), pPps->minorErrors.end(), std::back_inserter(minorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
-        if(!pPps->majorErrors.empty()){
-            majorErrors.push_back("PPS #" + QString::number(pPps->pic_parameter_set_id));
-            std::transform(pPps->majorErrors.begin(), pPps->majorErrors.end(), std::back_inserter(majorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
+		for(const auto& err : pPps->errors){
+			switch(err.level()){
+			case H26XError::Minor:
+				minorErrors.push_back(tr("PPS #") + QString::number(pPps->pic_parameter_set_id));
+				break;
+			case H26XError::Major:
+				majorErrors.push_back(tr("PPS #") + QString::number(pPps->pic_parameter_set_id));
+				break;
+			default:
+				break;
+			}
+		}
     }
     emit updateErrorView(tr("PPS errors"), minorErrors, majorErrors);
 }
 
-void QDecoderModel::emitVPSErrors(){
+void QDecoderModel::emitVPSErrors()
+{
     QStringList minorErrors, majorErrors;
     for(auto VPSEntry : H265VPS::VPSMap){
         H265VPS* pVps = VPSEntry.second;
-        if(!pVps->minorErrors.empty()){
-            minorErrors.push_back(tr("VPS #") + QString::number(pVps->vps_video_parameter_set_id));
-            std::transform(pVps->minorErrors.begin(), pVps->minorErrors.end(), std::back_inserter(minorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
-        if(!pVps->majorErrors.empty()){
-            majorErrors.push_back(tr("VPS #") + QString::number(pVps->vps_video_parameter_set_id));
-            std::transform(pVps->majorErrors.begin(), pVps->majorErrors.end(), std::back_inserter(majorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
+		for(const auto& err : pVps->errors){
+			switch(err.level()){
+				case H26XError::Minor:
+					minorErrors.push_back(tr("VPS #") + QString::number(pVps->vps_video_parameter_set_id));
+					break;
+				case H26XError::Major:
+					majorErrors.push_back(tr("VPS #") + QString::number(pVps->vps_video_parameter_set_id));
+					break;
+				default:
+					break;
+			}
+		}
     }
     emit updateErrorView(tr("VPS errors"), minorErrors, majorErrors);
 }
@@ -791,18 +849,18 @@ void QDecoderModel::emitH265SPSErrors(){
     QStringList minorErrors, majorErrors;
     for(auto SPSEntry : H265SPS::SPSMap){
         H265SPS* pSps = SPSEntry.second;
-        if(!pSps->minorErrors.empty()){
-            minorErrors.push_back(tr("SPS #") + QString::number(pSps->sps_seq_parameter_set_id));
-            std::transform(pSps->minorErrors.begin(), pSps->minorErrors.end(), std::back_inserter(minorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
-        if(!pSps->majorErrors.empty()){
-            majorErrors.push_back(tr("SPS #") + QString::number(pSps->sps_seq_parameter_set_id));
-            std::transform(pSps->majorErrors.begin(), pSps->majorErrors.end(), std::back_inserter(majorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
+		for(const auto& err : pSps->errors){
+			switch(err.level()){
+				case H26XError::Minor:
+					minorErrors.push_back("SPS #" + QString::number(pSps->sps_seq_parameter_set_id));
+					break;
+				case H26XError::Major:
+					majorErrors.push_back("SPS #" + QString::number(pSps->sps_seq_parameter_set_id));
+					break;
+				default:
+					break;
+			}
+		}
     }
     emit updateErrorView(tr("SPS errors"), minorErrors, majorErrors);
 }
@@ -811,18 +869,18 @@ void QDecoderModel::emitH265PPSErrors(){
     QStringList minorErrors, majorErrors;
     for(auto PPSEntry : H265PPS::PPSMap){
         H265PPS* pPps = PPSEntry.second;
-        if(!pPps->minorErrors.empty()) {
-            minorErrors.push_back(tr("PPS #") + QString::number(pPps->pps_pic_parameter_set_id));
-            std::transform(pPps->minorErrors.begin(), pPps->minorErrors.end(), std::back_inserter(minorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
-        if(!pPps->majorErrors.empty()) {
-            majorErrors.push_back(tr("PPS #") + QString::number(pPps->pps_pic_parameter_set_id));
-            std::transform(pPps->majorErrors.begin(), pPps->majorErrors.end(), std::back_inserter(majorErrors), [](const std::string& err){
-                return " - " + QString(err.c_str());
-            });
-        }
+		for(const auto& err : pPps->errors){
+			switch(err.level()){
+				case H26XError::Minor:
+					minorErrors.push_back("PPS #" + QString::number(pPps->pps_pic_parameter_set_id));
+					break;
+				case H26XError::Major:
+					majorErrors.push_back("PPS #" + QString::number(pPps->pps_pic_parameter_set_id));
+					break;
+				default:
+					break;
+			}
+		}
     }
     emit updateErrorView(tr("PPS errors"), minorErrors, majorErrors);
 }
@@ -831,7 +889,8 @@ void QDecoderModel::emitH265PPSErrors(){
    If it is, moves it to a new GOP, and checks the previous GOP for 
    errors before replacing it.
  */
-void QDecoderModel::checkForNewGOP(){
+void QDecoderModel::checkForNewGOP()
+{
     if(m_currentGOPModel.size() > 1){
         QSharedPointer<QAccessUnitModel> pAccessUnitModel = m_currentGOPModel.back();
         if(pAccessUnitModel->isH264()){

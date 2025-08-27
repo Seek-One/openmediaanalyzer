@@ -1581,20 +1581,27 @@ H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slic
 	h265PredWeightTable.luma_log2_weight_denom = readGolombUE();
 	H265SPS* h265SPS = h265Slice.getSPS();
 	if(!h265SPS){
-		h265PredWeightTable.majorErrors.push_back("[Slice PWT] missing SPS unit : unable to parse pred_weight_table");
+		h265PredWeightTable.errors.add(H26XError::Major, "[Slice PWT] missing SPS unit : unable to parse pred_weight_table");
 		return h265PredWeightTable;
 	}
 	if(h265SPS->ChromaArrayType != 0) h265PredWeightTable.delta_chroma_log2_weight_denom = readGolombSE();
 	for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
-		if(!h265Slice.RefPicList0[i]) continue;
-		if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
-		(h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.luma_weight_l0_flag[i] = readBits(1);
+		if(!h265Slice.RefPicList0[i]){
+			continue;
+		}
+		if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) || (h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal))
+		{
+			h265PredWeightTable.luma_weight_l0_flag[i] = readBits(1);
+		}
 	}
 	if(h265SPS->ChromaArrayType != 0){
 		for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
-			if(!h265Slice.RefPicList0[i]) continue;
-			if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
-			(h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.chroma_weight_l0_flag[i] = readBits(1);
+			if(!h265Slice.RefPicList0[i]){
+				continue;
+			}
+			if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) || (h265Slice.RefPicList0[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)){
+				h265PredWeightTable.chroma_weight_l0_flag[i] = readBits(1);
+			}
 		}
 	}
 	for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l0_active_minus1;++i){
@@ -1611,16 +1618,22 @@ H265PredWeightTable H265BitstreamReader::readSlicePredWeightTable(const H265Slic
 	}
 	if(h265Slice.slice_type == H265Slice::SliceType_B){
 		for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
-			if(!h265Slice.RefPicList0[i]) continue;
-			if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
-			(h265Slice.RefPicList1[i] && h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.luma_weight_l1_flag[i] = readBits(1);
+			if(!h265Slice.RefPicList0[i]){
+				continue;
+			}
+			if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) || (h265Slice.RefPicList1[i] && h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)){
+				h265PredWeightTable.luma_weight_l1_flag[i] = readBits(1);
+			}
 		}
 		
 		if(h265SPS->ChromaArrayType != 0){
 			for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){
-				if(!h265Slice.RefPicList0[i]) continue;
-				if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) ||
-				(h265Slice.RefPicList1[i] && h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)) h265PredWeightTable.chroma_weight_l1_flag[i] = readBits(1);
+				if(!h265Slice.RefPicList0[i]){
+					continue;
+				}
+				if((h265Slice.RefPicList0[i]->slice() && h265Slice.RefPicList0[i]->slice()->nuh_layer_id != h265Slice.nuh_layer_id) || (h265Slice.RefPicList1[i] && h265Slice.RefPicList1[i]->PicOrderCntVal != h265Slice.PicOrderCntVal)){
+					h265PredWeightTable.chroma_weight_l1_flag[i] = readBits(1);
+				}
 			}
 		}
 		for(uint32_t i = 0;i <= h265Slice.num_ref_idx_l1_active_minus1;++i){

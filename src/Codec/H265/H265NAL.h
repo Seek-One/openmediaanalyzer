@@ -5,11 +5,10 @@
 #include <string>
 #include <vector>
 
-#include "../H26X/H26XDumpObject.h"
+#include "../H26X/H26XNAL.h"
 
-class UnitFieldList;
-
-struct H265NAL {
+struct H265NAL : public H26XNAL
+{
 	enum UnitType {
 		UnitType_TRAIL_N     = 0,
 		UnitType_TRAIL_R     = 1,
@@ -54,11 +53,6 @@ struct H265NAL {
 	uint32_t nal_size;
 	uint8_t* nal_data;
 
-	bool completelyParsed;
-
-	std::vector<std::string> minorErrors;
-	std::vector<std::string> majorErrors;
-
 	bool isSlice() const;
 	static bool isSlice(UnitType nal_unit_type);
 	bool isIRAP() const;
@@ -66,8 +60,8 @@ struct H265NAL {
 	bool isTSA() const;
 	bool isSTSA() const;
 
-	virtual void dump(H26XDumpObject& dumpObject) const;
-	virtual void validate();
+	void dump(H26XDumpObject& dumpObject) const override;
+	void validate() override;
 };
 
 #endif // TOOLKIT_CODEC_UTILS_H265NAL_H_

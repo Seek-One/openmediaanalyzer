@@ -274,22 +274,22 @@ void H264Slice::validate(){
 	H264NAL::validate();
 	if(!completelyParsed) return;
 	if(slice_type == H264Slice::SliceType_Unspecified){
-		majorErrors.push_back("[Slice] Invalid slice type");
+		errors.add(H26XError::Major, "[Slice] Invalid slice type");
 	}
 	if(pic_parameter_set_id > 255){
-		minorErrors.push_back(StringFormatter::formatString("[Slice] pic_parameter_set_id value (%ld) not in valid range (0.255)", pic_parameter_set_id));
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] pic_parameter_set_id value (%ld) not in valid range (0.255)", pic_parameter_set_id));
 	}
 	H264PPS* pH264PPS;
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()){
-		majorErrors.push_back(StringFormatter::formatString("[Slice] reference to unknown PPS (%ld)", pic_parameter_set_id));
+		errors.add(H26XError::Major, StringFormatter::formatString("[Slice] reference to unknown PPS (%ld)", pic_parameter_set_id));
 		return;
 	}
 	pH264PPS = referencedPPS->second;
 	H264SPS* pH264SPS;
 	auto referencedSPS = H264SPS::SPSMap.find(pH264PPS->seq_parameter_set_id);
 	if(referencedSPS == H264SPS::SPSMap.end()){
-		majorErrors.push_back(StringFormatter::formatString("[Slice] reference to unknown SPS (%ld)", pH264PPS->seq_parameter_set_id));
+		errors.add(H26XError::Major, StringFormatter::formatString("[Slice] reference to unknown SPS (%ld)", pH264PPS->seq_parameter_set_id));
 		return;
 	}
 	pH264SPS = referencedSPS->second;
@@ -297,39 +297,41 @@ void H264Slice::validate(){
 		switch(slice_type){
 			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
 			default:
-				majorErrors.push_back(StringFormatter::formatString("[Slice] slice_type value (%ld) of IDR should be in [2, 4, 7, 9]", slice_type-1));
+				errors.add(H26XError::Major, StringFormatter::formatString("[Slice] slice_type value (%ld) of IDR should be in [2, 4, 7, 9]", slice_type-1));
 				break;
 		}
 	}
 	if (pH264SPS->separate_colour_plane_flag){
 		if(colour_plane_id > 2){
-			minorErrors.push_back(StringFormatter::formatString("[Slice] colour_plane_id value (%ld) not in valid range (0..2)", colour_plane_id));
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] colour_plane_id value (%ld) not in valid range (0..2)", colour_plane_id));
 		}
 	}
 
 	if(nal_unit_type == H264NAL::UnitType_IDRFrame && frame_num != 0){
-		minorErrors.push_back(StringFormatter::formatString("[Slice] frame_num of an IDR picture (%ld) should be 0", frame_num));
+		errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] frame_num of an IDR picture (%ld) should be 0", frame_num));
 	}
 
 	if (pH264SPS->pic_order_cnt_type == 0){
 		if(pic_order_cnt_lsb > pH264SPS->MaxPicOrderCntLsb-1){
-			minorErrors.push_back(StringFormatter::formatString("[Slice] pic_order_cnt_lsb value (%ld) not in valid range (0..{})", pic_order_cnt_lsb, pH264SPS->MaxPicOrderCntLsb-1));
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] pic_order_cnt_lsb value (%ld) not in valid range (0..{})", pic_order_cnt_lsb, pH264SPS->MaxPicOrderCntLsb-1));
 		}
 	}
 	if (pH264PPS->redundant_pic_cnt_present_flag){
 		if(redundant_pic_cnt > 127){
-			minorErrors.push_back(StringFormatter::formatString("[Slice] redundant_pic_cnt (%ld) not in valid range (0..127)", redundant_pic_cnt));
+			errors.add(H26XError::Minor, StringFormatter::formatString("[Slice] redundant_pic_cnt (%ld) not in valid range (0..127)", redundant_pic_cnt));
 		}
 	}
 }
 
-H264PPS* H264Slice::getPPS() const{
+H264PPS* H264Slice::getPPS() const
+{
 	auto referencedPPS = H264PPS::PPSMap.find(pic_parameter_set_id);
 	if(referencedPPS == H264PPS::PPSMap.end()) return nullptr;
 	return referencedPPS->second;
 }
 
-H264SPS* H264Slice::getSPS() const{
+H264SPS* H264Slice::getSPS() const
+{
 	H264PPS* pPps = getPPS();
 	if(!pPps) return nullptr;
 	auto referencedSPS = H264SPS::SPSMap.find(pPps->seq_parameter_set_id);

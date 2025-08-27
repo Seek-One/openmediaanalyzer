@@ -109,35 +109,44 @@ bool H265AccessUnit::isSLNR() const {
 }
 
 void H265AccessUnit::validate(){
-    minorErrors.clear();
-    majorErrors.clear();
+    errors.clear();
     std::vector<H265Slice*> pSlices = slices();
     if(pSlices.empty()) return;
     // header-related checks
     if(pSlices.size() > 1){
         if(std::any_of(pSlices.begin(), pSlices.end(), [pSlices](H265Slice* pSlice){
             return pSlice->nal_unit_type != pSlices.front()->nal_unit_type;
-        })) majorErrors.push_back("Differing nal_unit_type values detected");
+        })){
+			errors.add(H26XError::Major, "Differing nal_unit_type values detected");
+		}
         if(std::any_of(pSlices.begin(), pSlices.end(), [pSlices](H265Slice* pSlice){
             return pSlice->nuh_layer_id != pSlices.front()->nuh_layer_id;
-        })) majorErrors.push_back("Differing nuh_layer_id values detected");
+        })){
+			errors.add(H26XError::Major, "Differing nuh_layer_id values detected");
+		}
     }
     for(auto& NALUnit : NALUnits){
         if(NALUnit->isSlice()) continue;
         switch(NALUnit->nal_unit_type){
             case H265NAL::UnitType_VPS:
             case H265NAL::UnitType_SPS:
-                if(pSlices.front()->TemporalId != 0) minorErrors.push_back("TemporalId of access unit not equal to 0 as constrained by SPS/VPS unit");
+                if(pSlices.front()->TemporalId != 0){
+					errors.add(H26XError::Minor, "TemporalId of access unit not equal to 0 as constrained by SPS/VPS unit");
+				}
                 break;
             case H265NAL::UnitType_EOS_NUT:
             case H265NAL::UnitType_EOB_NUT:
                 break;
             case H265NAL::UnitType_AUD:
             case H265NAL::UnitType_FD_NUT:
-                if(NALUnit->TemporalId != pSlices.front()->TemporalId) minorErrors.push_back("TemporalId of AUD/FD unit not equal to TemporalId of access unit");
+                if(NALUnit->TemporalId != pSlices.front()->TemporalId){
+					errors.add(H26XError::Minor, "TemporalId of AUD/FD unit not equal to TemporalId of access unit");
+				}
                 break;
             default:
-                if(NALUnit->TemporalId < pSlices.front()->TemporalId) minorErrors.push_back("TemporalId of non-VCL unit lesser than TemporalId of access unit");
+                if(NALUnit->TemporalId < pSlices.front()->TemporalId){
+					errors.add(H26XError::Minor, "TemporalId of non-VCL unit lesser than TemporalId of access unit");
+				}
                 break;
         }
     }
@@ -150,12 +159,12 @@ void H265AccessUnit::validate(){
             case H265NAL::UnitType_SPS:
             case H265NAL::UnitType_PPS:
             case H265NAL::UnitType_SEI_PREFIX:
-                minorErrors.push_back(StringFormatter::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
+                errors.add(H26XError::Minor, StringFormatter::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
             default: continue;
         }
     }
     // VCL units order-related checks
-    if(!pSlices.front()->first_slice_segment_in_pic_flag) minorErrors.push_back("first_slice_segment_in_pic_flag not set for first VCL unit");
+    if(!pSlices.front()->first_slice_segment_in_pic_flag) errors.add(H26XError::Minor, "first_slice_segment_in_pic_flag not set for first VCL unit");
 }
 
 bool H265AccessUnit::isValid() const{
@@ -163,13 +172,13 @@ bool H265AccessUnit::isValid() const{
 }
 
 bool H265AccessUnit::hasMajorErrors() const{
-    return !majorErrors.empty() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
-        return !NALUnit->majorErrors.empty();
+    return !errors.hasMajorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+        return !NALUnit->errors.hasMajorErrors();
     });
 }
 
 bool H265AccessUnit::hasMinorErrors() const{
-    return !minorErrors.empty() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
-        return !NALUnit->minorErrors.empty();
+    return !errors.hasMinorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+        return !NALUnit->errors.hasMinorErrors();
     });
 }

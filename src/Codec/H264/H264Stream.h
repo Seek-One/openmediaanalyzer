@@ -11,8 +11,6 @@
 
 #include "H264NAL.h"
 
-#define ERR_MSG_LIMIT 8
-
 struct H264AccessUnit;
 struct H264PPS;
 struct H264SPS;
@@ -46,8 +44,7 @@ public:
 	// Variables derived from bitstream
 	uint8_t MbaffFrameFlag;
 
-	std::deque<std::string> minorErrors;
-	std::deque<std::string> majorErrors;
+	H26XErrors errors;
 
 private:
 	bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;

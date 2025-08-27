@@ -3,9 +3,10 @@
 
 #include <string>
 
-#include "H265Types.h"
-
+#include "../H26X/H26XErrors.h"
 #include "../H26X/H26XDumpObject.h"
+
+#include "H265Types.h"
 
 struct H265ProfileTierLevel {
 	H265ProfileTierLevel();
@@ -53,7 +54,7 @@ struct H265ProfileTierLevel {
 	std::vector<uint8_t> sub_layer_inbld_flag;
 	std::vector<uint8_t> sub_layer_level_idc;
 
-	std::vector<std::string> errors;
+	H26XErrors errors;
 
 	void dump(H26XDumpObject& dumpObject) const;
 	void validate(uint8_t iProfilePresentFlag);

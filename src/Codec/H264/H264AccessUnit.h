@@ -7,6 +7,8 @@
 #include <memory>
 #include <optional>
 
+#include "../H26X/H26XErrors.h"
+
 struct H264NAL;
 struct H264Slice;
 
@@ -22,8 +24,7 @@ struct H264AccessUnit {
 
     std::vector<std::unique_ptr<H264NAL>> NALUnits;
     bool decodable;
-    std::vector<std::string> minorErrors;
-    std::vector<std::string> majorErrors;
+	H26XErrors errors;
     bool hasFrameGaps;
     ReferencePictureMarking rpm;
 

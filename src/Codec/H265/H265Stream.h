@@ -17,8 +17,6 @@ struct H265VPS;
 struct H265GOP;
 struct H265AccessUnit;
 
-#define ERR_MSG_LIMIT 8
-
 class H265Stream: public H26XStream {
 public:
 	H265Stream();
@@ -40,8 +38,7 @@ public:
 	bool firstPicture;
 	bool endOfSequenceFlag;
 
-	std::deque<std::string> minorErrors;
-	std::deque<std::string> majorErrors;
+	H26XErrors errors;
 
 private:
 	bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;

@@ -6,7 +6,7 @@
 #include "../H26X/H26XBitstreamReader.h"
 
 struct H264NALHeader;
-struct H264NAL;
+struct H264NALUnit;
 struct H264PPS;
 struct H264Slice;
 struct H264SPS;

@@ -87,7 +87,9 @@ bool H264Stream::parsePacket(const uint8_t* pPacketData, uint32_t iPacketLength)
 
 	bool bRes = true;
 	for (uint32_t i = 0; i < listNAL.size(); ++i) {
-		if(!parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength)) bRes = false;
+		if(!parseNAL(listNAL[i].pData, (uint32_t)listNAL[i].iLength)){
+			bRes = false;
+		}
 	}
 
 	return bRes;
@@ -150,7 +152,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 		m_GOPs.back()->accessUnits.push_back(std::unique_ptr<H264AccessUnit>(m_pCurrentAccessUnit));
 	}
 	if(!m_pCurrentAccessUnit->empty()) {
-		H264NAL* lastUnit = m_pCurrentAccessUnit->last();
+		H264NALUnit* lastUnit = m_pCurrentAccessUnit->last();
 		previousUnitIsVLC = lastUnit->getNalUnitType() == H264NALUnitType::NonIDRFrame || lastUnit->getNalUnitType() == H264NALUnitType::IDRFrame;
 	} 
 	try {

@@ -3,10 +3,10 @@
 
 #include "../H26X/H26XUtils.h"
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
-H264NAL::H264NAL(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData)
-	: H26XNAL(pNALHeader), nal_size(nalSize+3), nal_data(nullptr)
+H264NALUnit::H264NALUnit(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData)
+	: H26XNALUnit(pNALHeader), nal_size(nalSize + 3), nal_data(nullptr)
 {
 	if(nalData == nullptr){
 		return;
@@ -16,23 +16,23 @@ H264NAL::H264NAL(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nal
 	std::memcpy(nal_data+3, nalData, nalSize);
 }
 
-H264NAL::~H264NAL(){
+H264NALUnit::~H264NALUnit(){
 	if(nal_data){
 		delete[] nal_data;
 	}
 }
 
-void H264NAL::dump(H26XDumpObject& dumpObject) const
+void H264NALUnit::dump(H26XDumpObject& dumpObject) const
 {
-	H26XNAL::dump(dumpObject);
+	H26XNALUnit::dump(dumpObject);
 	if(m_pNALHeader){
 		m_pNALHeader->dump(dumpObject);
 	}
 }
 
-void H264NAL::validate()
+void H264NALUnit::validate()
 {
-	H26XNAL::validate();
+	H26XNALUnit::validate();
 	if(m_pNALHeader){
 		m_pNALHeader->checkErrors(errors);
 	}

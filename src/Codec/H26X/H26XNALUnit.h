@@ -2,16 +2,16 @@
 // Created by ebeuque on 27/08/25.
 //
 
-#ifndef TOOLKIT_CODEC_UTILS_H26XNAL_H
-#define TOOLKIT_CODEC_UTILS_H26XNAL_H
+#ifndef TOOLKIT_CODEC_UTILS_H26XNALUNIT_H
+#define TOOLKIT_CODEC_UTILS_H26XNALUNIT_H
 
 #include "H26XDumpObject.h"
 #include "H26XErrors.h"
 #include "H26XNALHeader.h"
 
-struct H26XNAL
+struct H26XNALUnit
 {
-	H26XNAL(H26XNALHeader* pNALHeader);
+	H26XNALUnit(H26XNALHeader* pNALHeader);
 
 	H26XNALHeader* m_pNALHeader;
 	bool completelyParsed;
@@ -22,4 +22,4 @@ struct H26XNAL
 	virtual void validate();
 };
 
-#endif //TOOLKIT_CODEC_UTILS_H26XNAL_H
+#endif //TOOLKIT_CODEC_UTILS_H26XNALUNIT_H

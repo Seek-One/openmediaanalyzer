@@ -9,7 +9,7 @@
 
 #include "../H26X/H26XErrors.h"
 
-struct H264NAL;
+struct H264NALUnit;
 struct H264Slice;
 
 enum ReferencePictureMarking {
@@ -22,7 +22,7 @@ struct H264AccessUnit {
     H264AccessUnit();
     ~H264AccessUnit();
 
-    std::vector<std::unique_ptr<H264NAL>> NALUnits;
+    std::vector<std::unique_ptr<H264NALUnit>> NALUnits;
     bool decodable;
 	H26XErrors errors;
     bool hasFrameGaps;
@@ -44,15 +44,15 @@ struct H264AccessUnit {
     uint16_t LongTermPicNum;
 
     bool empty() const;
-    std::vector<H264NAL*> getNALUnits() const;
-    void addNALUnit(std::unique_ptr<H264NAL> NALUnit);
+    std::vector<H264NALUnit*> getNALUnits() const;
+    void addNALUnit(std::unique_ptr<H264NALUnit> NALUnit);
     uint32_t size() const;
     uint64_t byteSize() const;
     std::optional<uint16_t> frameNumber() const;
     H264Slice* slice() const;
     std::vector<H264Slice*> slices() const;
     H264Slice* primary_coded_slice() const;
-    H264NAL* last() const;
+    H264NALUnit* last() const;
     void validate();
     bool isValid() const;
     bool hasMajorErrors() const;

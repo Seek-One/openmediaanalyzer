@@ -8,9 +8,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
-struct H264SPS : public H264NAL {
+struct H264SPS : public H264NALUnit {
 	H264SPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t profile_idc;

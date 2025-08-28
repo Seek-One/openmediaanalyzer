@@ -2,7 +2,7 @@
 #include <numeric>
 
 #include "../H26X/H26XUtils.h"
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 #include "H265Slice.h"
 #include "H265PPS.h"
 #include "H265SPS.h"
@@ -19,7 +19,7 @@ H265AccessUnit::~H265AccessUnit(){
 }
 
 H265Slice* H265AccessUnit::slice() const{
-    auto sliceIt = std::find_if(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){ 
+    auto sliceIt = std::find_if(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NALUnit>& NALUnit){
         return NALUnit->getNALHeader()->isSlice();
     });
     if(sliceIt != NALUnits.end()) return reinterpret_cast<H265Slice*>(sliceIt->get());
@@ -28,7 +28,7 @@ H265Slice* H265AccessUnit::slice() const{
 
 std::vector<H265Slice*> H265AccessUnit::slices() const{
     std::vector<H265Slice*> pSlices;
-    for(const std::unique_ptr<H265NAL>& NALUnit : NALUnits){
+    for(const std::unique_ptr<H265NALUnit>& NALUnit : NALUnits){
         if(NALUnit->getNALHeader()->isSlice()){
 			pSlices.push_back(reinterpret_cast<H265Slice*>(NALUnit.get()));
 		}
@@ -40,15 +40,15 @@ bool H265AccessUnit::empty() const{
     return NALUnits.empty();
 }
 
-std::vector<H265NAL*> H265AccessUnit::getNALUnits() const{
-    std::vector<H265NAL*> pNALUnits;
-    std::transform(NALUnits.begin(), NALUnits.end(), std::back_inserter(pNALUnits), [](const std::unique_ptr<H265NAL>& pNALUnit){
+std::vector<H265NALUnit*> H265AccessUnit::getNALUnits() const{
+    std::vector<H265NALUnit*> pNALUnits;
+    std::transform(NALUnits.begin(), NALUnits.end(), std::back_inserter(pNALUnits), [](const std::unique_ptr<H265NALUnit>& pNALUnit){
         return pNALUnit.get();
     });
     return pNALUnits;
 }
 
-void H265AccessUnit::addNALUnit(std::unique_ptr<H265NAL> NALUnit){
+void H265AccessUnit::addNALUnit(std::unique_ptr<H265NALUnit> NALUnit){
     NALUnit->validate();
     NALUnits.push_back(std::move(NALUnit));
 }
@@ -58,7 +58,7 @@ uint32_t H265AccessUnit::size() const{
 }
 
 uint64_t H265AccessUnit::byteSize() const{
-    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H265NAL>& NALUnit){
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H265NALUnit>& NALUnit){
         return acc + NALUnit->nal_size;
     });
 }
@@ -196,13 +196,13 @@ bool H265AccessUnit::isValid() const{
 }
 
 bool H265AccessUnit::hasMajorErrors() const{
-    return !errors.hasMajorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+    return !errors.hasMajorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NALUnit>& NALUnit){
         return !NALUnit->errors.hasMajorErrors();
     });
 }
 
 bool H265AccessUnit::hasMinorErrors() const{
-    return !errors.hasMinorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NAL>& NALUnit){
+    return !errors.hasMinorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H265NALUnit>& NALUnit){
         return !NALUnit->errors.hasMinorErrors();
     });
 }

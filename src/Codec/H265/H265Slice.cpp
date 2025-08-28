@@ -168,7 +168,7 @@ void H265PredWeightTable::validate(const H265Slice& h265Slice)
 }
 
 H265Slice::H265Slice(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(pNALHeader, nal_size, nal_data)
+		H265NALUnit(pNALHeader, nal_size, nal_data)
 {
 	first_slice_segment_in_pic_flag = 0;
 	no_output_of_prior_pics_flag = 0;
@@ -259,7 +259,7 @@ void H265Slice::dump(H26XDumpObject& dumpObject) const
 	auto nal_unit_type = getNalUnitType();
 	dumpObject.startUnitFieldList(getSpecificSliceType(nal_unit_type).c_str());
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H265NAL::dump(dumpObject);
+		H265NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -449,7 +449,7 @@ H265VPS* H265Slice::getVPS() const
 
 void H265Slice::validate()
 {
-	H265NAL::validate();
+	H265NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

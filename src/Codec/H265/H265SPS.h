@@ -5,7 +5,7 @@
 #include <array>
 #include <unordered_map>
 
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 #include "H265ProfileTierLevel.h"
 #include "H265ScalingList.h"
 #include "H265ShortTermRefPicSet.h"
@@ -138,7 +138,7 @@ struct H265SPSSCCExtension {
 	void dump(H26XDumpObject& dumpObject, uint32_t chroma_format_idc) const;
 };
 
-struct H265SPS : public H265NAL {
+struct H265SPS : public H265NALUnit {
 	H265SPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H265SPS();
 

@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "H265ScalingList.h"
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 
 struct H265PPSRangeExtension {
 	H265PPSRangeExtension();
@@ -137,7 +137,7 @@ struct H265PPSSCCExtension {
 	void dump(H26XDumpObject& dumpObject) const;
 };
 
-struct H265PPS : public H265NAL
+struct H265PPS : public H265NALUnit
 {
 	H265PPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H265PPS();

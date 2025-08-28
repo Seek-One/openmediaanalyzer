@@ -7,7 +7,7 @@
 #include "H264SEI.h"
 
 H264SEI::H264SEI(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H264NAL(pNALHeader, nal_size, nal_data)
+		H264NALUnit(pNALHeader, nal_size, nal_data)
 {
 
 }
@@ -33,7 +33,7 @@ void H264SEI::dump(H26XDumpObject& dumpObject) const
 {
 	dumpObject.startUnitFieldList("Supplemental Enhancement Information");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H264NAL::dump(dumpObject);
+		H264NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -47,7 +47,7 @@ void H264SEI::dump(H26XDumpObject& dumpObject) const
 }
 
 void H264SEI::validate(){
-	H264NAL::validate();
+	H264NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

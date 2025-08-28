@@ -3,7 +3,7 @@
 #include "H264SPS.h"
 
 H264SPS::H264SPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H264NAL(pNALHeader, nal_size, nal_data)
+		H264NALUnit(pNALHeader, nal_size, nal_data)
 {
 	profile_idc = 0;
 	constraint_set0_flag = 0;
@@ -137,7 +137,7 @@ void H264SPS::dump(H26XDumpObject& dumpObject) const
 	dumpObject.startUnitFieldList("Sequence Parameter Set");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope)
 	{
-		H264NAL::dump(dumpObject);
+		H264NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -324,7 +324,7 @@ void H264SPS::dump(H26XDumpObject& dumpObject) const
 }
 
 void H264SPS::validate(){
-	H264NAL::validate();
+	H264NALUnit::validate();
 	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
 		errors.add(H26XError::Minor, H26XUtils::formatString("[SPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));

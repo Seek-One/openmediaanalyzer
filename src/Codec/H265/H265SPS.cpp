@@ -250,7 +250,7 @@ void H265SPSSCCExtension::dump(H26XDumpObject& dumpObject, uint32_t chroma_forma
 }
 
 H265SPS::H265SPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(pNALHeader, nal_size, nal_data)
+		H265NALUnit(pNALHeader, nal_size, nal_data)
 {
 	sps_video_parameter_set_id = 0;
 	sps_max_sub_layers_minus1 = 0;
@@ -340,7 +340,7 @@ void H265SPS::dump(H26XDumpObject& dumpObject) const
 {
 	dumpObject.startUnitFieldList("Sequence Parameter Set");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H265NAL::dump(dumpObject);
+		H265NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -471,7 +471,7 @@ void H265SPS::dump(H26XDumpObject& dumpObject) const
 }
 
 void H265SPS::validate(){
-	H265NAL::validate();
+	H265NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

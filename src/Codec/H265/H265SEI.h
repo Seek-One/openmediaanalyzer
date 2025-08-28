@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 
 struct H265SEIMessage {
 	H265SEIMessage();
@@ -15,7 +15,7 @@ struct H265SEIMessage {
 	void dump(H26XDumpObject& dumpObject) const;
 };
 
-struct H265SEI : public H265NAL {
+struct H265SEI : public H265NALUnit {
 	H265SEI(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H265SEI();
 

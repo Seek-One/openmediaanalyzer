@@ -9,7 +9,7 @@
 
 #include "../H26X/H26XErrors.h"
 
-struct H265NAL;
+struct H265NALUnit;
 struct H265Slice;
 
 struct H265AccessUnit {
@@ -24,8 +24,8 @@ struct H265AccessUnit {
     H265Slice* slice() const;
     std::vector<H265Slice*> slices() const;
     bool empty() const;
-    std::vector<H265NAL*> getNALUnits() const;
-    void addNALUnit(std::unique_ptr<H265NAL> NALUnit);
+    std::vector<H265NALUnit*> getNALUnits() const;
+    void addNALUnit(std::unique_ptr<H265NALUnit> NALUnit);
     uint32_t size() const;
     uint64_t byteSize() const;
     std::optional<uint16_t> frameNumber() const;
@@ -39,7 +39,7 @@ struct H265AccessUnit {
     bool hasMajorErrors() const;
     bool hasMinorErrors() const;
 
-    std::vector<std::unique_ptr<H265NAL>> NALUnits;
+    std::vector<std::unique_ptr<H265NALUnit>> NALUnits;
     int32_t PicOrderCntVal;
     uint32_t PicOrderCntMsb;
 	H26XErrors errors;

@@ -5,7 +5,7 @@
 #include "H264Slice.h"
 
 H264Slice::H264Slice(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData):
-	H264NAL(pNALHeader, nalSize, nalData)
+		H264NALUnit(pNALHeader, nalSize, nalData)
 {
 	IdrPicFlag = 0;
 	first_mb_in_slice = 0;
@@ -89,7 +89,7 @@ H264Slice::H264Slice(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t*
 	CurrPicNum = frame_num;
 }
 
-bool H264Slice::isSlice(H264NAL* pNALUnit)
+bool H264Slice::isSlice(H264NALUnit* pNALUnit)
 {
 	auto nal_unit_type = pNALUnit->getNalUnitType();
 	return nal_unit_type == H264NALUnitType::NonIDRFrame || nal_unit_type == H264NALUnitType::IDRFrame;
@@ -127,7 +127,7 @@ void H264Slice::dump(H26XDumpObject& dumpObject) const
 	dumpObject.startUnitFieldList("Slice");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope)
 	{
-		H264NAL::dump(dumpObject);
+		H264NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -267,7 +267,7 @@ void H264Slice::dump(H26XDumpObject& dumpObject) const
 void H264Slice::validate()
 {
 	auto nal_unit_type = getNalUnitType();
-	H264NAL::validate();
+	H264NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

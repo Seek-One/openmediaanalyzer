@@ -6,9 +6,9 @@
 
 #include "H265ProfileTierLevel.h"
 #include "H265HrdParameters.h"
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 
-struct H265VPS : public H265NAL
+struct H265VPS : public H265NALUnit
 {
 	H265VPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 

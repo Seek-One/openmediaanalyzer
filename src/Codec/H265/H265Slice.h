@@ -4,7 +4,7 @@
 #include <list>
 #include <array>
 
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 
 struct H265PPS;
 struct H265SPS;
@@ -50,7 +50,7 @@ struct H265PredWeightTable {
 	void validate(const H265Slice& h265Slice);
 };
 
-struct H265Slice : public H265NAL {
+struct H265Slice : public H265NALUnit {
 	enum SliceType {
 		SliceType_B = 0,
 		SliceType_P = 1,

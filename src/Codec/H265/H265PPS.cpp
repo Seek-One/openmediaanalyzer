@@ -242,7 +242,7 @@ void H265PPSSCCExtension::dump(H26XDumpObject& dumpObject) const
 }
 
 H265PPS::H265PPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(pNALHeader, nal_size, nal_data)
+		H265NALUnit(pNALHeader, nal_size, nal_data)
 {
 	pps_pic_parameter_set_id = 0;
 	pps_seq_parameter_set_id = 0;
@@ -293,7 +293,7 @@ void H265PPS::dump(H26XDumpObject& dumpObject) const
 {
 	dumpObject.startUnitFieldList("Picture Parameter Set");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H265NAL::dump(dumpObject);
+		H265NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -401,7 +401,7 @@ void H265PPS::dump(H26XDumpObject& dumpObject) const
 }
 
 void H265PPS::validate(){
-	H265NAL::validate();
+	H265NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

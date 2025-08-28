@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "../H26X/H26XDumpObject.h"
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
-struct H264AUD : public H264NAL {
+struct H264AUD : public H264NALUnit {
     H264AUD(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 
     static const inline std::vector<std::vector<uint8_t>> slice_type_values = {

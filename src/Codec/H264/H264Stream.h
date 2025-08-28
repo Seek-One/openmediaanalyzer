@@ -9,7 +9,7 @@
 
 #include "../H26X/H26XStream.h"
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
 struct H264AccessUnit;
 struct H264PPS;

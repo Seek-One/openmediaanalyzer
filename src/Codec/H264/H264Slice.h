@@ -5,12 +5,12 @@
 #include <vector>
 #include <string>
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
 struct H264PPS;
 struct H264SPS;
 
-struct H264Slice : public H264NAL {
+struct H264Slice : public H264NALUnit {
 	enum SliceType {
 		SliceType_Unspecified,
 		SliceType_P,
@@ -22,7 +22,7 @@ struct H264Slice : public H264NAL {
 
 	H264Slice(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData);
 
-	static bool isSlice(H264NAL* NALUnit);
+	static bool isSlice(H264NALUnit* NALUnit);
 	static SliceType getSliceType(int value);
 
 	uint32_t first_mb_in_slice;

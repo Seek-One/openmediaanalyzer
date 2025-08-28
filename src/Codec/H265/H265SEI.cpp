@@ -4,7 +4,7 @@
 #include "H265SEI.h"
 
 H265SEI::H265SEI(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(pNALHeader, nal_size, nal_data)
+		H265NALUnit(pNALHeader, nal_size, nal_data)
 {}
 
 H265SEI::~H265SEI(){
@@ -26,7 +26,7 @@ void H265SEI::dump(H26XDumpObject& dumpObject) const
 {
 	dumpObject.startUnitFieldList("Supplemental Enhancement Information");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H265NAL::dump(dumpObject);
+		H265NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -40,6 +40,6 @@ void H265SEI::dump(H26XDumpObject& dumpObject) const
 }
 
 void H265SEI::validate(){
-	H265NAL::validate();
+	H265NALUnit::validate();
 	if(!completelyParsed) return;
 }

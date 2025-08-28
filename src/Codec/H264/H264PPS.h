@@ -6,9 +6,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
-struct H264PPS : public H264NAL {
+struct H264PPS : public H264NALUnit {
 	H264PPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t pic_parameter_set_id;

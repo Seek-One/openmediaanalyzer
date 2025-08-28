@@ -6,7 +6,7 @@
 #include "H265VPS.h"
 
 H265VPS::H265VPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(pNALHeader, nal_size, nal_data)
+		H265NALUnit(pNALHeader, nal_size, nal_data)
 {
 	vps_video_parameter_set_id = 0;
 	vps_base_layer_internal_flag = 0;
@@ -30,7 +30,7 @@ void H265VPS::dump(H26XDumpObject& dumpObject) const
 {
 	dumpObject.startUnitFieldList("SVideo Parameter Set");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
-		H265NAL::dump(dumpObject);
+		H265NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -90,7 +90,7 @@ void H265VPS::dump(H26XDumpObject& dumpObject) const
 
 void H265VPS::validate()
 {
-	H265NAL::validate();
+	H265NALUnit::validate();
 	if(!completelyParsed){
 		return;
 	}

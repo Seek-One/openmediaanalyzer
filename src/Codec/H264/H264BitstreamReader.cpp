@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "H264BitstreamReader.h"
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 #include "H264PPS.h"
 #include "H264Slice.h"
 #include "H264SPS.h"

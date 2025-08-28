@@ -4,7 +4,7 @@
 #include "H264PPS.h"
 
 H264PPS::H264PPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
-	H264NAL(pNALHeader, nal_size, nal_data)
+		H264NALUnit(pNALHeader, nal_size, nal_data)
 {
 	pic_parameter_set_id = 0;
 	seq_parameter_set_id = 0;
@@ -66,7 +66,7 @@ void H264PPS::dump(H26XDumpObject& dumpObject) const
 	dumpObject.startUnitFieldList("Picture Parameter Set");
 	H26X_BREAKABLE_SCOPE(H26XDumpScope)
 	{
-		H264NAL::dump(dumpObject);
+		H264NALUnit::dump(dumpObject);
 
 		if (!completelyParsed) {
 			break;
@@ -132,7 +132,7 @@ void H264PPS::dump(H26XDumpObject& dumpObject) const
 }
 
 void H264PPS::validate(){
-	H264NAL::validate();
+	H264NALUnit::validate();
 	if(!completelyParsed) return;
 	if(seq_parameter_set_id > 31){
 		errors.add(H26XError::Minor, H26XUtils::formatString("[PPS] seq_parameter_set_id value (%ld) not in valid range (0..31)", seq_parameter_set_id));

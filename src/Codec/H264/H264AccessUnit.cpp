@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <numeric>
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 #include "H264Slice.h"
 #include "H264SEI.h"
 #include "H264PPS.h"
@@ -26,15 +26,15 @@ bool H264AccessUnit::empty() const{
     return NALUnits.empty();
 }
 
-std::vector<H264NAL*> H264AccessUnit::getNALUnits() const{
-    std::vector<H264NAL*> pNALUnits;
-    std::transform(NALUnits.begin(), NALUnits.end(), std::back_inserter(pNALUnits), [](const std::unique_ptr<H264NAL>& pNALUnit){
+std::vector<H264NALUnit*> H264AccessUnit::getNALUnits() const{
+    std::vector<H264NALUnit*> pNALUnits;
+    std::transform(NALUnits.begin(), NALUnits.end(), std::back_inserter(pNALUnits), [](const std::unique_ptr<H264NALUnit>& pNALUnit){
         return pNALUnit.get();
     });
     return pNALUnits;
 }
 
-void H264AccessUnit::addNALUnit(std::unique_ptr<H264NAL> NALUnit){
+void H264AccessUnit::addNALUnit(std::unique_ptr<H264NALUnit> NALUnit){
     NALUnit->validate();
     NALUnits.push_back(std::move(NALUnit));
 }
@@ -44,7 +44,7 @@ uint32_t H264AccessUnit::size() const{
 }
 
 uint64_t H264AccessUnit::byteSize() const{
-    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264NAL>& unit){
+    return std::accumulate(NALUnits.begin(), NALUnits.end(), 0, [](uint64_t acc, const std::unique_ptr<H264NALUnit>& unit){
         return acc+unit->nal_size;
     });
 }
@@ -66,7 +66,7 @@ H264Slice* H264AccessUnit::slice() const{
 
 std::vector<H264Slice*> H264AccessUnit::slices() const{
     std::vector<H264Slice*> pSlices;
-    for(const std::unique_ptr<H264NAL>& NALUnit : NALUnits){
+    for(const std::unique_ptr<H264NALUnit>& NALUnit : NALUnits){
         if(H264Slice::isSlice(NALUnit.get())) pSlices.push_back(reinterpret_cast<H264Slice*>(NALUnit.get()));
     }
     return pSlices;
@@ -82,7 +82,7 @@ H264Slice* H264AccessUnit::primary_coded_slice() const{
     return nullptr;
 }
 
-H264NAL* H264AccessUnit::last() const{
+H264NALUnit* H264AccessUnit::last() const{
     if(empty()) return nullptr;
     return NALUnits.back().get();
 }
@@ -160,26 +160,26 @@ bool H264AccessUnit::isValid() const
 
 bool H264AccessUnit::hasMajorErrors() const
 {
-    return !errors.hasMajorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& NALUnit){
+    return !errors.hasMajorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NALUnit>& NALUnit){
         return !NALUnit->errors.hasMajorErrors();
     });
 }
 
 bool H264AccessUnit::hasMinorErrors() const
 {
-    return !errors.hasMinorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& NALUnit){
+    return !errors.hasMinorErrors() || std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NALUnit>& NALUnit){
         return !NALUnit->errors.hasMinorErrors();
     });
 }
 
 bool H264AccessUnit::hasNonReferencePicture() const {
-    return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& pNALUnit){
+    return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NALUnit>& pNALUnit){
         return (pNALUnit->getNalUnitType() == H264NALUnitType::IDRFrame || pNALUnit->getNalUnitType() == H264NALUnitType::NonIDRFrame) && pNALUnit->getNALHeader()->nal_ref_idc == 0;
     });
 }
 
 bool H264AccessUnit::hasReferencePicture() const {
-    return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& pNALUnit){
+    return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NALUnit>& pNALUnit){
         return (pNALUnit->getNalUnitType() == H264NALUnitType::IDRFrame || pNALUnit->getNalUnitType() == H264NALUnitType::NonIDRFrame) && pNALUnit->getNALHeader()->nal_ref_idc != 0;
     });
 }

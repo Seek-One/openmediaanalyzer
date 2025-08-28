@@ -53,7 +53,7 @@ void H264InvalidSamplesParsing::test_h264EndOfStreamBitstream()
 	QVERIFY(pAccessUnits.size() == 2);
 	H264AccessUnit* pFirstAccessUnit = pAccessUnits.front();
 	QVERIFY(pFirstAccessUnit->size() == 4);
-	std::vector<H264NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
+	std::vector<H264NALUnit*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
 
 	H264SPS* pSPS = (H264SPS*)pFirstAccessUnitNALUnits[0];
 	QVERIFY(pSPS->errors.hasMajorErrors());
@@ -87,7 +87,7 @@ void H264InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 	QVERIFY(pAccessUnits.size() == 2);
 	QVERIFY(pAccessUnits.front()->isValid());
 	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
-	std::vector<H264NAL*> pLastAccessUnitNALUnits = pLastAccessUnit->getNALUnits();
+	std::vector<H264NALUnit*> pLastAccessUnitNALUnits = pLastAccessUnit->getNALUnits();
 	QVERIFY(pLastAccessUnitNALUnits[0]->getNalUnitType() == H264NALUnitType::SEI);
 	QVERIFY(pLastAccessUnitNALUnits[1]->getNalUnitType() == H264NALUnitType::AUD);
 	QVERIFY(pLastAccessUnitNALUnits[2]->getNalUnitType() == H264NALUnitType::AUD);

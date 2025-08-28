@@ -132,7 +132,7 @@ void H265InvalidSamplesParsing::test_h265EndOfStreamBitstream()
 	QVERIFY(pAccessUnits.size() == 2);
 	H265AccessUnit* pFirstAccessUnit = pAccessUnits.front();
 	QVERIFY(pFirstAccessUnit->size() == 4);
-	std::vector<H265NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
+	std::vector<H265NALUnit*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
 
 	H265SPS* pSPS = (H265SPS*)pFirstAccessUnitNALUnits[0];
 	QVERIFY(pSPS->errors.hasMajorErrors());

@@ -1,13 +1,13 @@
-#ifndef TOOLKIT_CODEC_UTILS_H264NAL_H_
-#define TOOLKIT_CODEC_UTILS_H264NAL_H_
+#ifndef TOOLKIT_CODEC_UTILS_H264_H264NAL_H_
+#define TOOLKIT_CODEC_UTILS_H264_H264NAL_H_
 
-#include "../H26X/H26XNAL.h"
+#include "../H26X/H26XNALUnit.h"
 #include "H264NALHeader.h"
 
-struct H264NAL : public H26XNAL
+struct H264NALUnit : public H26XNALUnit
 {
-	H264NAL(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData);
-	virtual ~H264NAL();
+	H264NALUnit(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData);
+	virtual ~H264NALUnit();
 
 	uint32_t nal_size;
 	uint8_t* nal_data;
@@ -30,4 +30,4 @@ struct H264NAL : public H26XNAL
 	virtual void validate() override;
 };
 
-#endif // TOOLKIT_CODEC_UTILS_H264NAL_H_
+#endif // TOOLKIT_CODEC_UTILS_H264_H264NAL_H_

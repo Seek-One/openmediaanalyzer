@@ -2,10 +2,10 @@
 
 #include "../Codec/H264/H264AccessUnit.h"
 #include "../Codec/H264/H264Slice.h"
-#include "../Codec/H264/H264NAL.h"
+#include "../Codec/H264/H264NALUnit.h"
 #include "../Codec/H265/H265AccessUnit.h"
 #include "../Codec/H265/H265Slice.h"
-#include "../Codec/H265/H265NAL.h"
+#include "../Codec/H265/H265NALUnit.h"
 
 #include "QAccessUnitModel.h"
 
@@ -32,14 +32,14 @@ uint8_t* QAccessUnitModel::serialize() const{
     if(isH264()){
         const H264AccessUnit* pAccessUnit = std::get<const H264AccessUnit*>(m_pAccessUnit);
         serialized = new uint8_t[pAccessUnit->byteSize()];
-        for(H264NAL* pNALUnit : pAccessUnit->getNALUnits()){
+        for(H264NALUnit* pNALUnit : pAccessUnit->getNALUnits()){
             memcpy(serialized+index, pNALUnit->nal_data, pNALUnit->nal_size);
             index += pNALUnit->nal_size;
         }
     } else if(isH265()){
         const H265AccessUnit* pAccessUnit = std::get<const H265AccessUnit*>(m_pAccessUnit);
         serialized = new uint8_t[pAccessUnit->byteSize()];
-        for(H265NAL* pNALUnit : pAccessUnit->getNALUnits()){
+        for(H265NALUnit* pNALUnit : pAccessUnit->getNALUnits()){
             memcpy(serialized+index, pNALUnit->nal_data, pNALUnit->nal_size);
             index += pNALUnit->nal_size;
         }

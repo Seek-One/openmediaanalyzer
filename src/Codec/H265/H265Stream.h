@@ -8,7 +8,7 @@
 
 #include "../H26X/H26XStream.h"
 
-#include "H265NAL.h"
+#include "H265NALUnit.h"
 
 struct H265PPS;
 struct H265Slice;

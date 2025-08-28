@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "H264NAL.h"
+#include "H264NALUnit.h"
 
 #define SEI_BUFFERING_PERIOD 0
 #define SEI_PIC_TIMING 1
@@ -24,7 +24,7 @@ struct H264SEIMessage {
 	virtual void validate();
 };
 
-struct H264SEI : public H264NAL {
+struct H264SEI : public H264NALUnit {
 	H264SEI(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H264SEI();
 

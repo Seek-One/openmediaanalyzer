@@ -59,7 +59,7 @@ struct H265Slice : public H265NAL {
 	};
 
 	H265Slice();
-	H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data);
+	H265Slice(uint8_t forbidden_zero_bit, H265NALUnitType::Type nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t first_slice_segment_in_pic_flag;
 	uint8_t no_output_of_prior_pics_flag;

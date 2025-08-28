@@ -82,26 +82,29 @@ bool H265AccessUnit::isIDR() const {
 bool H265AccessUnit::isRASL() const {
     H265Slice* pSlice = slice();
     if(!pSlice) return false;
-    return pSlice->nal_unit_type == H265NAL::UnitType_RASL_N || pSlice->nal_unit_type == H265NAL::UnitType_RASL_R;
+    return pSlice->nal_unit_type == H265NALUnitType::RASL_N || pSlice->nal_unit_type == H265NALUnitType::RASL_R;
 }
 
 bool H265AccessUnit::isRADL() const {
     H265Slice* pSlice = slice();
     if(!pSlice) return false;
-    return pSlice->nal_unit_type == H265NAL::UnitType_RADL_N || pSlice->nal_unit_type == H265NAL::UnitType_RADL_R;
+    return pSlice->nal_unit_type == H265NALUnitType::RADL_N || pSlice->nal_unit_type == H265NALUnitType::RADL_R;
 }
 
 bool H265AccessUnit::isSLNR() const {
     H265Slice* pSlice = slice();
-    if(!pSlice) return false;
+    if(!pSlice){
+		return false;
+	}
     switch(pSlice->nal_unit_type){
-        case H265NAL::UnitType_TRAIL_N:
-        case H265NAL::UnitType_TSA_N:
-        case H265NAL::UnitType_STSA_N:
-        case H265NAL::UnitType_RADL_N:
-        case H265NAL::UnitType_RASL_N:
-            return true;
-        default: return false;
+	case H265NALUnitType::TRAIL_N:
+	case H265NALUnitType::TSA_N:
+	case H265NALUnitType::STSA_N:
+	case H265NALUnitType::RADL_N:
+	case H265NALUnitType::RASL_N:
+		return true;
+	default:
+		return false;
     }
     return false;
 }
@@ -126,17 +129,17 @@ void H265AccessUnit::validate(){
     for(auto& NALUnit : NALUnits){
         if(NALUnit->isSlice()) continue;
         switch(NALUnit->nal_unit_type){
-            case H265NAL::UnitType_VPS:
-            case H265NAL::UnitType_SPS:
+            case H265NALUnitType::VPS:
+            case H265NALUnitType::SPS:
                 if(pSlices.front()->TemporalId != 0){
 					errors.add(H26XError::Minor, "TemporalId of access unit not equal to 0 as constrained by SPS/VPS unit");
 				}
                 break;
-            case H265NAL::UnitType_EOS_NUT:
-            case H265NAL::UnitType_EOB_NUT:
+            case H265NALUnitType::EOS_NUT:
+            case H265NALUnitType::EOB_NUT:
                 break;
-            case H265NAL::UnitType_AUD:
-            case H265NAL::UnitType_FD_NUT:
+            case H265NALUnitType::AUD:
+            case H265NALUnitType::FD_NUT:
                 if(NALUnit->TemporalId != pSlices.front()->TemporalId){
 					errors.add(H26XError::Minor, "TemporalId of AUD/FD unit not equal to TemporalId of access unit");
 				}
@@ -153,10 +156,10 @@ void H265AccessUnit::validate(){
     for(uint32_t i = 0;i < NALUnits.size();++i) if(NALUnits[i]->isSlice()) lastVCLIndex = i;
     for(uint32_t i = lastVCLIndex+1;i < NALUnits.size();++i){
         switch(NALUnits[i]->nal_unit_type){
-            case H265NAL::UnitType_VPS:
-            case H265NAL::UnitType_SPS:
-            case H265NAL::UnitType_PPS:
-            case H265NAL::UnitType_SEI_PREFIX:
+            case H265NALUnitType::VPS:
+            case H265NALUnitType::SPS:
+            case H265NALUnitType::PPS:
+            case H265NALUnitType::SEI_PREFIX:
                 errors.add(H26XError::Minor, H26XUtils::formatString("NAL unit of type {} found after last VCL unit", NALUnits[i]->nal_unit_type));
             default: continue;
         }

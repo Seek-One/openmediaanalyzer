@@ -9,7 +9,7 @@ H264SPS::H264SPS():
 H264SPS::H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, const uint8_t* nal_data):
 	H264NAL(forbidden_zero_bit, nal_ref_idc, nal_size, nal_data)
 {
-	nal_unit_type = UnitType_SPS;
+	nal_unit_type = H264NALUnitType::SPS;
 	profile_idc = 0;
 	constraint_set0_flag = 0;
 	constraint_set1_flag = 0;

@@ -168,10 +168,10 @@ void H265PredWeightTable::validate(const H265Slice& h265Slice)
 }
 
 H265Slice::H265Slice():
-	H265Slice(0, UnitType_Unspecified, 0, 0, 0, nullptr)
+	H265Slice(0, H265NALUnitType::Unspecified, 0, 0, 0, nullptr)
 {}
 
-H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
+H265Slice::H265Slice(uint8_t forbidden_zero_bit, H265NALUnitType::Type nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
 	H265NAL(forbidden_zero_bit, nal_unit_type, nuh_layer_id, nuh_temporal_id_plus1, nal_size, nal_data)
 {
 	first_slice_segment_in_pic_flag = 0;
@@ -224,36 +224,36 @@ H265Slice::H265Slice(uint8_t forbidden_zero_bit, UnitType nal_unit_type, uint8_t
 	SliceQpY = 0;
 }
 
-std::string getSpecificSliceType(H265NAL::UnitType unitType){
+std::string getSpecificSliceType(H265NALUnitType::Type unitType){
 	switch(unitType) {
-		case H265NAL::UnitType_TRAIL_N:
-			return "Trailing picture (N)";
-		case H265NAL::UnitType_TRAIL_R:
-			return "Trailing picture (R)";
-		case H265NAL::UnitType_TSA_N:
-			return "Temporal sub-layer access picture (N)";
-		case H265NAL::UnitType_TSA_R:
-			return "Temporal sub-layer access picture (R)";
-		case H265NAL::UnitType_STSA_N:
-			 return "Step-wise temporal sub-layer access picture (N)";	
-		case H265NAL::UnitType_STSA_R:
-			return "Step-wise temporal sub-layer access picture (R)";
-		case H265NAL::UnitType_RADL_N:
-			return "Random access decodable leading picture (N)";
-		case H265NAL::UnitType_RADL_R:
-			return "Random access decodable leading picture (R)";
-		case H265NAL::UnitType_RASL_N:
-			return "Random access skipped leading picture (N)";
-		case H265NAL::UnitType_RASL_R:
-			return "Random access skipped leading picture (R)";
-		case H265NAL::UnitType_BLA_W_LP:
-			return "Broken link access picture (with LP)";
-		case H265NAL::UnitType_BLA_W_RADL:
-			return "Broken link access picture (with RADL pictures)";
-		case H265NAL::UnitType_BLA_N_LP:
-			return "Broken link access picture (no LP)";
-		default:
-			return "Unindentified Slice";
+	case H265NALUnitType::TRAIL_N:
+		return "Trailing picture (N)";
+	case H265NALUnitType::TRAIL_R:
+		return "Trailing picture (R)";
+	case H265NALUnitType::TSA_N:
+		return "Temporal sub-layer access picture (N)";
+	case H265NALUnitType::TSA_R:
+		return "Temporal sub-layer access picture (R)";
+	case H265NALUnitType::STSA_N:
+		 return "Step-wise temporal sub-layer access picture (N)";	
+	case H265NALUnitType::STSA_R:
+		return "Step-wise temporal sub-layer access picture (R)";
+	case H265NALUnitType::RADL_N:
+		return "Random access decodable leading picture (N)";
+	case H265NALUnitType::RADL_R:
+		return "Random access decodable leading picture (R)";
+	case H265NALUnitType::RASL_N:
+		return "Random access skipped leading picture (N)";
+	case H265NALUnitType::RASL_R:
+		return "Random access skipped leading picture (R)";
+	case H265NALUnitType::BLA_W_LP:
+		return "Broken link access picture (with LP)";
+	case H265NALUnitType::BLA_W_RADL:
+		return "Broken link access picture (with RADL pictures)";
+	case H265NALUnitType::BLA_N_LP:
+		return "Broken link access picture (no LP)";
+	default:
+		return "Unindentified Slice";
 	}
 	return "Unindentified Slice";
 }
@@ -273,7 +273,7 @@ void H265Slice::dump(H26XDumpObject& dumpObject) const
 
 		dumpObject.startValueUnitFieldList("first_slice_segment_in_pic_flag", first_slice_segment_in_pic_flag);
 		{
-			if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23){
+			if(nal_unit_type >= H265NALUnitType::BLA_W_LP && nal_unit_type <= H265NALUnitType::IRAP_VCL23){
 				dumpObject.addUnitField("no_output_of_prior_pics_flag", no_output_of_prior_pics_flag);
 			}
 			dumpObject.addUnitField("slice_pic_parameter_set_id", slice_pic_parameter_set_id);
@@ -499,7 +499,7 @@ void H265Slice::validate(){
 		if(slice_type > 2){
 			errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_type value (%ld) not in valid range (0..2)", slice_type));
 		}
-		if(nal_unit_type >= UnitType_BLA_W_LP && nal_unit_type <= UnitType_IRAP_VCL23 &&
+		if(nal_unit_type >= H265NALUnitType::BLA_W_LP && nal_unit_type <= H265NALUnitType::IRAP_VCL23 &&
 			nuh_layer_id == 0 && !pPps->pps_scc_extension.pps_curr_pic_ref_enabled_flag &&
 			slice_type != 2)
 		{

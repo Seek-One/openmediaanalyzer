@@ -185,6 +185,8 @@ set(CODEC_SOURCES
     src/Codec/H264/H264GOP.h
     src/Codec/H264/H264NAL.cpp
     src/Codec/H264/H264NAL.h
+	src/Codec/H264/H264NALUnitType.cpp
+	src/Codec/H264/H264NALUnitType.h
     src/Codec/H264/H264PPS.cpp
     src/Codec/H264/H264PPS.h
     src/Codec/H264/H264Slice.cpp
@@ -205,6 +207,8 @@ set(CODEC_SOURCES
     src/Codec/H265/H265HrdParameters.h
     src/Codec/H265/H265NAL.cpp
     src/Codec/H265/H265NAL.h
+	src/Codec/H265/H265NALUnitType.cpp
+	src/Codec/H265/H265NALUnitType.h
     src/Codec/H265/H265PPS.cpp
     src/Codec/H265/H265PPS.h
     src/Codec/H265/H265ProfileTierLevel.cpp

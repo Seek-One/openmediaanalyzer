@@ -121,7 +121,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 	}
 	H265Slice* currentAccessUnitSlice = m_pCurrentAccessUnit->slice();
 	switch (m_currentNAL.nal_unit_type) {
-		case H265NAL::UnitType_VPS:{
+		case H265NALUnitType::VPS:{
 			m_pActiveVPS = new H265VPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try{
 				bitstreamReader.readVPS(*m_pActiveVPS);
@@ -136,7 +136,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H265VPS::VPSMap.insert_or_assign(m_pActiveVPS->vps_video_parameter_set_id, m_pActiveVPS);
 			break;
 		}
-		case H265NAL::UnitType_SPS:{
+		case H265NALUnitType::SPS:{
 			m_pActiveSPS = new H265SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try {
 				bitstreamReader.readSPS(*m_pActiveSPS);
@@ -151,7 +151,7 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H265SPS::SPSMap.insert_or_assign(m_pActiveSPS->sps_seq_parameter_set_id, m_pActiveSPS);
 			break;
 		}
-		case H265NAL::UnitType_PPS:{
+		case H265NALUnitType::PPS:{
 			m_pActivePPS = new H265PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try {
 				bitstreamReader.readPPS(*m_pActivePPS);
@@ -166,15 +166,15 @@ bool H265Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			H265PPS::PPSMap.insert_or_assign(m_pActivePPS->pps_pic_parameter_set_id, m_pActivePPS);
 			break;
 		}
-		case H265NAL::UnitType_SEI_PREFIX:
-		case H265NAL::UnitType_SEI_SUFFIX: {
+		case H265NALUnitType::SEI_PREFIX:
+		case H265NALUnitType::SEI_SUFFIX: {
 			H265SEI* pSEI = new H265SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_unit_type, m_currentNAL.nuh_layer_id, m_currentNAL.nuh_temporal_id_plus1, iNALLength, pNALData);
 			try { bitstreamReader.readSEI(*pSEI);
 			} catch(const std::runtime_error& e){ 
 				pSEI->errors.add(H26XError::Minor, std::string("[SEI] ").append(e.what()));
 				pSEI->completelyParsed = false;
 			}
-			if(pSEI->nal_unit_type == H265NAL::UnitType_SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
+			if(pSEI->nal_unit_type == H265NALUnitType::SEI_PREFIX && pSEI->nuh_layer_id == 0 && currentAccessUnitSlice) newAccessUnit();
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H265SEI>(pSEI));
 			break;
 		}

@@ -98,7 +98,7 @@ void H264AccessUnit::validate()
     int AUDs = 0;
     H264AUD* AUDUnit = nullptr;
     for(auto& NALUnit : NALUnits){
-		if(NALUnit->nal_unit_type == H264NAL::UnitType_AUD) {
+		if(NALUnit->nal_unit_type == H264NALUnitType::AUD) {
 			if (!AUDUnit) {
 				AUDUnit = reinterpret_cast<H264AUD *>(NALUnit.get());
 			}
@@ -106,7 +106,7 @@ void H264AccessUnit::validate()
 		}
     }
     if(AUDs > 0){
-        if(NALUnits[0]->nal_unit_type != H264NAL::UnitType_AUD){
+        if(NALUnits[0]->nal_unit_type != H264NALUnitType::AUD){
 			errors.add(H26XError::Minor, "Access unit delimiter not in first position");
 		}
         if(AUDs > 1){
@@ -122,9 +122,9 @@ void H264AccessUnit::validate()
     }
 
     for(uint32_t i = 0;i < NALUnits.size();++i){
-        if(NALUnits[i]->nal_unit_type == H264NAL::UnitType_SEI){
+        if(NALUnits[i]->nal_unit_type == H264NALUnitType::SEI){
             if(i+1 < NALUnits.size()){
-                if(NALUnits[i+1]->nal_unit_type != H264NAL::UnitType_SEI && !H264Slice::isSlice(NALUnits[i+1].get())){
+                if(NALUnits[i+1]->nal_unit_type != H264NALUnitType::SEI && !H264Slice::isSlice(NALUnits[i+1].get())){
                     errors.add(H26XError::Minor, "SEI units block is not preceding the primary coded picture");
                 }
             }
@@ -174,12 +174,12 @@ bool H264AccessUnit::hasMinorErrors() const
 
 bool H264AccessUnit::hasNonReferencePicture() const {
     return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& NALUnit){
-        return (NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc == 0;
+        return (NALUnit->nal_unit_type == H264NALUnitType::IDRFrame || NALUnit->nal_unit_type == H264NALUnitType::NonIDRFrame) && NALUnit->nal_ref_idc == 0;
     });
 }
 
 bool H264AccessUnit::hasReferencePicture() const {
     return std::any_of(NALUnits.begin(), NALUnits.end(), [](const std::unique_ptr<H264NAL>& NALUnit){
-        return (NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame) && NALUnit->nal_ref_idc != 0;
+        return (NALUnit->nal_unit_type == H264NALUnitType::IDRFrame || NALUnit->nal_unit_type == H264NALUnitType::NonIDRFrame) && NALUnit->nal_ref_idc != 0;
     });
 }

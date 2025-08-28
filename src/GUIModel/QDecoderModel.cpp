@@ -470,96 +470,96 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
 	if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H264AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
-                case H264NAL::UnitType_AUD:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H264NAL::UnitType_NonIDRFrame:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H264NAL::UnitType_IDRFrame:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H264NAL::UnitType_PPS:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H264NAL::UnitType_SPS:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H264NAL::UnitType_SEI:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                default:
-                    continue;
+			case H264NALUnitType::AUD:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H264NALUnitType::NonIDRFrame:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H264NALUnitType::IDRFrame:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H264NALUnitType::PPS:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H264NALUnitType::SPS:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H264NALUnitType::SEI:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			default:
+				continue;
             }
         }
     } else if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H265AccessUnit*>(accessUnit)->NALUnits){
             switch(NALUnit->nal_unit_type){
-                case H265NAL::UnitType_TRAIL_N:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_TRAIL_R:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_TSA_N:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_TSA_R:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_STSA_N:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_STSA_R:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_RADL_N:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_RADL_R:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_RASL_N:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_RASL_R:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_BLA_W_LP:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_BLA_W_RADL:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_BLA_N_LP:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_IDR_W_RADL:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_IDR_N_LP:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_CRA_NUT:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_VPS:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_SPS:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_PPS:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_SEI_PREFIX:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                case H265NAL::UnitType_SEI_SUFFIX:
-                    NALUnit->dump(itemH26XObjectDump);
-                    break;
-                default:
-                    continue;
+			case H265NALUnitType::TRAIL_N:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::TRAIL_R:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::TSA_N:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::TSA_R:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::STSA_N:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::STSA_R:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::RADL_N:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::RADL_R:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::RASL_N:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::RASL_R:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::BLA_W_LP:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::BLA_W_RADL:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::BLA_N_LP:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::IDR_W_RADL:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::IDR_N_LP:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::CRA_NUT:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::VPS:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::SPS:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::PPS:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::SEI_PREFIX:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			case H265NALUnitType::SEI_SUFFIX:
+				NALUnit->dump(itemH26XObjectDump);
+				break;
+			default:
+				continue;
             }
         }
     } 
@@ -895,7 +895,7 @@ void QDecoderModel::checkForNewGOP()
         QSharedPointer<QAccessUnitModel> pAccessUnitModel = m_currentGOPModel.back();
         if(pAccessUnitModel->isH264()){
             const H264AccessUnit* lastAccessUnit = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit);
-            if(!lastAccessUnit->slice() || lastAccessUnit->slice()->nal_unit_type != H264NAL::UnitType_IDRFrame) {
+            if(!lastAccessUnit->slice() || lastAccessUnit->slice()->nal_unit_type != H264NALUnitType::IDRFrame) {
                 return;
             }
         } else if(pAccessUnitModel->isH265()){

@@ -15,7 +15,7 @@ H265BitstreamReader::H265BitstreamReader(const uint8_t* pNALData, uint32_t iNALL
 void H265BitstreamReader::readNALHeader(H265NAL& h265NAL)
 {
 	h265NAL.forbidden_zero_bit = readBits(1);
-	h265NAL.nal_unit_type = (H265NAL::UnitType)readBits(6);
+	h265NAL.nal_unit_type = (H265NALUnitType::Type)readBits(6);
 	h265NAL.nuh_layer_id = readBits(6);
 	h265NAL.nuh_temporal_id_plus1 = readBits(3);
 }
@@ -349,16 +349,16 @@ void H265BitstreamReader::readPPS(H265PPS& h265PPS)
 void H265BitstreamReader::readSlice(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit)
 {
 	h265Slice.IdrPicFlag = h265Slice.isIDR();
-	h265Slice.IRAPPicture = (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP) && (h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23);
+	h265Slice.IRAPPicture = (h265Slice.nal_unit_type >= H265NALUnitType::BLA_W_LP) && (h265Slice.nal_unit_type <= H265NALUnitType::IRAP_VCL23);
 	h265Slice.NoRaslOutputFlag = h265Slice.NoRaslOutputFlag || 
-		h265Slice.nal_unit_type == H265NAL::UnitType_IDR_W_RADL ||
-		h265Slice.nal_unit_type == H265NAL::UnitType_IDR_N_LP ||
-		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_LP ||
-		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_W_RADL ||
-		h265Slice.nal_unit_type == H265NAL::UnitType_BLA_N_LP;
+		h265Slice.nal_unit_type == H265NALUnitType::IDR_W_RADL ||
+		h265Slice.nal_unit_type == H265NALUnitType::IDR_N_LP ||
+		h265Slice.nal_unit_type == H265NALUnitType::BLA_W_LP ||
+		h265Slice.nal_unit_type == H265NALUnitType::BLA_W_RADL ||
+		h265Slice.nal_unit_type == H265NALUnitType::BLA_N_LP;
 	
 	h265Slice.first_slice_segment_in_pic_flag = readBits(1);
-	if (h265Slice.nal_unit_type >= H265NAL::UnitType_BLA_W_LP && h265Slice.nal_unit_type <= H265NAL::UnitType_IRAP_VCL23) {
+	if (h265Slice.nal_unit_type >= H265NALUnitType::BLA_W_LP && h265Slice.nal_unit_type <= H265NALUnitType::IRAP_VCL23) {
 		h265Slice.no_output_of_prior_pics_flag = readBits(1);
 	}
 	h265Slice.slice_pic_parameter_set_id = readGolombUE();

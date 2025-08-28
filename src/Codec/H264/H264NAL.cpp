@@ -10,7 +10,7 @@ H264NAL::H264NAL():
 {}
 
 H264NAL::H264NAL(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, uint32_t nalSize, const uint8_t* nalData):
-	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(UnitType_Unspecified), nal_size(nalSize+3), nal_data(nullptr)
+	forbidden_zero_bit(forbiddenZeroBit), nal_ref_idc(nalRefIdc),   nal_unit_type(H264NALUnitType::Unspecified), nal_size(nalSize+3), nal_data(nullptr)
 {
 	if(nalData == nullptr){
 		return;
@@ -40,17 +40,17 @@ void H264NAL::validate()
 	}
 	if(nal_ref_idc == 0){
 		switch(nal_unit_type){
-			case UnitType_SPS:
-				errors.add(H26XError::Minor, "[NAL Header] Sequence parameter set marked as unimportant");
-				break;
-			case UnitType_PPS:
-				errors.add(H26XError::Minor, "[NAL Header] Picture parameter set marked as unimportant");
-				break;
-			case UnitType_IDRFrame:
-				errors.add(H26XError::Minor, "[NAL Header] IDR frame marked as unimportant");
-				break;
-			default:
-				break;
+		case H264NALUnitType::SPS:
+			errors.add(H26XError::Minor, "[NAL Header] Sequence parameter set marked as unimportant");
+			break;
+		case H264NALUnitType::PPS:
+			errors.add(H26XError::Minor, "[NAL Header] Picture parameter set marked as unimportant");
+			break;
+		case H264NALUnitType::IDRFrame:
+			errors.add(H26XError::Minor, "[NAL Header] IDR frame marked as unimportant");
+			break;
+		default:
+			break;
 		}
 	}
 }

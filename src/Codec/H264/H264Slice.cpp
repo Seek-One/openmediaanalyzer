@@ -5,10 +5,10 @@
 #include "H264Slice.h"
 
 H264Slice::H264Slice():
-	H264Slice(0, 0, UnitType::UnitType_Unspecified, 0, nullptr)
+	H264Slice(0, 0, H264NALUnitType::Unspecified, 0, nullptr)
 {}
 
-H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUnitType, uint32_t nalSize, const uint8_t* nalData):
+H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, H264NALUnitType::Type nalUnitType, uint32_t nalSize, const uint8_t* nalData):
 	H264NAL(forbiddenZeroBit, nalRefIdc, nalSize, nalData)
 {
 	nal_unit_type = nalUnitType;
@@ -95,7 +95,7 @@ H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, UnitType nalUn
 }
 
 bool H264Slice::isSlice(H264NAL* NALUnit){
-	return NALUnit->nal_unit_type == H264NAL::UnitType_NonIDRFrame || NALUnit->nal_unit_type == H264NAL::UnitType_IDRFrame;
+	return NALUnit->nal_unit_type == H264NALUnitType::NonIDRFrame || NALUnit->nal_unit_type == H264NALUnitType::IDRFrame;
 }
 
 H264Slice::SliceType H264Slice::getSliceType(int value) {
@@ -290,7 +290,7 @@ void H264Slice::validate(){
 		return;
 	}
 	pH264SPS = referencedSPS->second;
-	if(nal_unit_type == H264NAL::UnitType_IDRFrame || pH264SPS->max_num_ref_frames == 0){
+	if(nal_unit_type == H264NALUnitType::IDRFrame || pH264SPS->max_num_ref_frames == 0){
 		switch(slice_type){
 			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
 			default:
@@ -304,7 +304,7 @@ void H264Slice::validate(){
 		}
 	}
 
-	if(nal_unit_type == H264NAL::UnitType_IDRFrame && frame_num != 0){
+	if(nal_unit_type == H264NALUnitType::IDRFrame && frame_num != 0){
 		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] frame_num of an IDR picture (%ld) should be 0", frame_num));
 	}
 

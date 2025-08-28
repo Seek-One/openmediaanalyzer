@@ -169,6 +169,8 @@ set(CODEC_SOURCES
     src/Codec/H26X/H26XMath.h
 	src/Codec/H26X/H26XNAL.cpp
 	src/Codec/H26X/H26XNAL.h
+	src/Codec/H26X/H26XNALHeader.cpp
+	src/Codec/H26X/H26XNALHeader.h
     src/Codec/H26X/H26XStream.cpp
     src/Codec/H26X/H26XStream.h
 	src/Codec/H26X/H26XTypes.h
@@ -185,6 +187,8 @@ set(CODEC_SOURCES
     src/Codec/H264/H264GOP.h
     src/Codec/H264/H264NAL.cpp
     src/Codec/H264/H264NAL.h
+	src/Codec/H264/H264NALHeader.cpp
+	src/Codec/H264/H264NALHeader.h
 	src/Codec/H264/H264NALUnitType.cpp
 	src/Codec/H264/H264NALUnitType.h
     src/Codec/H264/H264PPS.cpp
@@ -207,6 +211,8 @@ set(CODEC_SOURCES
     src/Codec/H265/H265HrdParameters.h
     src/Codec/H265/H265NAL.cpp
     src/Codec/H265/H265NAL.h
+	src/Codec/H265/H265NALHeader.cpp
+	src/Codec/H265/H265NALHeader.h
 	src/Codec/H265/H265NALUnitType.cpp
 	src/Codec/H265/H265NALUnitType.h
     src/Codec/H265/H265PPS.cpp

@@ -39,11 +39,12 @@ void H265ValidSamplesParsing::test_h265DahuaBitstream()
 	QVERIFY(stream.getGOPs().size() == 2);
 
 	H265VPS* pVPS = H265VPS::VPSMap[0];
-	QVERIFY(pVPS != nullptr);	
-	QVERIFY(pVPS->forbidden_zero_bit == 0);
-	QVERIFY(pVPS->nal_unit_type == 32);
-	QVERIFY(pVPS->nuh_layer_id == 0);
-	QVERIFY(pVPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pVPS != nullptr);
+	QVERIFY(pVPS->getNALHeader() != nullptr);
+	QVERIFY(pVPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pVPS->getNALHeader()->nal_unit_type == 32);
+	QVERIFY(pVPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pVPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pVPS->vps_video_parameter_set_id == 0);
 	QVERIFY(pVPS->vps_base_layer_internal_flag == 1);
 	QVERIFY(pVPS->vps_base_layer_available_flag == 1);
@@ -103,10 +104,11 @@ void H265ValidSamplesParsing::test_h265DahuaBitstream()
 
 	H265SPS* pSPS = H265SPS::SPSMap[0];
 	QVERIFY(pSPS != nullptr);
-	QVERIFY(pSPS->forbidden_zero_bit == 0);
-	QVERIFY(pSPS->nal_unit_type == 33);
-	QVERIFY(pSPS->nuh_layer_id == 0);
-	QVERIFY(pSPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pSPS->getNALHeader() != nullptr);
+	QVERIFY(pSPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pSPS->getNALHeader()->nal_unit_type == 33);
+	QVERIFY(pSPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pSPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pSPS->sps_video_parameter_set_id == 0);
 	QVERIFY(pSPS->sps_max_sub_layers_minus1 == 0);
 	QVERIFY(pSPS->sps_temporal_id_nesting_flag == 1);
@@ -235,10 +237,11 @@ void H265ValidSamplesParsing::test_h265DahuaBitstream()
 
 	H265PPS* pPPS = H265PPS::PPSMap[0];
 	QVERIFY(pPPS != nullptr);
-	QVERIFY(pPPS->forbidden_zero_bit == 0);
-	QVERIFY(pPPS->nal_unit_type == 34);
-	QVERIFY(pPPS->nuh_layer_id == 0);
-	QVERIFY(pPPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pPPS->getNALHeader() != nullptr);
+	QVERIFY(pPPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pPPS->getNALHeader()->nal_unit_type == 34);
+	QVERIFY(pPPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pPPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pPPS->pps_pic_parameter_set_id == 0);
 	QVERIFY(pPPS->pps_seq_parameter_set_id == 0);
 	QVERIFY(pPPS->dependent_slice_segments_enabled_flag == 0);
@@ -277,10 +280,11 @@ void H265ValidSamplesParsing::test_h265DahuaBitstream()
 
 	H265Slice* pIDRSlice = pAccessUnits.front()->slice();
 	QVERIFY(pIDRSlice != nullptr);
-	QVERIFY(pIDRSlice->forbidden_zero_bit == 0);
-	QVERIFY(pIDRSlice->nal_unit_type == 19);
-	QVERIFY(pIDRSlice->nuh_layer_id == 0);
-	QVERIFY(pIDRSlice->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pIDRSlice->getNALHeader() != nullptr);
+	QVERIFY(pIDRSlice->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pIDRSlice->getNALHeader()->nal_unit_type == 19);
+	QVERIFY(pIDRSlice->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pIDRSlice->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pIDRSlice->first_slice_segment_in_pic_flag == 1);
 	QVERIFY(pIDRSlice->no_output_of_prior_pics_flag == 0);
 	QVERIFY(pIDRSlice->slice_pic_parameter_set_id == 0);
@@ -294,10 +298,11 @@ void H265ValidSamplesParsing::test_h265DahuaBitstream()
 
 	H265Slice* pTrailingPicSlice = pAccessUnits[1]->slice();
 	QVERIFY(pTrailingPicSlice != nullptr);
-	QVERIFY(pTrailingPicSlice->forbidden_zero_bit == 0);
-	QVERIFY(pTrailingPicSlice->nal_unit_type == 1);
-	QVERIFY(pTrailingPicSlice->nuh_layer_id == 0);
-	QVERIFY(pTrailingPicSlice->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pTrailingPicSlice->getNALHeader() != nullptr);
+	QVERIFY(pTrailingPicSlice->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pTrailingPicSlice->getNALHeader()->nal_unit_type == 1);
+	QVERIFY(pTrailingPicSlice->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pTrailingPicSlice->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pTrailingPicSlice->first_slice_segment_in_pic_flag == 1);
 	QVERIFY(pTrailingPicSlice->slice_pic_parameter_set_id == 0);
 	QVERIFY(pTrailingPicSlice->slice_type == 1);
@@ -322,10 +327,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265VPS* pVPS = H265VPS::VPSMap[0];
 	QVERIFY(pVPS != nullptr);
-	QVERIFY(pVPS->forbidden_zero_bit == 0);
-	QVERIFY(pVPS->nal_unit_type == 32);
-	QVERIFY(pVPS->nuh_layer_id == 0);
-	QVERIFY(pVPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pVPS->getNALHeader() != nullptr);
+	QVERIFY(pVPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pVPS->getNALHeader()->nal_unit_type == 32);
+	QVERIFY(pVPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pVPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pVPS->vps_video_parameter_set_id == 0);
 	QVERIFY(pVPS->vps_base_layer_internal_flag == 1);
 	QVERIFY(pVPS->vps_base_layer_available_flag == 1);
@@ -385,10 +391,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265SPS* pSPS = H265SPS::SPSMap[0];
 	QVERIFY(pSPS != nullptr);
-	QVERIFY(pSPS->forbidden_zero_bit == 0);
-	QVERIFY(pSPS->nal_unit_type == 33);
-	QVERIFY(pSPS->nuh_layer_id == 0);
-	QVERIFY(pSPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pSPS->getNALHeader() != nullptr);
+	QVERIFY(pSPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pSPS->getNALHeader()->nal_unit_type == 33);
+	QVERIFY(pSPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pSPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pSPS->sps_video_parameter_set_id == 0);
 	QVERIFY(pSPS->sps_max_sub_layers_minus1 == 0);
 	QVERIFY(pSPS->sps_temporal_id_nesting_flag == 1);
@@ -479,10 +486,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265PPS* pPPS = H265PPS::PPSMap[0];
 	QVERIFY(pPPS != nullptr);
-	QVERIFY(pPPS->forbidden_zero_bit == 0);
-	QVERIFY(pPPS->nal_unit_type == 34);
-	QVERIFY(pPPS->nuh_layer_id == 0);
-	QVERIFY(pPPS->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pPPS->getNALHeader() != nullptr);
+	QVERIFY(pPPS->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pPPS->getNALHeader()->nal_unit_type == 34);
+	QVERIFY(pPPS->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pPPS->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pPPS->pps_pic_parameter_set_id == 0);
 	QVERIFY(pPPS->pps_seq_parameter_set_id == 0);
 	QVERIFY(pPPS->dependent_slice_segments_enabled_flag == 0);
@@ -516,10 +524,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265Slice* pISlice = pAccessUnits.front()->slice();
 	QVERIFY(pISlice != nullptr);
-	QVERIFY(pISlice->forbidden_zero_bit == 0);
-	QVERIFY(pISlice->nal_unit_type == 19);
-	QVERIFY(pISlice->nuh_layer_id == 0);
-	QVERIFY(pISlice->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pISlice->getNALHeader() != nullptr);
+	QVERIFY(pISlice->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pISlice->getNALHeader()->nal_unit_type == 19);
+	QVERIFY(pISlice->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pISlice->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pISlice->first_slice_segment_in_pic_flag == 1);
 	QVERIFY(pISlice->no_output_of_prior_pics_flag == 0);
 	QVERIFY(pISlice->slice_pic_parameter_set_id == 0);
@@ -566,10 +575,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265Slice* pPSlice = pAccessUnits[1]->slice();
 	QVERIFY(pPSlice != nullptr);
-	QVERIFY(pPSlice->forbidden_zero_bit == 0);
-	QVERIFY(pPSlice->nal_unit_type == 1);
-	QVERIFY(pPSlice->nuh_layer_id == 0);
-	QVERIFY(pPSlice->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pPSlice->getNALHeader() != nullptr);
+	QVERIFY(pPSlice->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pPSlice->getNALHeader()->nal_unit_type == 1);
+	QVERIFY(pPSlice->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pPSlice->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pPSlice->first_slice_segment_in_pic_flag == 1);
 	QVERIFY(pPSlice->slice_pic_parameter_set_id == 0);
 	QVERIFY(pPSlice->slice_type == 1);
@@ -627,10 +637,11 @@ void H265ValidSamplesParsing::test_h265WebSampleBunnyBitstream(){
 
 	H265Slice* pBSlice = pAccessUnits[2]->slice();
 	QVERIFY(pBSlice != nullptr);
-	QVERIFY(pBSlice->forbidden_zero_bit == 0);
-	QVERIFY(pBSlice->nal_unit_type == 1);
-	QVERIFY(pBSlice->nuh_layer_id == 0);
-	QVERIFY(pBSlice->nuh_temporal_id_plus1 == 1);
+	QVERIFY(pBSlice->getNALHeader() != nullptr);
+	QVERIFY(pBSlice->getNALHeader()->forbidden_zero_bit == 0);
+	QVERIFY(pBSlice->getNALHeader()->nal_unit_type == 1);
+	QVERIFY(pBSlice->getNALHeader()->nuh_layer_id == 0);
+	QVERIFY(pBSlice->getNALHeader()->nuh_temporal_id_plus1 == 1);
 	QVERIFY(pBSlice->first_slice_segment_in_pic_flag == 1);
 	QVERIFY(pBSlice->slice_pic_parameter_set_id == 0);
 	QVERIFY(pBSlice->slice_type == 0);

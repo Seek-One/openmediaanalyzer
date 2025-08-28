@@ -88,11 +88,11 @@ void H264InvalidSamplesParsing::test_h264AccessUnitErrorsBitstream(){
 	QVERIFY(pAccessUnits.front()->isValid());
 	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
 	std::vector<H264NAL*> pLastAccessUnitNALUnits = pLastAccessUnit->getNALUnits();
-	QVERIFY(pLastAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_SEI);
-	QVERIFY(pLastAccessUnitNALUnits[1]->nal_unit_type == H264NAL::UnitType_AUD);
-	QVERIFY(pLastAccessUnitNALUnits[2]->nal_unit_type == H264NAL::UnitType_AUD);
-	QVERIFY(pLastAccessUnitNALUnits[3]->nal_unit_type == H264NAL::UnitType_NonIDRFrame);
-	QVERIFY(pLastAccessUnitNALUnits[4]->nal_unit_type == H264NAL::UnitType_NonIDRFrame);
+	QVERIFY(pLastAccessUnitNALUnits[0]->getNalUnitType() == H264NALUnitType::SEI);
+	QVERIFY(pLastAccessUnitNALUnits[1]->getNalUnitType() == H264NALUnitType::AUD);
+	QVERIFY(pLastAccessUnitNALUnits[2]->getNalUnitType() == H264NALUnitType::AUD);
+	QVERIFY(pLastAccessUnitNALUnits[3]->getNalUnitType() == H264NALUnitType::NonIDRFrame);
+	QVERIFY(pLastAccessUnitNALUnits[4]->getNalUnitType() == H264NALUnitType::NonIDRFrame);
 	QVERIFY(pLastAccessUnit->errors.hasMinorErrors());
 	std::vector<std::string> expectedAccessUnitErrors = {"Access unit delimiter not in first position", "Multiple access unit delimiters detected",
 		"SEI units block is not preceding the primary coded picture", "SEI buffering period message not leading SEI unit",

@@ -160,14 +160,14 @@ void H264ValidSamplesParsing::test_h264IQEyeBitstream(){
 	H264AccessUnit* pFirstAccessUnit = pAccessUnits.front();
 	QVERIFY(pFirstAccessUnit->size() == 7);
 	std::vector<H264NAL*> pFirstAccessUnitNALUnits = pFirstAccessUnit->getNALUnits();
-	QVERIFY(pFirstAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
+	QVERIFY(pFirstAccessUnitNALUnits[0]->getNalUnitType() == H264NALUnitType::AUD);
 	H264AUD* pAUD = (H264AUD*)pFirstAccessUnitNALUnits[0];
 	QVERIFY(pAUD->primary_pic_type == 0);
 
-	QVERIFY(pFirstAccessUnitNALUnits[1]->nal_unit_type == H264NAL::UnitType_SPS);
-	QVERIFY(pFirstAccessUnitNALUnits[2]->nal_unit_type == H264NAL::UnitType_PPS);
+	QVERIFY(pFirstAccessUnitNALUnits[1]->getNalUnitType() == H264NALUnitType::SPS);
+	QVERIFY(pFirstAccessUnitNALUnits[2]->getNalUnitType() == H264NALUnitType::PPS);
 
-	for(int i = 3;i < 6;++i) QVERIFY(pFirstAccessUnitNALUnits[i]->nal_unit_type == H264NAL::UnitType_SEI);
+	for(int i = 3;i < 6;++i) QVERIFY(pFirstAccessUnitNALUnits[i]->getNalUnitType() == H264NALUnitType::SEI);
 	H264SEI* pSEI = (H264SEI*)pFirstAccessUnitNALUnits[4];
 	QVERIFY(pSEI->messages.size() == 1);
 	QVERIFY(pSEI->messages.front()->payloadType == SEI_PIC_TIMING);
@@ -175,19 +175,19 @@ void H264ValidSamplesParsing::test_h264IQEyeBitstream(){
 	QVERIFY(pSEIPicTiming->cpb_removal_delay == 40);
 	QVERIFY(pSEIPicTiming->dpb_output_delay == 2);
 
-	QVERIFY(pFirstAccessUnitNALUnits[6]->nal_unit_type == H264NAL::UnitType_IDRFrame);
+	QVERIFY(pFirstAccessUnitNALUnits[6]->getNalUnitType() == H264NALUnitType::IDRFrame);
 
 	H264AccessUnit* pRandomAccessUnit = pAccessUnits[24];
 	QVERIFY(pRandomAccessUnit->size() == 3);
 	std::vector<H264NAL*> pRandomAccessUnitNALUnits = pRandomAccessUnit->getNALUnits();
-	QVERIFY(pRandomAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
-	QVERIFY(pRandomAccessUnitNALUnits[1]->nal_unit_type == H264NAL::UnitType_SEI);
-	QVERIFY(pRandomAccessUnitNALUnits[2]->nal_unit_type == H264NAL::UnitType_NonIDRFrame);
+	QVERIFY(pRandomAccessUnitNALUnits[0]->getNalUnitType() == H264NALUnitType::AUD);
+	QVERIFY(pRandomAccessUnitNALUnits[1]->getNalUnitType() == H264NALUnitType::SEI);
+	QVERIFY(pRandomAccessUnitNALUnits[2]->getNalUnitType() == H264NALUnitType::NonIDRFrame);
 
 	H264AccessUnit* pLastAccessUnit = pAccessUnits.back();
 	QVERIFY(pLastAccessUnit->size() == 1);
 	std::vector<H264NAL*> pLastAccessUnitNALUnits = pRandomAccessUnit->getNALUnits();
-	QVERIFY(pLastAccessUnitNALUnits[0]->nal_unit_type == H264NAL::UnitType_AUD);
+	QVERIFY(pLastAccessUnitNALUnits[0]->getNalUnitType() == H264NALUnitType::AUD);
 }
 
 void H264ValidSamplesParsing::test_h264Sony4kBitstream(){

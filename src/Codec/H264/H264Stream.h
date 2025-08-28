@@ -29,7 +29,6 @@ public:
 	H264Stream();
 	~H264Stream();
 
-	const H264NAL& getNAL() const;
 	std::deque<H264GOP*> getGOPs() const;
 	uint32_t popFrontGOPs(uint32_t count);
 	uint32_t accessUnitCount() const;
@@ -62,7 +61,7 @@ private:
 	void markDecodedReferencePictures();
 
 private:
-	H264NAL m_currentNAL;
+	H264NALHeader m_currentNALHeader;
 	H264SPS* m_pActiveSPS;
 	H264PPS* m_pActivePPS;
 	

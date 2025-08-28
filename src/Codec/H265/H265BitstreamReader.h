@@ -16,11 +16,11 @@ class H265BitstreamReader: public H26XBitstreamReader {
 public:
 	H265BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength);
 
-	void readNALHeader(H265NAL& h265NAL);
+	void readNALHeader(H265NALHeader& h265NALHeader);
 	void readVPS(H265VPS& h265VPS);
-	void readSPS(H265SPS& h265SPS);
+	void readSPS(const H265NALHeader& h265NALHeader, H265SPS& h265SPS);
 	void readPPS(H265PPS& h265PPS);
-	void readSlice(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
+	void readSlice(const H265NALHeader& h265NALHeader, H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
 	void readSEI(H265SEI& h265SEI);
 
 private:
@@ -40,9 +40,9 @@ private:
 	H265PPSDeltaLookupTable readH265PPSDeltaLookupTable(const H265PPS3DExtension& h265PPS3DExtension);
 	H265PPS3DExtension readH265PPS3DExtension();
 	H265PPSSCCExtension readH265PPSSCCExtension();
-	void computePOC(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits);
-	void computeRPL(H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
-	H265PredWeightTable readSlicePredWeightTable(const H265Slice& h265Slice);
+	void computePOC(const H265NALHeader& h265NALHeader, H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits);
+	void computeRPL(const H265NALHeader& h265NALHeader, H265Slice& h265Slice, std::vector<H265AccessUnit*> pAccessUnits, H265AccessUnit* pNextAccessUnit);
+	H265PredWeightTable readSlicePredWeightTable(const H265NALHeader& h265NALHeader, const H265Slice& h265Slice);
 	void computeNumPicTotalCurr(H265Slice& h265Slice, const H265SPS& h265SPS);
 
 	void readRefPicListsModification(H265Slice& h265Slice);

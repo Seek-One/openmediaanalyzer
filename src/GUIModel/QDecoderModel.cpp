@@ -469,7 +469,7 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
 	
 	if(std::holds_alternative<const H264AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H264AccessUnit*>(accessUnit)->NALUnits){
-            switch(NALUnit->nal_unit_type){
+            switch(NALUnit->getNalUnitType()){
 			case H264NALUnitType::AUD:
 				NALUnit->dump(itemH26XObjectDump);
 				break;
@@ -494,7 +494,7 @@ void modelFromAccessUnit(QStandardItemModel* model, const std::variant<const H26
         }
     } else if(std::holds_alternative<const H265AccessUnit*>(accessUnit)){
         for(auto& NALUnit : std::get<const H265AccessUnit*>(accessUnit)->NALUnits){
-            switch(NALUnit->nal_unit_type){
+            switch(NALUnit->getNalUnitType()){
 			case H265NALUnitType::TRAIL_N:
 				NALUnit->dump(itemH26XObjectDump);
 				break;
@@ -895,12 +895,12 @@ void QDecoderModel::checkForNewGOP()
         QSharedPointer<QAccessUnitModel> pAccessUnitModel = m_currentGOPModel.back();
         if(pAccessUnitModel->isH264()){
             const H264AccessUnit* lastAccessUnit = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit);
-            if(!lastAccessUnit->slice() || lastAccessUnit->slice()->nal_unit_type != H264NALUnitType::IDRFrame) {
+            if(!lastAccessUnit->slice() || lastAccessUnit->slice()->getNalUnitType() != H264NALUnitType::IDRFrame) {
                 return;
             }
         } else if(pAccessUnitModel->isH265()){
             const H265AccessUnit* lastAccessUnit = std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit);
-            if(!lastAccessUnit->slice() || !lastAccessUnit->slice()->isIDR()) {
+            if(!lastAccessUnit->slice() || !lastAccessUnit->slice()->getNALHeader()->isIDR()) {
                 return;
             }
         }

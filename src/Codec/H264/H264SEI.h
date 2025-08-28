@@ -25,8 +25,7 @@ struct H264SEIMessage {
 };
 
 struct H264SEI : public H264NAL {
-	H264SEI();
-	H264SEI(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, const uint8_t* nal_data);
+	H264SEI(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H264SEI();
 
     std::vector<H264SEIMessage*> messages;

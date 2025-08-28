@@ -249,12 +249,8 @@ void H265SPSSCCExtension::dump(H26XDumpObject& dumpObject, uint32_t chroma_forma
 	dumpObject.endUnitFieldList();
 }
 
-H265SPS::H265SPS():
-	H265SPS(0, H265NALUnitType::Unspecified, 0, 0, 0, nullptr)
-{}
-
-H265SPS::H265SPS(uint8_t forbidden_zero_bit, H265NALUnitType::Type nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(forbidden_zero_bit, nal_unit_type, nuh_layer_id, nuh_temporal_id_plus1, nal_size, nal_data)
+H265SPS::H265SPS(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
+	H265NAL(pNALHeader, nal_size, nal_data)
 {
 	sps_video_parameter_set_id = 0;
 	sps_max_sub_layers_minus1 = 0;

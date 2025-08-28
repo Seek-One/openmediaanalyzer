@@ -5,6 +5,7 @@
 
 #include "../H26X/H26XBitstreamReader.h"
 
+struct H264NALHeader;
 struct H264NAL;
 struct H264PPS;
 struct H264Slice;
@@ -17,7 +18,7 @@ class H264BitstreamReader: public H26XBitstreamReader {
 public:
 	H264BitstreamReader(const uint8_t* pNALData, uint32_t iNALLength);
 
-	void readNALHeader(H264NAL& h264NAL);
+	void readNALHeader(H264NALHeader& h264NALHeader);
 	void readSPS(H264SPS& h264SPS);
 	void readPPS(H264PPS& h264PPS);
 	void readSlice(H264Slice& h264Slice);

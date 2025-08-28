@@ -9,8 +9,7 @@
 #include "H264NAL.h"
 
 struct H264PPS : public H264NAL {
-	H264PPS();
-	H264PPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, const uint8_t* nal_data);
+	H264PPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t pic_parameter_set_id;
 	uint8_t seq_parameter_set_id;

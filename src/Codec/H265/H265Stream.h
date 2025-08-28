@@ -44,7 +44,7 @@ private:
 	bool parseNAL(const uint8_t* pNALData, uint32_t iNALLength) override;
 
 private:
-	H265NAL m_currentNAL;
+	H265NALHeader m_currentNALHeader;
 	H265VPS* m_pActiveVPS;
 	H265SPS* m_pActiveSPS;
 	H265PPS* m_pActivePPS;

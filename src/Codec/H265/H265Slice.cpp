@@ -167,12 +167,8 @@ void H265PredWeightTable::validate(const H265Slice& h265Slice)
 	}
 }
 
-H265Slice::H265Slice():
-	H265Slice(0, H265NALUnitType::Unspecified, 0, 0, 0, nullptr)
-{}
-
-H265Slice::H265Slice(uint8_t forbidden_zero_bit, H265NALUnitType::Type nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data):
-	H265NAL(forbidden_zero_bit, nal_unit_type, nuh_layer_id, nuh_temporal_id_plus1, nal_size, nal_data)
+H265Slice::H265Slice(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data):
+	H265NAL(pNALHeader, nal_size, nal_data)
 {
 	first_slice_segment_in_pic_flag = 0;
 	no_output_of_prior_pics_flag = 0;
@@ -260,6 +256,7 @@ std::string getSpecificSliceType(H265NALUnitType::Type unitType){
 
 void H265Slice::dump(H26XDumpObject& dumpObject) const
 {
+	auto nal_unit_type = getNalUnitType();
 	dumpObject.startUnitFieldList(getSpecificSliceType(nal_unit_type).c_str());
 	H26X_BREAKABLE_SCOPE(H26XDumpScope) {
 		H265NAL::dump(dumpObject);
@@ -450,9 +447,12 @@ H265VPS* H265Slice::getVPS() const
 	return referencedVPS->second;
 }
 
-void H265Slice::validate(){
+void H265Slice::validate()
+{
 	H265NAL::validate();
-	if(!completelyParsed) return;
+	if(!completelyParsed){
+		return;
+	}
 	if(slice_pic_parameter_set_id > 63){
 		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_pic_parameter_set_id value (%ld) not in valid range (0..63)", slice_pic_parameter_set_id));
 	}
@@ -483,13 +483,18 @@ void H265Slice::validate(){
 		errors.add(H26XError::Major, "[Slice] referenced VPS is incomplete");
 		return;
 	}
-	if(pPps->TemporalId > TemporalId){
+	auto nal_unit_type = getNalUnitType();
+	auto TemporalId = getNALHeader()->TemporalId;
+	auto nuh_layer_id = getNALHeader()->nuh_layer_id;
+	auto PPSTemporalId = pPps->getNALHeader()->TemporalId;
+	auto pps_nuh_layer_id = pPps->getNALHeader()->nuh_layer_id;
+	if(PPSTemporalId > TemporalId){
 		errors.add(H26XError::Minor, "[Slice] referenced PPS has a greater TemporalId value");
 	}
-	if(pPps->nuh_layer_id > nuh_layer_id){
+	if(pps_nuh_layer_id > nuh_layer_id){
 		errors.add(H26XError::Minor, "[Slice] referenced PPS has a greater nuh_layer_id value");
 	}
-	if(pSps->nuh_layer_id > nuh_layer_id){
+	if(pps_nuh_layer_id > nuh_layer_id){
 		errors.add(H26XError::Minor, "[Slice] referenced SPS has a greater nuh_layer_id value");
 	}
 	if(slice_segment_address > pSps->PicSizeInCtbsY-1){
@@ -565,11 +570,21 @@ void H265Slice::validate(){
 			errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] five_minus_max_num_merge_cand value (%ld) not in valid range (0..4)", five_minus_max_num_merge_cand));
 		}
 	}
-	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] SliceQpY value (%ld) not in valid range ({}..51)", SliceQpY, -pSps->QpBdOffsetY));
-	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_cb_qp_offset value (%ld) not in valid range (-12..12)", slice_cb_qp_offset));
-	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_cr_qp_offset value (%ld) not in valid range (-12..12)", slice_cr_qp_offset));
-	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_beta_offset_div2 value (%ld) not in valid range (-6..6)", slice_beta_offset_div2));
-	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_tc_offset_div2 value (%ld) not in valid range (-6..6)", slice_tc_offset_div2));
+	if(SliceQpY < -pSps->QpBdOffsetY || SliceQpY > 51){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] SliceQpY value (%ld) not in valid range ({}..51)", SliceQpY, -pSps->QpBdOffsetY));
+	}
+	if(slice_cb_qp_offset < -12 || slice_cb_qp_offset > 12){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_cb_qp_offset value (%ld) not in valid range (-12..12)", slice_cb_qp_offset));
+	}
+	if(slice_cr_qp_offset < -12 || slice_cr_qp_offset > 12){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_cr_qp_offset value (%ld) not in valid range (-12..12)", slice_cr_qp_offset));
+	}
+	if(slice_beta_offset_div2 < -6 || slice_beta_offset_div2 > 6){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_beta_offset_div2 value (%ld) not in valid range (-6..6)", slice_beta_offset_div2));
+	}
+	if(slice_tc_offset_div2 < -6 || slice_tc_offset_div2 > 6){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] slice_tc_offset_div2 value (%ld) not in valid range (-6..6)", slice_tc_offset_div2));
+	}
 	uint32_t num_entry_point_offsets_limit = num_entry_point_offsets;
 	if(!pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = pSps->PicHeightInCtbsY-1;
@@ -578,6 +593,10 @@ void H265Slice::validate(){
 	} else if (pPps->tiles_enabled_flag && pPps->entropy_coding_sync_enabled_flag){
 		num_entry_point_offsets_limit = (pPps->num_tile_columns_minus1+1)*pSps->PicHeightInCtbsY-1;
 	}
-	if(num_entry_point_offsets > num_entry_point_offsets_limit) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] num_entry_point_offsets value (%ld) not in valid range (0..{})", num_entry_point_offsets, num_entry_point_offsets_limit));
-	if(offset_len_minus1 > 31) errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] offset_len_minus1 value (%ld) not in valid range (0..31)", offset_len_minus1));
+	if(num_entry_point_offsets > num_entry_point_offsets_limit){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] num_entry_point_offsets value (%ld) not in valid range (0..{})", num_entry_point_offsets, num_entry_point_offsets_limit));
+	}
+	if(offset_len_minus1 > 31){
+		errors.add(H26XError::Minor, H26XUtils::formatString("[Slice] offset_len_minus1 value (%ld) not in valid range (0..31)", offset_len_minus1));
+	}
 }

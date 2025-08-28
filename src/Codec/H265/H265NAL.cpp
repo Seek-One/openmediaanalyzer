@@ -2,133 +2,36 @@
 
 #include "H265NAL.h"
 
-H265NAL::H265NAL():
-	H265NAL(0, H265NALUnitType::Unspecified, 0, 0, 0, nullptr)
-{}
-
-H265NAL::H265NAL(uint8_t forbiddenZeroBit, H265NALUnitType::Type nalUnitType, uint8_t nuhLayerId, uint8_t nuhTemporalIdPlus1, uint32_t nalSize, const uint8_t* nalData):
-	forbidden_zero_bit(forbiddenZeroBit), nal_unit_type(nalUnitType), nuh_layer_id(nuhLayerId), nuh_temporal_id_plus1(nuhTemporalIdPlus1), 
-	TemporalId(nuh_temporal_id_plus1-1), nal_size(nalSize+3), nal_data(nullptr)
+H265NAL::H265NAL(H265NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData)
+	: H26XNAL(pNALHeader), nal_size(nalSize+3), nal_data(nullptr)
 {
-	if(nalData == nullptr) return;
+	if(nalData == nullptr){
+		return;
+	}
 	nal_data = new uint8_t[nal_size];
 	std::memcpy(nal_data, g_startCode3Bytes, 3);
 	std::memcpy(nal_data+3, nalData, nalSize);
 }
 
-H265NAL::~H265NAL(){
-	if(nal_data) delete[] nal_data;
-}
-
-bool H265NAL::isSlice() const
+H265NAL::~H265NAL()
 {
-	return H265NAL::isSlice(nal_unit_type);
-}
-
-bool H265NAL::isSlice(H265NALUnitType::Type nal_unit_type)
-{
-	switch (nal_unit_type) {
-	case H265NALUnitType::TRAIL_N:
-	case H265NALUnitType::TRAIL_R:
-	case H265NALUnitType::TSA_N:
-	case H265NALUnitType::TSA_R:
-	case H265NALUnitType::STSA_N:
-	case H265NALUnitType::STSA_R:
-	case H265NALUnitType::RADL_N:
-	case H265NALUnitType::RADL_R:
-	case H265NALUnitType::RASL_N:
-	case H265NALUnitType::RASL_R:
-	case H265NALUnitType::BLA_W_LP:
-	case H265NALUnitType::BLA_W_RADL:
-	case H265NALUnitType::BLA_N_LP:
-	case H265NALUnitType::IDR_W_RADL:
-	case H265NALUnitType::IDR_N_LP:
-	case H265NALUnitType::CRA_NUT:
-		return true;
-	default:
-		break;
+	if(nal_data){
+		delete[] nal_data;
 	}
-	return false;
-}
-
-bool H265NAL::isIRAP() const{
-	switch (nal_unit_type) {
-	case H265NALUnitType::BLA_W_LP:
-	case H265NALUnitType::BLA_W_RADL:
-	case H265NALUnitType::BLA_N_LP:
-	case H265NALUnitType::IDR_W_RADL:
-	case H265NALUnitType::IDR_N_LP:
-	case H265NALUnitType::CRA_NUT:
-		return true;
-	default:
-		break;
-	}
-	return false;
-}
-
-bool H265NAL::isIDR() const{
-	switch(nal_unit_type){
-	case H265NALUnitType::IDR_N_LP:
-	case H265NALUnitType::IDR_W_RADL:
-		return true;
-	default:
-		break;
-	}
-	return false;
-}
-
-bool H265NAL::isTSA() const{
-	switch (nal_unit_type) {
-	case H265NALUnitType::TSA_N:
-	case H265NALUnitType::TSA_R:
-		return true;
-	default:
-		break;
-	}
-	return false;
-}
-
-bool H265NAL::isSTSA() const{
-	switch (nal_unit_type) {
-	case H265NALUnitType::STSA_N:
-	case H265NALUnitType::STSA_R:
-		return true;
-	default:
-		break;
-	}
-	return false;
 }
 
 void H265NAL::dump(H26XDumpObject& dumpObject) const
 {
-	dumpObject.startUnitFieldList("NAL Unit");
-	dumpObject.addUnitField("forbidden_zero_bit", forbidden_zero_bit);
-	dumpObject.addUnitField("nal_unit_type", nal_unit_type);
-	dumpObject.addUnitField("nuh_layer_id", nuh_layer_id);
-	dumpObject.addUnitField("TemporalId", TemporalId);
-	dumpObject.endUnitFieldList();
+	H26XNAL::dump(dumpObject);
+	if(m_pNALHeader){
+		m_pNALHeader->dump(dumpObject);
+	}
 }
 
 void H265NAL::validate()
 {
-	if(forbidden_zero_bit != 0){
-		errors.add(H26XError::Minor, "[NAL header] forbidden_zero_bit not equal to 0");
-	}
-	if(nuh_layer_id > 62){
-		errors.add(H26XError::Minor, H26XUtils::formatString("nuh_layer_id value (%ld) not in valid range(0..62)", nuh_layer_id));
-	}
-	if(nuh_temporal_id_plus1 == 0){
-		errors.add(H26XError::Minor, "[NAL header] nuh_temporal_id_plus1 equal to 0");
-	}
-	if(isIRAP() && TemporalId != 0){
-		errors.add(H26XError::Minor, "[NAL header] TemporalId of IRAP picture not equal to 0");
-	}else if(TemporalId == 0){
-		if(isTSA()){
-			errors.add(H26XError::Minor, "[NAL header] TemporalId of TSA picture equal to 0");
-		}else if (isSTSA() && nuh_layer_id == 0){
-			errors.add(H26XError::Minor, "[NAL header] TemporalId of base layer STSA picture equal to 0");
-		}
-	} else if(nal_unit_type == H265NALUnitType::VPS || nal_unit_type == H265NALUnitType::SPS){
-		errors.add(H26XError::Minor, "[NAL header] TemporalId of VPS/SPS not equal to 0");
+	H26XNAL::validate();
+	if(m_pNALHeader){
+		m_pNALHeader->checkErrors(errors);
 	}
 }

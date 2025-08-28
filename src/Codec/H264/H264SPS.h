@@ -11,8 +11,7 @@
 #include "H264NAL.h"
 
 struct H264SPS : public H264NAL {
-	H264SPS();
-	H264SPS(uint8_t forbidden_zero_bit, uint8_t nal_ref_idc, uint32_t nal_size, const uint8_t* nal_data);
+	H264SPS(H264NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 
 	uint8_t profile_idc;
 	uint8_t constraint_set0_flag;

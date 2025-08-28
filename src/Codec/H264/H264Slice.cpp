@@ -4,14 +4,9 @@
 
 #include "H264Slice.h"
 
-H264Slice::H264Slice():
-	H264Slice(0, 0, H264NALUnitType::Unspecified, 0, nullptr)
-{}
-
-H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, H264NALUnitType::Type nalUnitType, uint32_t nalSize, const uint8_t* nalData):
-	H264NAL(forbiddenZeroBit, nalRefIdc, nalSize, nalData)
+H264Slice::H264Slice(H264NALHeader* pNALHeader, uint32_t nalSize, const uint8_t* nalData):
+	H264NAL(pNALHeader, nalSize, nalData)
 {
-	nal_unit_type = nalUnitType;
 	IdrPicFlag = 0;
 	first_mb_in_slice = 0;
 	slice_type = SliceType_Unspecified;
@@ -94,8 +89,10 @@ H264Slice::H264Slice(uint8_t forbiddenZeroBit, uint8_t nalRefIdc, H264NALUnitTyp
 	CurrPicNum = frame_num;
 }
 
-bool H264Slice::isSlice(H264NAL* NALUnit){
-	return NALUnit->nal_unit_type == H264NALUnitType::NonIDRFrame || NALUnit->nal_unit_type == H264NALUnitType::IDRFrame;
+bool H264Slice::isSlice(H264NAL* pNALUnit)
+{
+	auto nal_unit_type = pNALUnit->getNalUnitType();
+	return nal_unit_type == H264NALUnitType::NonIDRFrame || nal_unit_type == H264NALUnitType::IDRFrame;
 }
 
 H264Slice::SliceType H264Slice::getSliceType(int value) {
@@ -267,9 +264,13 @@ void H264Slice::dump(H26XDumpObject& dumpObject) const
 	dumpObject.endUnitFieldList();
 }
 
-void H264Slice::validate(){
+void H264Slice::validate()
+{
+	auto nal_unit_type = getNalUnitType();
 	H264NAL::validate();
-	if(!completelyParsed) return;
+	if(!completelyParsed){
+		return;
+	}
 	if(slice_type == H264Slice::SliceType_Unspecified){
 		errors.add(H26XError::Major, "[Slice] Invalid slice type");
 	}
@@ -292,10 +293,10 @@ void H264Slice::validate(){
 	pH264SPS = referencedSPS->second;
 	if(nal_unit_type == H264NALUnitType::IDRFrame || pH264SPS->max_num_ref_frames == 0){
 		switch(slice_type){
-			case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
-			default:
-				errors.add(H26XError::Major, H26XUtils::formatString("[Slice] slice_type value (%ld) of IDR should be in [2, 4, 7, 9]", slice_type-1));
-				break;
+		case H264Slice::SliceType_I: case H264Slice::SliceType_SI: break;
+		default:
+			errors.add(H26XError::Major, H26XUtils::formatString("[Slice] slice_type value (%ld) of IDR should be in [2, 4, 7, 9]", slice_type-1));
+			break;
 		}
 	}
 	if (pH264SPS->separate_colour_plane_flag){

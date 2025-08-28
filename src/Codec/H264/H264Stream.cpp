@@ -32,11 +32,6 @@ H264Stream::~H264Stream(){
 	H264PPS::PPSMap.clear();
 }
 
-const H264NAL& H264Stream::getNAL() const
-{
-	return m_currentNAL;
-}
-
 std::deque<H264GOP*> H264Stream::getGOPs() const 
 {
 	std::deque<H264GOP*> GOPs;
@@ -137,7 +132,7 @@ bool newCodedPicture(H264Slice* prev, H264Slice* curr){
 		if(prev->first_mb_in_slice == curr->first_mb_in_slice &&
 		   prev->slice_type == curr->slice_type) return true;
 	}
-	if(prev->nal_ref_idc != curr->nal_ref_idc && (prev->nal_ref_idc == 0 || curr->nal_ref_idc == 0)) return true;
+	if(prev->getNALHeader()->nal_ref_idc != curr->getNALHeader()->nal_ref_idc && (prev->getNALHeader()->nal_ref_idc == 0 || curr->getNALHeader()->nal_ref_idc == 0)) return true;
 	if(prev->IdrPicFlag != curr->IdrPicFlag) return true;
 	if(prev->idr_pic_id != curr->idr_pic_id) return true;
 	return false;
@@ -156,22 +151,23 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 	}
 	if(!m_pCurrentAccessUnit->empty()) {
 		H264NAL* lastUnit = m_pCurrentAccessUnit->last();
-		previousUnitIsVLC = lastUnit->nal_unit_type == H264NALUnitType::NonIDRFrame || lastUnit->nal_unit_type == H264NALUnitType::IDRFrame;
+		previousUnitIsVLC = lastUnit->getNalUnitType() == H264NALUnitType::NonIDRFrame || lastUnit->getNalUnitType() == H264NALUnitType::IDRFrame;
 	} 
-	try { bitstreamReader.readNALHeader(m_currentNAL);
+	try {
+		bitstreamReader.readNALHeader(m_currentNALHeader);
 	} catch(const std::runtime_error& e) { 
 		errors.add(H26XError::Major, std::string("[NAL Header] ").append(e.what()));
 		return false;
 	}
 
-	if ((m_currentNAL.nal_unit_type == H264NALUnitType::PrefixNAL) ||
-		(m_currentNAL.nal_unit_type == H264NALUnitType::SVCExt) ||
-		(m_currentNAL.nal_unit_type == H264NALUnitType::Slice3D)) {
+	if ((m_currentNALHeader.nal_unit_type == H264NALUnitType::PrefixNAL) ||
+		(m_currentNALHeader.nal_unit_type == H264NALUnitType::SVCExt) ||
+		(m_currentNALHeader.nal_unit_type == H264NALUnitType::Slice3D)) {
 		std::cerr << "[H264::Stream] NAL: SVC or 3D extension not handled\n";
 	}
-	switch (m_currentNAL.nal_unit_type) {
+	switch (m_currentNALHeader.nal_unit_type) {
 		case H264NALUnitType::SPS: {
-			H264SPS* pSps = new H264SPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
+			H264SPS* pSps = new H264SPS(&m_currentNALHeader, iNALLength, pNALData);
 			try { 
 				bitstreamReader.readSPS(*pSps);
 				m_pActiveSPS = pSps;
@@ -187,7 +183,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			break;
 		}
 		case H264NALUnitType::PPS: {
-			H264PPS* pPps = new H264PPS(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
+			H264PPS* pPps = new H264PPS(&m_currentNALHeader, iNALLength, pNALData);
 			try { bitstreamReader.readPPS(*pPps);
 			} catch(const std::runtime_error& e) { 
 				pPps->errors.add(H26XError::Major, std::string("[PPS] ").append(e.what()));
@@ -201,7 +197,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 		}
 		case H264NALUnitType::NonIDRFrame: 
 		case H264NALUnitType::IDRFrame: {
-			H264Slice* pSlice = new H264Slice(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, m_currentNAL.nal_unit_type, iNALLength, pNALData);
+			H264Slice* pSlice = new H264Slice(&m_currentNALHeader, iNALLength, pNALData);
 			try { bitstreamReader.readSlice(*pSlice);
 			} catch(const std::runtime_error& e) { 
 				pSlice->errors.add(H26XError::Major, std::string("[Slice] ").append(e.what()));
@@ -227,14 +223,14 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 					previousGOP->errors.clear();
 					errors.clear(ERR_MSG_LIMIT);
 				}
-				if(pSlice->nal_unit_type == H264NALUnitType::IDRFrame) m_GOPs.back()->hasIDR = true;
+				if(pSlice->getNALHeader()->nal_unit_type == H264NALUnitType::IDRFrame) m_GOPs.back()->hasIDR = true;
 			} 
 			validateFrameNum(pSlice);
 			m_pCurrentAccessUnit->addNALUnit(std::unique_ptr<H264Slice>(pSlice));
 			break;
 		}
 		case H264NALUnitType::SEI: {
-			H264SEI* pSei = new H264SEI(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
+			H264SEI* pSei = new H264SEI(&m_currentNALHeader, iNALLength, pNALData);
 			try { 
 				bitstreamReader.readSEI(*pSei, m_pActiveSPS);
 			} catch(const std::runtime_error& e) { 
@@ -246,7 +242,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 			break;
 		}
 		case H264NALUnitType::AUD: {
-			H264AUD* pAud = new H264AUD(m_currentNAL.forbidden_zero_bit, m_currentNAL.nal_ref_idc, iNALLength, pNALData);
+			H264AUD* pAud = new H264AUD(&m_currentNALHeader, iNALLength, pNALData);
 			try { bitstreamReader.readAUD(*pAud);
 			} catch(const std::runtime_error& e) { 
 				pAud->errors.add(H26XError::Minor, std::string("[AUD] ").append(e.what()));
@@ -258,7 +254,7 @@ bool H264Stream::parseNAL(const uint8_t* pNALData, uint32_t iNALLength)
 		}
 		default:
 			errors.add(H26XError::Major, "Unhandled NAL type detected");
-			std::cerr << "[H264::Stream] NAL: Unhandled nal type " << m_currentNAL.nal_unit_type << "\n";
+			std::cerr << "[H264::Stream] NAL: Unhandled nal type " << m_currentNALHeader.nal_unit_type << "\n";
 			break;
 	}
 	return true;
@@ -272,7 +268,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice)
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	pAccessUnits.pop_back(); // remove the current access unit
 	// frame_num of an IDR picure equal to 0 : already covered in H264Slice::validate();
-	if(pSlice->nal_unit_type == H264NALUnitType::IDRFrame) {
+	if(pSlice->getNALHeader()->nal_unit_type == H264NALUnitType::IDRFrame) {
 		pSlice->PrevRefFrameNum = 0;
 		return;
 	}else {
@@ -310,7 +306,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice)
 		H264Slice* prevSlice = previousAccessUnit->slice();
 		bool consecutive = previousAccessUnit->hasReferencePicture();
 		bool oppositeParities = prevSlice->field_pic_flag && pSlice->field_pic_flag && prevSlice->bottom_field_flag != pSlice->bottom_field_flag;
-		bool precedingIsIDR = previousAccessUnit->slice()->nal_unit_type == H264NALUnitType::IDRFrame;
+		bool precedingIsIDR = previousAccessUnit->slice()->getNALHeader()->nal_unit_type == H264NALUnitType::IDRFrame;
 		bool markingPictureOperation = false;
 		int i = 0;
 		while(prevSlice->drpm.memory_management_control_operation[i] != 0){
@@ -325,7 +321,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice)
 		if(precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice()){
 			precedingPreviousPrimaryPic = precedingPreviousAccessUnit->primary_coded_slice()->frame_num != pSlice->PrevRefFrameNum;
 		}
-		bool precedingPreviousReference = precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice() && precedingPreviousAccessUnit->primary_coded_slice()->nal_ref_idc == 0;
+		bool precedingPreviousReference = precedingPreviousAccessUnit && precedingPreviousAccessUnit->primary_coded_slice() && precedingPreviousAccessUnit->primary_coded_slice()->getNALHeader()->nal_ref_idc == 0;
 		if(!consecutive || !oppositeParities || (!precedingIsIDR && !markingPictureOperation && !precedingPreviousPrimaryPic && !precedingPreviousReference)){
 			pSlice->errors.add(H26XError::Minor, "[Slice frame number] frame_num shouldn't be equal to PrevRefFrameNum");
 			return;
@@ -340,7 +336,7 @@ void H264Stream::validateFrameNum(H264Slice* pSlice)
 		pCurrentGOPAccessUnits.pop_back();
 		for(H264AccessUnit* pAccessUnit : pCurrentGOPAccessUnits){
 			H264Slice* previousSlice = pAccessUnit->slice();
-			if(previousSlice && previousSlice->nal_ref_idc != 0 && !previousSlice->drpm.long_term_reference_flag){
+			if(previousSlice && previousSlice->getNALHeader()->nal_ref_idc != 0 && !previousSlice->drpm.long_term_reference_flag){
 				if(std::find(UnusedShortTermFrameNums.begin(), UnusedShortTermFrameNums.end(), previousSlice->frame_num) != UnusedShortTermFrameNums.end()){
 					pSlice->errors.add(H26XError::Minor, "[Slice frame number] Previous frame/field has a frame_num marked as unused");
 					return;
@@ -390,7 +386,7 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 		case 0:{
 			uint16_t prevPicOrderCntMsb = 0;
 			uint16_t prevPicOrderCntLsb = 0;
-			if(pCurrentSlice->nal_unit_type != H264NALUnitType::IDRFrame){
+			if(pCurrentSlice->getNALHeader()->nal_unit_type != H264NALUnitType::IDRFrame){
 				if(memOp5Found) {
 					if(!pPrevSlice->bottom_field_flag) prevPicOrderCntLsb = pPrevAccessUnit->TopFieldOrderCnt;
 				} else {
@@ -410,7 +406,9 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 		}
 		case 1:{
 			uint16_t absFrameNum = pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle != 0 ? m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num : 0;
-			if(pCurrentSlice->nal_ref_idc == 0 && absFrameNum > 0) --absFrameNum;
+			if(pCurrentSlice->getNALHeader()->nal_ref_idc == 0 && absFrameNum > 0){
+				--absFrameNum;
+			}
 			uint16_t expectedPicOrderCnt = 0;
 			if(absFrameNum > 0){
 				uint16_t picOrderCntCycleCnt = (absFrameNum-1)/pCurrentSPS->num_ref_frames_in_pic_order_cnt_cycle;
@@ -418,25 +416,38 @@ void H264Stream::computeCurrentAccessUnitPOC(){
 				expectedPicOrderCnt = picOrderCntCycleCnt*pCurrentSPS->ExpectedDeltaPerPicOrderCntCycle;
 				for(i = 0;i <= frameNumInPicOrderCntCycle;++i) expectedPicOrderCnt *= pCurrentSPS->offset_for_ref_frame[i];
 			}
-			if(pCurrentSlice->nal_ref_idc == 0) expectedPicOrderCnt += pCurrentSPS->offset_for_non_ref_pic;
+			if(pCurrentSlice->getNALHeader()->nal_ref_idc == 0){
+				expectedPicOrderCnt += pCurrentSPS->offset_for_non_ref_pic;
+			}
 			if(!pCurrentSlice->field_pic_flag){
 				m_pCurrentAccessUnit->TopFieldOrderCnt = expectedPicOrderCnt + pCurrentSlice->delta_pic_order_cnt[0];
 				m_pCurrentAccessUnit->BottomFieldOrderCnt = m_pCurrentAccessUnit->TopFieldOrderCnt + pCurrentSPS->offset_for_top_to_bottom_field + pCurrentSlice->delta_pic_order_cnt[1];	
-			} else if(!pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->TopFieldOrderCnt = expectedPicOrderCnt + pCurrentSlice->delta_pic_order_cnt[0];
-			else m_pCurrentAccessUnit->BottomFieldOrderCnt = expectedPicOrderCnt + pCurrentSPS->offset_for_top_to_bottom_field + pCurrentSlice->delta_pic_order_cnt[0];
+			} else if(!pCurrentSlice->bottom_field_flag){
+				m_pCurrentAccessUnit->TopFieldOrderCnt = expectedPicOrderCnt + pCurrentSlice->delta_pic_order_cnt[0];
+			}
+			else{
+				m_pCurrentAccessUnit->BottomFieldOrderCnt = expectedPicOrderCnt + pCurrentSPS->offset_for_top_to_bottom_field + pCurrentSlice->delta_pic_order_cnt[0];
+			}
 			break;
 		}
 		case 2:{
 			uint16_t tempPicOrderCnt;
-			if(pCurrentSlice->IdrPicFlag) tempPicOrderCnt = 0;
-			else if(pCurrentSlice->nal_ref_idc == 0) tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
-			else tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
+			if(pCurrentSlice->IdrPicFlag){
+				tempPicOrderCnt = 0;
+			}else if(pCurrentSlice->getNALHeader()->nal_ref_idc == 0){
+				tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
+			}else{
+				tempPicOrderCnt = 2 * (m_pCurrentAccessUnit->FrameNumOffset + pCurrentSlice->frame_num) - 1;
+			}
 
 			if(!pCurrentSlice->field_pic_flag){
 				m_pCurrentAccessUnit->TopFieldOrderCnt = tempPicOrderCnt;
 				m_pCurrentAccessUnit->BottomFieldOrderCnt = tempPicOrderCnt;
-			} else if(pCurrentSlice->bottom_field_flag) m_pCurrentAccessUnit->BottomFieldOrderCnt = tempPicOrderCnt;
-			else m_pCurrentAccessUnit->TopFieldOrderCnt = tempPicOrderCnt;
+			}else if(pCurrentSlice->bottom_field_flag){
+				m_pCurrentAccessUnit->BottomFieldOrderCnt = tempPicOrderCnt;
+			}else{
+				m_pCurrentAccessUnit->TopFieldOrderCnt = tempPicOrderCnt;
+			}
 			break;
 		}
 	}
@@ -616,10 +627,12 @@ std::vector<uint16_t> H264Stream::computeRPLFieldInit(std::vector<H264AccessUnit
 void H264Stream::markDecodedReferencePictures(){
 	std::vector<H264AccessUnit*> pAccessUnits = getAccessUnits();
 	H264Slice* pCurrentSlice = m_pCurrentAccessUnit->slice();
-	if(pCurrentSlice->nal_ref_idc == 0) return;
+	if(pCurrentSlice->getNALHeader()->nal_ref_idc == 0){
+		return;
+	}
 	H264SPS* pCurrentSPS = pCurrentSlice->getSPS();
 
-	if(pCurrentSlice->nal_unit_type == H264NALUnitType::IDRFrame){
+	if(pCurrentSlice->getNALHeader()->nal_unit_type == H264NALUnitType::IDRFrame){
 		for(H264AccessUnit* pAccessUnit : pAccessUnits) pAccessUnit->rpm = RPM_Unused;
 		if(pCurrentSlice->drpm.long_term_reference_flag){
 			m_pCurrentAccessUnit->rpm = RPM_LongTermReference;

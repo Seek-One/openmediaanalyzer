@@ -55,12 +55,12 @@ H264BitstreamReader::H264BitstreamReader(const uint8_t* pNALData, uint32_t iNALL
 
 }
 
-void H264BitstreamReader::readNALHeader(H264NAL& h264NAL)
+void H264BitstreamReader::readNALHeader(H264NALHeader& h264NALHeader)
 {
 	// Ref sec. 7.3.1
-	h264NAL.forbidden_zero_bit = readBits(1);
-	h264NAL.nal_ref_idc = readBits(2);
-	h264NAL.nal_unit_type = (H264NALUnitType::Type)readBits(5);
+	h264NALHeader.forbidden_zero_bit = readBits(1);
+	h264NALHeader.nal_ref_idc = readBits(2);
+	h264NALHeader.nal_unit_type = (H264NALUnitType::Type)readBits(5);
 }
 
 void H264BitstreamReader::readSPS(H264SPS& h264SPS)
@@ -410,7 +410,7 @@ void H264BitstreamReader::readPPS(H264PPS& h264PPS)
 
 void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 {
-	h264Slice.IdrPicFlag = h264Slice.nal_unit_type == H264NALUnitType::IDRFrame;
+	h264Slice.IdrPicFlag = (h264Slice.getNalUnitType() == H264NALUnitType::IDRFrame);
 	h264Slice.first_mb_in_slice = readGolombUE();
 	h264Slice.slice_type = H264Slice::getSliceType(readGolombUE());
 	
@@ -494,7 +494,7 @@ void H264BitstreamReader::readSlice(H264Slice& h264Slice)
 	{
 		readPredWeightTable(*pH264SPS, *pH264PPS, h264Slice);
 	}
-	if (h264Slice.nal_ref_idc != 0)
+	if (h264Slice.getNALHeader()->nal_ref_idc != 0)
 	{
 		readDecRefPicMarking(h264Slice);
 	}
@@ -652,7 +652,7 @@ void H264BitstreamReader::readPredWeightTable(const H264SPS& h264SPS, const H264
 
 void H264BitstreamReader::readDecRefPicMarking(H264Slice& h264Slice)
 {
-	if (h264Slice.nal_unit_type == H264NALUnitType::IDRFrame)
+	if (h264Slice.getNALHeader()->nal_unit_type == H264NALUnitType::IDRFrame)
 	{
 		h264Slice.drpm.no_output_of_prior_pics_flag = readBits(1);
 		h264Slice.drpm.long_term_reference_flag = readBits(1);

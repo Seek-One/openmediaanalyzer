@@ -16,8 +16,7 @@ struct H265SEIMessage {
 };
 
 struct H265SEI : public H265NAL {
-	H265SEI();
-	H265SEI(uint8_t forbidden_zero_bit, H265NALUnitType::Type nal_unit_type, uint8_t nuh_layer_id, uint8_t nuh_temporal_id_plus1, uint32_t nal_size, const uint8_t* nal_data);
+	H265SEI(H265NALHeader* pNALHeader, uint32_t nal_size, const uint8_t* nal_data);
 	~H265SEI();
 
     std::vector<H265SEIMessage*> messages;

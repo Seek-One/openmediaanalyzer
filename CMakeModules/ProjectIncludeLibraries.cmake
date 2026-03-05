@@ -44,6 +44,17 @@ if(WITH_COMPILER_LIBRARIES)
 			install(FILES C:/Windows/System32/msvcr100.dll DESTINATION ${INSTALL_PATH_BIN})
 			install(FILES C:/Windows/System32/vcomp140.dll DESTINATION ${INSTALL_PATH_BIN})
 		endif(MSVC)
+
+		if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+			install(FILES C:/Windows/System32/concrt140d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/msvcp140_1d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/msvcp140_2d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/msvcp140d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/ucrtbased.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/vcruntime140_1d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/vcruntime140d.dll DESTINATION ${INSTALL_PATH_BIN})
+			install(FILES C:/Windows/System32/vcomp140d.dll DESTINATION ${INSTALL_PATH_BIN})
+		endif ()
 	endif(WIN32)
 endif(WITH_COMPILER_LIBRARIES)
 
@@ -142,7 +153,16 @@ if(WITH_OPENSSL)
 				find_install_dll("crypto" ${INSTALL_PATH_BIN} TRUE)
 				find_install_dll("ssl" ${INSTALL_PATH_BIN} TRUE)
 			endif()
-		elseif(NOT APPLE)
+		elseif (APPLE)
+			list(GET OPENSSL_LIBRARIES 0 OPENSSL_LIBRARY_PATH_0)
+			get_filename_component(OPENSSL_LIBRARY_PATH ${OPENSSL_LIBRARY_PATH_0} DIRECTORY)
+			get_filename_component(OPENSSL_LIBRARY_ROOT_PATH ${OPENSSL_LIBRARY_PATH}/../.. REALPATH)
+			file(GLOB OPENSSL_LIBRARIES_INSTALL
+					${OPENSSL_LIBRARY_PATH}/libssl*.dylib
+					${OPENSSL_LIBRARY_PATH}/libcrypto*.dylib
+			)
+			install(FILES ${OPENSSL_LIBRARIES_INSTALL} DESTINATION ${INSTALL_PATH_LIB})
+		else()
 			if(AUTONOMOUS_PACKAGE_BUILD)
 				install_libs_so("${OPENSSL_LIBRARIES}" ${INSTALL_PATH_LIB})
 			endif(AUTONOMOUS_PACKAGE_BUILD)
@@ -348,7 +368,8 @@ if(WITH_AVFORMAT)
 		set(USE_AVFORMAT 1)
 		include_directories (${AVFORMAT_INCLUDE_DIRS})
 		if(WIN32)
-			install(DIRECTORY ${AVFORMAT_RUNTIME_LIBRARY_PATH}/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "avformat-*.dll" PATTERN "avutil-*.dll")
+			find_install_dll("avformat" ${INSTALL_PATH_BIN} TRUE)
+			find_install_dll("avutil" ${INSTALL_PATH_BIN} FALSE)
 		elseif(APPLE)
 			list(GET AVFORMAT_LIBRARIES 0 AVFORMAT_LIBRARY_PATH_0)
 			get_filename_component(AVFORMAT_LIBRARY_PATH ${AVFORMAT_LIBRARY_PATH_0} DIRECTORY)
@@ -440,7 +461,9 @@ if(WITH_AVCODEC)
 		set(USE_AVCODEC 1)
 		include_directories (${AVCODEC_INCLUDE_DIRS})
 		if(WIN32)
-			install(DIRECTORY ${AVCODEC_RUNTIME_LIBRARY_PATH}/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "avcodec-*.dll" PATTERN "avutil-*.dll" PATTERN "avresample-*.dll")
+			find_install_dll("avcodec" ${INSTALL_PATH_BIN} TRUE)
+			find_install_dll("avutil" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("avresample" ${INSTALL_PATH_BIN} FALSE)
 			find_install_dll("openh264" ${INSTALL_PATH_BIN} FALSE)
 			if(MSVC)
 				find_install_dll("libx265" ${INSTALL_PATH_BIN} FALSE)
@@ -531,7 +554,7 @@ if(WITH_SWSCALE)
 	if(SWSCALE_FOUND)
 		set(USE_SWSCALE 1)
 		if(WIN32)
-			install(DIRECTORY ${SWSCALE_RUNTIME_LIBRARY_PATH}/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "swscale-*.dll" PATTERN "swresample-*.dll")
+			find_install_dll("swscale" ${INSTALL_PATH_BIN} TRUE)
 		elseif(APPLE)
 			 list(GET SWSCALE_LIBRARIES 0 SWSCALE_LIBRARY_PATH_0)
 			 get_filename_component(SWSCALE_LIBRARY_PATH ${SWSCALE_LIBRARY_PATH_0} DIRECTORY)
@@ -554,13 +577,36 @@ if(WITH_AVFILTER)
 		set(USE_AVFILTER 1)
 		include_directories (${AVFILTER_INCLUDE_DIRS})
 		if(WIN32)
-			install(DIRECTORY ${AVFILTER_RUNTIME_LIBRARY_PATH}/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "avfilter-*.dll" PATTERN "avformat-*.dll" PATTERN "avcodec-*.dll" PATTERN "avutil-*.dll" PATTERN "swresample-*.dll" PATTERN "postproc-*.dll" PATTERN "swscale-*.dll" PATTERN "libpng*.dll")
+			find_install_dll("avfilter" ${INSTALL_PATH_BIN} TRUE)
+			find_install_dll("avformat" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("avcodec" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("avutil" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("swresample" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("postproc" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("swscale" ${INSTALL_PATH_BIN} FALSE)
+			find_install_dll("libpng" ${INSTALL_PATH_BIN} FALSE)
 			if (LIB_VCPKG_INSTALL)
+				find_install_dll("bz2" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("ass" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("fribidi" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("freetype" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("harfbuzz" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("brotlidec" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("brotlicommon" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("libpng16" ${INSTALL_PATH_BIN} FALSE)
+				find_install_dll("zlib" ${INSTALL_PATH_BIN} FALSE)
 				if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-					install(DIRECTORY ${LIB_VCPKG_INSTALL}/bin/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "bz2.dll")
-					install(DIRECTORY ${LIB_VCPKG_INSTALL}/debug/bin/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "ass*.dll" PATTERN "fribidi*.dll" PATTERN "libprotobufd.dll" PATTERN "bz2.dll" PATTERN "brotlidec.dll" PATTERN "freetyped.dll" PATTERN "harfbuzz.dll" PATTERN "bz2d.dll" PATTERN "libpng16d.dll" PATTERN "brotlicommon.dll" PATTERN "zlib1.dll" PATTERN "zlibd1.dll")
+					find_install_dll("bz2d" ${INSTALL_PATH_BIN} FALSE)
+					find_install_dll("freetyped" ${INSTALL_PATH_BIN} FALSE)
+					find_install_dll("libpng16d" ${INSTALL_PATH_BIN} FALSE)
+					find_install_dll("zlibd" ${INSTALL_PATH_BIN} FALSE)
+					if(FORCE_PROTOBUFDLL_RELEASE_IN_DEBUG)
+						install(FILES "${LIB_VCPKG_INSTALL}/bin/libprotobuf.dll" DESTINATION ${INSTALL_PATH_BIN} RENAME "libprotobufd.dll")
+					else ()
+						find_install_dll("libprotobufd" ${INSTALL_PATH_BIN} FALSE)
+					endif()
 				elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-					install(DIRECTORY ${LIB_VCPKG_INSTALL}/bin/ DESTINATION ${INSTALL_PATH_BIN} FILES_MATCHING PATTERN "bz2.dll" PATTERN "ass*.dll" PATTERN "fribidi*.dll" PATTERN "libprotobuf.dll" PATTERN "bz2.dll" PATTERN "brotlidec.dll" PATTERN "harfbuzz.dll" PATTERN "brotlicommon.dll")
+					find_install_dll("libprotobuf" ${INSTALL_PATH_BIN} FALSE)
 				else()
 					message(FATAL_ERROR "Unsupported build type")
 				endif()
@@ -592,6 +638,28 @@ if(WITH_AVFILTER)
 		endif()
 	endif(AVFILTER_FOUND)
 endif(WITH_AVFILTER)
+
+# Add SWResample
+option(WITH_SWRESAMPLE "Enable build with swresample library" OFF)
+if(WITH_SWRESAMPLE)
+	find_package (SWResample 4)
+	if(SWRESAMPLE_FOUND)
+		set(USE_SWRESAMPLE 1)
+		if(WIN32)
+			find_install_dll("swresample" ${INSTALL_PATH_BIN} TRUE)
+		elseif(APPLE)
+			list(GET SWRESAMPLE_LIBRARIES 0 SWRESAMPLE_LIBRARY_PATH_0)
+			get_filename_component(SWRESAMPLE_LIBRARY_PATH ${SWRESAMPLE_LIBRARY_PATH_0} DIRECTORY)
+			install(DIRECTORY ${SWRESAMPLE_LIBRARY_PATH}/ DESTINATION ${INSTALL_PATH_LIB} FILES_MATCHING PATTERN "libswresample*.dylib")
+		else()
+			if(AUTONOMOUS_PACKAGE_BUILD)
+				install_libs_so("${SWRESAMPLE_LIBRARIES}" ${INSTALL_PATH_LIB})
+			else()
+				list(APPEND PACKAGE_DEPS "libswresample${SWRESAMPLE_VERSION_MAJOR}")
+			endif()
+		endif()
+	endif(SWRESAMPLE_FOUND)
+endif(WITH_SWRESAMPLE)
 
 #########################
 ### Video output module
@@ -679,6 +747,18 @@ if(WITH_OPENCV)
 		include_directories(${OpenCV_INCLUDE_DIRS})
 		set(USE_OPENCV 1)
 		list(GET OpenCV_INCLUDE_DIRS 0 OpenCV_INCLUDE_DIR_0)
+
+		if(OpenCV_INCLUDE_DIR_0)
+			if(EXISTS "${OpenCV_INCLUDE_DIR_0}/../../include/opencv4")
+				set(OpenCV_BASE_DIR_TMP ${OpenCV_INCLUDE_DIR_0}/../..)
+			else()
+				set(OpenCV_BASE_DIR_TMP ${OpenCV_INCLUDE_DIR_0}/..)
+			endif()
+            get_filename_component(OpenCV_BASE_DIR ${OpenCV_BASE_DIR_TMP} ABSOLUTE)
+		endif()
+
+		message(STATUS "OpenCV base dir: ${OpenCV_BASE_DIR}")
+
 		if(WIN32)
 			# Add libprotobuf since 3.3.1
 			if(NOT ${OpenCV_VERSION} VERSION_LESS 3.3.1 AND NOT OpenCV_SHARED)
@@ -688,39 +768,40 @@ if(WITH_OPENCV)
 			if(MSVC)
 			# Custom build
 			file(GLOB OPENCV_LIBRARIES_INSTALL
-					${OpenCV_INCLUDE_DIR_0}/../x86/vc10/bin/opencv_core*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/opencv_core*.dll
-					${OpenCV_INCLUDE_DIR_0}/../debug/bin/opencv_core*.dll
-					${OpenCV_INCLUDE_DIR_0}/../x86/vc10/bin/opencv_imgproc*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/opencv_imgproc*.dll
-					${OpenCV_INCLUDE_DIR_0}/../debug/bin/opencv_imgproc*.dll
-					${OpenCV_INCLUDE_DIR_0}/../x86/vc10/bin/opencv_ml*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/opencv_ml*.dll
-					${OpenCV_INCLUDE_DIR_0}/../debug/bin/opencv_ml*.dll
+					${OpenCV_BASE_DIR}/x86/vc10/bin/opencv_core*.dll
+					${OpenCV_BASE_DIR}/bin/opencv_core*.dll
+					${OpenCV_BASE_DIR}/debug/bin/opencv_core*.dll
+					${OpenCV_BASE_DIR}/x86/vc10/bin/opencv_imgproc*.dll
+					${OpenCV_BASE_DIR}/bin/opencv_imgproc*.dll
+					${OpenCV_BASE_DIR}/debug/bin/opencv_imgproc*.dll
+					${OpenCV_BASE_DIR}/x86/vc10/bin/opencv_ml*.dll
+					${OpenCV_BASE_DIR}/bin/opencv_ml*.dll
+					${OpenCV_BASE_DIR}/debug/bin/opencv_ml*.dll
 					if(OPENCV_DNN_FOUND)
-						${OpenCV_INCLUDE_DIR_0}/../x64/vc10/bin/opencv_dnn*.dll
-						${OpenCV_INCLUDE_DIR_0}/../bin/opencv_dnn*.dll
-						${OpenCV_INCLUDE_DIR_0}/../debug/bin/opencv_dnn*.dll
+						${OpenCV_BASE_DIR}/x64/vc10/bin/opencv_dnn*.dll
+						${OpenCV_BASE_DIR}/bin/opencv_dnn*.dll
+						${OpenCV_BASE_DIR}/debug/bin/opencv_dnn*.dll
 					endif()
 					#if(OPENCV_HIGHGUI_FOUND)
-					#	${OpenCV_INCLUDE_DIR_0}/../x64/vc12/bin/opencv_highgui*.dll
+					#	${OpenCV_BASE_DIR}/../x64/vc12/bin/opencv_highgui*.dll
 					#endif()
+					${OpenCV_BASE_DIR}/bin/abseil_dll.dll
 				)
 			else()
 				file(GLOB OPENCV_LIBRARIES_INSTALL
-					${OpenCV_INCLUDE_DIR_0}/../x86/mingw/bin/libopencv_core*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/libopencv_core*.dll
-					${OpenCV_INCLUDE_DIR_0}/../x86/mingw/bin/libopencv_imgproc*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/libopencv_imgproc*.dll
-					${OpenCV_INCLUDE_DIR_0}/../x86/mingw/bin/libopencv_ml*.dll
-					${OpenCV_INCLUDE_DIR_0}/../bin/libopencv_ml*.dll
+					${OpenCV_BASE_DIR}/x86/mingw/bin/libopencv_core*.dll
+					${OpenCV_BASE_DIR}/bin/libopencv_core*.dll
+					${OpenCV_BASE_DIR}/x86/mingw/bin/libopencv_imgproc*.dll
+					${OpenCV_BASE_DIR}/bin/libopencv_imgproc*.dll
+					${OpenCV_BASE_DIR}/x86/mingw/bin/libopencv_ml*.dll
+					${OpenCV_BASE_DIR}/bin/libopencv_ml*.dll
 					if(OPENCV_DNN_FOUND)
-						${OpenCV_INCLUDE_DIR_0}/../bin/libopencv_dnn*.dll
-						${OpenCV_INCLUDE_DIR_0}/../x86/mingw/bin/libopencv_dnn*.dll
+						${OpenCV_BASE_DIR}/bin/libopencv_dnn*.dll
+						${OpenCV_BASE_DIR}/x86/mingw/bin/libopencv_dnn*.dll
 					endif()
 					#if(OPENCV_HIGHGUI_FOUND)
-					#	${OpenCV_INCLUDE_DIR_0}/../bin/libopencv_highgui*.dll
-					#	${OpenCV_INCLUDE_DIR_0}/../x86/mingw/bin/libopencv_highgui*.dll
+					#	${OpenCV_BASE_DIR}/../bin/libopencv_highgui*.dll
+					#	${OpenCV_BASE_DIR}/../x86/mingw/bin/libopencv_highgui*.dll
 					#endif()
 				)
 			endif()
@@ -842,33 +923,6 @@ if(WITH_WBEM)
 	endif(WIN32)
 endif(WITH_WBEM)
 
-# Add ConsoleKit
-option(WITH_CKCONNECTOR "Enable build with ConsoleKit library" OFF)
-if(WITH_CKCONNECTOR)
-	if(WIN32)
-		set(CKCONNECTOR_LIBRARIES "")
-	else(WIN32)
-		find_package (CKConnector)
-		if(CKCONNECTOR_FOUND)
-			list(APPEND PACKAGE_DEPS "libck-connector0")
-		endif(CKCONNECTOR_FOUND)
-	endif(WIN32)
-endif(WITH_CKCONNECTOR)
-
-# Add Elogind
-
-option(WITH_ELOGIND "Enable build with Elogind library" OFF)
-if(WITH_ELOGIND)
-	if(WIN32)
-		set(ELOGIND_LIBRARIES "")
-	else(WIN32)
-		find_package (Elogind)
-		if(ELOGIND_FOUND)
-			list(APPEND PACKAGE_DEPS "libelogind0")
-		endif(ELOGIND_FOUND)
-	endif(WIN32)
-endif(WITH_ELOGIND)
-
 #########################
 ### Device modules
 #########################
@@ -933,6 +987,9 @@ if(WITH_QT)
 				install(FILES ${QT_CUSTOM_PATH}/bin/libEGLd.dll DESTINATION ${INSTALL_PATH_BIN} CONFIGURATIONS Debug)
 				install(FILES ${QT_CUSTOM_PATH}/bin/libGLESv2d.dll DESTINATION ${INSTALL_PATH_BIN} CONFIGURATIONS Debug)
 			endif()
+			if(QT_CUSTOM_PATH AND QT_USE_VERSION EQUAL 6)
+				install(FILES ${QT_CUSTOM_PATH}/bin/opengl32sw.dll DESTINATION ${INSTALL_PATH_BIN})
+			endif()
 		endif()
 		if(AUTONOMOUS_PACKAGE_BUILD)
 			list(APPEND PACKAGE_DEPS "libx11-6")
@@ -947,6 +1004,8 @@ if(WITH_QT)
 			list(APPEND PACKAGE_DEPS "libxcb-xkb1")
 			list(APPEND PACKAGE_DEPS "libxkbcommon-x11-0")
 			list(APPEND PACKAGE_DEPS "libgl1")
+			list(APPEND PACKAGE_DEPS "libegl1")
+			list(APPEND PACKAGE_DEPS "libopengl0")
 			list(APPEND PACKAGE_DEPS "libvdpau1")
 			list(APPEND PACKAGE_DEPS "libharfbuzz0b")
 			# Qt modules without cmake files
@@ -1056,6 +1115,24 @@ if(WITH_AVCODEC OR WITH_AVFILTER OR (WITH_QT AND HAS_QTGUI))
 				list(APPEND PACKAGE_DEPS "libfreetype6")
 			else()
 				find_install_lib_so("freetype" ${INSTALL_PATH_LIB} FALSE)
+			endif()
+		endif()
+	endif()
+endif()
+
+# harfbuzz (needed for avfilter drawtext)
+if(WITH_AVFILTER)
+	if(WIN32)
+		find_install_dll("harfbuzz" ${INSTALL_PATH_BIN} FALSE)
+		find_install_dll("libharfbuzz" ${INSTALL_PATH_BIN} FALSE)
+	elseif(APPLE)
+		# Todo
+	else()
+		if(AUTONOMOUS_PACKAGE_BUILD)
+			if(WITH_HARFBUZZ_SYSTEM)
+				list(APPEND PACKAGE_DEPS "libharfbuzz0b")
+			else()
+				find_install_lib_so("harfbuzz" ${INSTALL_PATH_LIB} FALSE)
 			endif()
 		endif()
 	endif()

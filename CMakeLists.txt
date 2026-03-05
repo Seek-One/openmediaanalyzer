@@ -105,147 +105,148 @@ include_directories (${PROJECT_BINARY_DIR})
 # Add sources
 ####################
 
+# src directory
 include_directories (${PROJECT_SOURCE_DIR}/src)
-    
+
 set(APPLICATION_SOURCES
 	src/main.cpp
-    src/GUI/QAccessUnitElement.cpp
-    src/GUI/QAccessUnitElement.h
-    src/GUI/QErrorView.cpp
-    src/GUI/QErrorView.h
-    src/GUI/QNALUInfoView.cpp
-    src/GUI/QNALUInfoView.h
-    src/GUI/QStatusView.cpp
-    src/GUI/QStatusView.h
-    src/GUI/QStreamSettingsView.cpp
-    src/GUI/QStreamSettingsView.h
-    src/GUI/QStreamLinkDialog.cpp
-    src/GUI/QStreamLinkDialog.h
-    src/GUI/QTimelineCounterElement.cpp
-    src/GUI/QTimelineCounterElement.h
-    src/GUI/QTimelineView.cpp
-    src/GUI/QTimelineView.h
-    src/GUI/QVideoFrameView.cpp
-    src/GUI/QVideoFrameView.h
-    src/GUI/QVideoInputView.cpp
-    src/GUI/QVideoInputView.h
-    src/GUI/QWindowMain.cpp
-    src/GUI/QWindowMain.h
-    src/GUIController/QErrorViewController.cpp
-    src/GUIController/QErrorViewController.h
+	src/GUI/QAccessUnitElement.cpp
+	src/GUI/QAccessUnitElement.h
+	src/GUI/QErrorView.cpp
+	src/GUI/QErrorView.h
+	src/GUI/QNALUInfoView.cpp
+	src/GUI/QNALUInfoView.h
+	src/GUI/QStatusView.cpp
+	src/GUI/QStatusView.h
+	src/GUI/QStreamSettingsView.cpp
+	src/GUI/QStreamSettingsView.h
+	src/GUI/QStreamLinkDialog.cpp
+	src/GUI/QStreamLinkDialog.h
+	src/GUI/QTimelineCounterElement.cpp
+	src/GUI/QTimelineCounterElement.h
+	src/GUI/QTimelineView.cpp
+	src/GUI/QTimelineView.h
+	src/GUI/QVideoFrameView.cpp
+	src/GUI/QVideoFrameView.h
+	src/GUI/QVideoInputView.cpp
+	src/GUI/QVideoInputView.h
+	src/GUI/QWindowMain.cpp
+	src/GUI/QWindowMain.h
+	src/GUIController/QErrorViewController.cpp
+	src/GUIController/QErrorViewController.h
 	src/GUIController/QH26XDumpObject.cpp
 	src/GUIController/QH26XDumpObject.h
-    src/GUIController/QVideoInputViewController.cpp
-    src/GUIController/QVideoInputViewController.h
-    src/GUIController/QStatusViewController.cpp
-    src/GUIController/QStatusViewController.h
-    src/GUIController/QStreamSettingsViewController.cpp
-    src/GUIController/QStreamSettingsViewController.h
-    src/GUIController/QTimelineViewController.cpp
-    src/GUIController/QTimelineViewController.h
-    src/GUIController/QVideoFrameViewController.cpp
-    src/GUIController/QVideoFrameViewController.h
-    src/GUIController/QWindowMainController.cpp
-    src/GUIController/QWindowMainController.h
-    src/GUIModel/QAccessUnitModel.cpp
-    src/GUIModel/QAccessUnitModel.h
-    src/GUIModel/QDecoderModel.cpp
-    src/GUIModel/QDecoderModel.h
-    src/GUIModel/QFolderModel.cpp
-    src/GUIModel/QFolderModel.h
-    src/GUIModel/QStreamModel.cpp
-    src/GUIModel/QStreamModel.h
+	src/GUIController/QVideoInputViewController.cpp
+	src/GUIController/QVideoInputViewController.h
+	src/GUIController/QStatusViewController.cpp
+	src/GUIController/QStatusViewController.h
+	src/GUIController/QStreamSettingsViewController.cpp
+	src/GUIController/QStreamSettingsViewController.h
+	src/GUIController/QTimelineViewController.cpp
+	src/GUIController/QTimelineViewController.h
+	src/GUIController/QVideoFrameViewController.cpp
+	src/GUIController/QVideoFrameViewController.h
+	src/GUIController/QWindowMainController.cpp
+	src/GUIController/QWindowMainController.h
+	src/GUIModel/QAccessUnitModel.cpp
+	src/GUIModel/QAccessUnitModel.h
+	src/GUIModel/QDecoderModel.cpp
+	src/GUIModel/QDecoderModel.h
+	src/GUIModel/QFolderModel.cpp
+	src/GUIModel/QFolderModel.h
+	src/GUIModel/QStreamModel.cpp
+	src/GUIModel/QStreamModel.h
 )
 
 set(CODEC_SOURCES
-    src/Codec/H26X/H26XBitstreamReader.cpp
-    src/Codec/H26X/H26XBitstreamReader.h
+	src/Codec/H26X/H26XBitstreamReader.cpp
+	src/Codec/H26X/H26XBitstreamReader.h
 	src/Codec/H26X/H26XDumpObject.h
 	src/Codec/H26X/H26XDumpObject.cpp
 	src/Codec/H26X/H26XErrors.h
 	src/Codec/H26X/H26XErrors.cpp
 	src/Codec/H26X/H26XErrorsMsg.h
-    src/Codec/H26X/H26XMath.cpp
-    src/Codec/H26X/H26XMath.h
+	src/Codec/H26X/H26XMath.cpp
+	src/Codec/H26X/H26XMath.h
 	src/Codec/H26X/H26XNALHeader.cpp
 	src/Codec/H26X/H26XNALHeader.h
 	src/Codec/H26X/H26XNALPayload.cpp
 	src/Codec/H26X/H26XNALPayload.h
 	src/Codec/H26X/H26XNALUnit.cpp
 	src/Codec/H26X/H26XNALUnit.h
-    src/Codec/H26X/H26XStream.cpp
-    src/Codec/H26X/H26XStream.h
+	src/Codec/H26X/H26XStream.cpp
+	src/Codec/H26X/H26XStream.h
 	src/Codec/H26X/H26XTypes.h
-    src/Codec/H26X/H26XUtils.cpp
-    src/Codec/H26X/H26XUtils.h
+	src/Codec/H26X/H26XUtils.cpp
+	src/Codec/H26X/H26XUtils.h
 	src/Codec/H26X/H26XVector.h
-    src/Codec/H264/H264AccessUnit.cpp
-    src/Codec/H264/H264AccessUnit.h
-    src/Codec/H264/H264AUD.cpp
-    src/Codec/H264/H264AUD.h
-    src/Codec/H264/H264BitstreamReader.cpp
-    src/Codec/H264/H264BitstreamReader.h
-    src/Codec/H264/H264GOP.cpp
-    src/Codec/H264/H264GOP.h
+	src/Codec/H264/H264AccessUnit.cpp
+	src/Codec/H264/H264AccessUnit.h
+	src/Codec/H264/H264AUD.cpp
+	src/Codec/H264/H264AUD.h
+	src/Codec/H264/H264BitstreamReader.cpp
+	src/Codec/H264/H264BitstreamReader.h
+	src/Codec/H264/H264GOP.cpp
+	src/Codec/H264/H264GOP.h
 	src/Codec/H264/H264NALHeader.cpp
 	src/Codec/H264/H264NALHeader.h
 	src/Codec/H264/H264NALUnit.cpp
 	src/Codec/H264/H264NALUnit.h
 	src/Codec/H264/H264NALUnitType.cpp
 	src/Codec/H264/H264NALUnitType.h
-    src/Codec/H264/H264PPS.cpp
-    src/Codec/H264/H264PPS.h
-    src/Codec/H264/H264Slice.cpp
-    src/Codec/H264/H264Slice.h
-    src/Codec/H264/H264SPS.cpp
-    src/Codec/H264/H264SPS.h
-    src/Codec/H264/H264SEI.cpp
-    src/Codec/H264/H264SEI.h
-    src/Codec/H264/H264Stream.cpp
-    src/Codec/H264/H264Stream.h
-    src/Codec/H265/H265AccessUnit.cpp
-    src/Codec/H265/H265AccessUnit.h
-    src/Codec/H265/H265BitstreamReader.cpp
-    src/Codec/H265/H265BitstreamReader.h
-    src/Codec/H265/H265GOP.cpp
-    src/Codec/H265/H265GOP.h
-    src/Codec/H265/H265HrdParameters.cpp
-    src/Codec/H265/H265HrdParameters.h
+	src/Codec/H264/H264PPS.cpp
+	src/Codec/H264/H264PPS.h
+	src/Codec/H264/H264Slice.cpp
+	src/Codec/H264/H264Slice.h
+	src/Codec/H264/H264SPS.cpp
+	src/Codec/H264/H264SPS.h
+	src/Codec/H264/H264SEI.cpp
+	src/Codec/H264/H264SEI.h
+	src/Codec/H264/H264Stream.cpp
+	src/Codec/H264/H264Stream.h
+	src/Codec/H265/H265AccessUnit.cpp
+	src/Codec/H265/H265AccessUnit.h
+	src/Codec/H265/H265BitstreamReader.cpp
+	src/Codec/H265/H265BitstreamReader.h
+	src/Codec/H265/H265GOP.cpp
+	src/Codec/H265/H265GOP.h
+	src/Codec/H265/H265HrdParameters.cpp
+	src/Codec/H265/H265HrdParameters.h
 	src/Codec/H265/H265NALHeader.cpp
 	src/Codec/H265/H265NALHeader.h
 	src/Codec/H265/H265NALUnit.cpp
 	src/Codec/H265/H265NALUnit.h
 	src/Codec/H265/H265NALUnitType.cpp
 	src/Codec/H265/H265NALUnitType.h
-    src/Codec/H265/H265PPS.cpp
-    src/Codec/H265/H265PPS.h
-    src/Codec/H265/H265ProfileTierLevel.cpp
-    src/Codec/H265/H265ProfileTierLevel.h
-    src/Codec/H265/H265ScalingList.cpp
-    src/Codec/H265/H265ScalingList.h
-    src/Codec/H265/H265SEI.cpp
-    src/Codec/H265/H265SEI.h
-    src/Codec/H265/H265ShortTermRefPicSet.cpp
-    src/Codec/H265/H265ShortTermRefPicSet.h
-    src/Codec/H265/H265Slice.cpp
-    src/Codec/H265/H265Slice.h
-    src/Codec/H265/H265SPS.cpp
-    src/Codec/H265/H265SPS.h
-    src/Codec/H265/H265Stream.cpp
-    src/Codec/H265/H265Stream.h
-    src/Codec/H265/H265Types.h
-    src/Codec/H265/H265Utils.h
-    src/Codec/H265/H265VPS.cpp
-    src/Codec/H265/H265VPS.h
+	src/Codec/H265/H265PPS.cpp
+	src/Codec/H265/H265PPS.h
+	src/Codec/H265/H265ProfileTierLevel.cpp
+	src/Codec/H265/H265ProfileTierLevel.h
+	src/Codec/H265/H265ScalingList.cpp
+	src/Codec/H265/H265ScalingList.h
+	src/Codec/H265/H265SEI.cpp
+	src/Codec/H265/H265SEI.h
+	src/Codec/H265/H265ShortTermRefPicSet.cpp
+	src/Codec/H265/H265ShortTermRefPicSet.h
+	src/Codec/H265/H265Slice.cpp
+	src/Codec/H265/H265Slice.h
+	src/Codec/H265/H265SPS.cpp
+	src/Codec/H265/H265SPS.h
+	src/Codec/H265/H265Stream.cpp
+	src/Codec/H265/H265Stream.h
+	src/Codec/H265/H265Types.h
+	src/Codec/H265/H265Utils.h
+	src/Codec/H265/H265VPS.cpp
+	src/Codec/H265/H265VPS.h
 )
 
 set(STREAM_SOURCES
-    src/Stream/HTTPClient.cpp
-    src/Stream/HTTPClient.h
-    src/Stream/RTSPClient.cpp
-    src/Stream/RTSPClient.h
-    src/Stream/StreamClient.cpp
-    src/Stream/StreamClient.h
+	src/Stream/HTTPClient.cpp
+	src/Stream/HTTPClient.h
+	src/Stream/RTSPClient.cpp
+	src/Stream/RTSPClient.h
+	src/Stream/StreamClient.cpp
+	src/Stream/StreamClient.h
 )
 
 set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${CODEC_SOURCES})
@@ -253,51 +254,55 @@ set(APPLICATION_SOURCES ${APPLICATION_SOURCES} ${STREAM_SOURCES})
 
 
 set(APPLICATION_MOC_HEADERS
-    src/GUI/QAccessUnitElement.h
-    src/GUI/QErrorView.h
-    src/GUI/QNALUInfoView.h
-    src/GUI/QStatusView.h
-    src/GUI/QStreamSettingsView.h
-    src/GUI/QStreamLinkDialog.h
-    src/GUI/QTimelineCounterElement.h
-    src/GUI/QTimelineView.h
-    src/GUI/QVideoFrameView.h
-    src/GUI/QVideoInputView.h
-    src/GUI/QWindowMain.h
-    src/GUIController/QErrorViewController.h
-    src/GUIController/QVideoInputViewController.h
-    src/GUIController/QStatusViewController.h
-    src/GUIController/QStreamSettingsViewController.h
-    src/GUIController/QTimelineViewController.h
-    src/GUIController/QVideoFrameViewController.h
-    src/GUIController/QWindowMainController.h
-    src/GUIModel/QAccessUnitModel.h
-    src/GUIModel/QDecoderModel.h
-    src/GUIModel/QFolderModel.h
-    src/GUIModel/QStreamModel.h
+	src/GUI/QAccessUnitElement.h
+	src/GUI/QErrorView.h
+	src/GUI/QNALUInfoView.h
+	src/GUI/QStatusView.h
+	src/GUI/QStreamSettingsView.h
+	src/GUI/QStreamLinkDialog.h
+	src/GUI/QTimelineCounterElement.h
+	src/GUI/QTimelineView.h
+	src/GUI/QVideoFrameView.h
+	src/GUI/QVideoInputView.h
+	src/GUI/QWindowMain.h
+	src/GUIController/QErrorViewController.h
+	src/GUIController/QVideoInputViewController.h
+	src/GUIController/QStatusViewController.h
+	src/GUIController/QStreamSettingsViewController.h
+	src/GUIController/QTimelineViewController.h
+	src/GUIController/QVideoFrameViewController.h
+	src/GUIController/QWindowMainController.h
+	src/GUIModel/QAccessUnitModel.h
+	src/GUIModel/QDecoderModel.h
+	src/GUIModel/QFolderModel.h
+	src/GUIModel/QStreamModel.h
 )
 
 qtx_wrap_cpp(
-    APPLICATION_MOC_OUTFILES
+	APPLICATION_MOC_OUTFILES
 	${APPLICATION_MOC_HEADERS}
 )
-    
+
+####################
+# i18n
+####################
+
 set (I18N_FILES
-    src/GUI/QAccessUnitElement.cpp
-    src/GUI/QErrorView.cpp
-    src/GUI/QVideoInputView.cpp
-    src/GUI/QStatusView.cpp
-    src/GUI/QStreamLinkDialog.cpp
-    src/GUI/QTimelineView.cpp
-    src/GUI/QVideoFrameView.cpp
-    src/GUI/QWindowMain.cpp
-    src/GUIModel/QDecoderModel.cpp
-    src/GUIModel/QStreamModel.cpp
+	src/GUI/QAccessUnitElement.cpp
+	src/GUI/QErrorView.cpp
+	src/GUI/QVideoInputView.cpp
+	src/GUI/QStatusView.cpp
+	src/GUI/QStreamLinkDialog.cpp
+	src/GUI/QTimelineView.cpp
+	src/GUI/QVideoFrameView.cpp
+	src/GUI/QWindowMain.cpp
+	src/GUIModel/QDecoderModel.cpp
+	src/GUIModel/QStreamModel.cpp
 )
 set(TS_FILES
-    ts/fr.ts
+	ts/fr.ts
 )
-    
+	
 option (UPDATE_TRANSLATIONS "Update source translation ts/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)" ON)
 if (UPDATE_TRANSLATIONS)
 	qtx_create_translation(qm_FILES ${TS_FILES} ${I18N_FILES} OPTIONS -locations none)
@@ -343,8 +348,23 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/data/app.qrc"
 )
 
-qtx_add_resources(RCS_OUTFILES ${QRC_FILES})
+# Resources
+set (QRC_TS_FILES
+	${PROJECT_BINARY_DIR}/ts.qrc
+)
 qtx_add_resources(RCS_TS_OUTFILES ${QRC_TS_FILES})
+
+set (QRC_FILES
+	${PROJECT_BINARY_DIR}/data/app.qrc
+)
+qtx_add_resources(RCS_OUTFILES ${QRC_FILES})
+
+
+# Create a library for resources
+add_library(${APPLICATION_EXE_NAME}_rcs OBJECT
+	${RCS_OUTFILES}
+	${RCS_TS_OUTFILES}
+)
 
 IF(WIN32)
 	set (RC_FILES
@@ -383,7 +403,9 @@ endif(UNIX AND NOT APPLE)
 IF(WIN32)
 	SET(GUI_TYPE WIN32)
 ENDIF(WIN32)
-
+#IF (APPLE)
+	#SET(GUI_TYPE MACOSX_BUNDLE)
+#ENDIF (APPLE)
 # Console is useful in Debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 	SET(GUI_TYPE "")
@@ -394,50 +416,49 @@ add_executable (${APPLICATION_EXE_NAME}
 	${RC_FILES}
 	${APPLICATION_SOURCES}
 	${APPLICATION_MOC_OUTFILES}
-	${RCS_OUTFILES}
-	${RCS_TS_OUTFILES}
-	${qm_FILES}
+	$<TARGET_OBJECTS:${APPLICATION_EXE_NAME}_rcs>
+	$<TARGET_OBJECTS:${APPLICATION_EXE_NAME}_ts>
 )
 include_directories(${INSTALL_PATH_LIB})
 target_link_libraries (${APPLICATION_EXE_NAME}
-    ${PTHREAD_LIBRARIES}
-    ${QT_LIBRARIES}
-    ${QT_QTMAIN_LIBRARY}
-    ${CURL_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
-    ${AVCODEC_LIBRARIES}
-    ${AVFORMAT_LIBRARIES}
-    ${SWSCALE_LIBRARIES}
+	${PTHREAD_LIBRARIES}
+	${QT_LIBRARIES}
+	${QT_QTMAIN_LIBRARY}
+	${CURL_LIBRARIES}
+	${OPENSSL_LIBRARIES}
+	${AVCODEC_LIBRARIES}
+	${AVFORMAT_LIBRARIES}
+	${SWSCALE_LIBRARIES}
 )
 
 install(TARGETS ${APPLICATION_EXE_NAME} DESTINATION ${INSTALL_PATH_BIN})
 
 ####################
-# Testing
+# Unit test
 ####################
 
 SET (TEST_SRC
-    test/main.cpp
-    test/Codec/H264/H264ValidSamplesParsing.cpp
-    test/Codec/H264/H264ValidSamplesParsing.h
-    test/Codec/H264/H264InvalidSamplesParsing.cpp
-    test/Codec/H264/H264InvalidSamplesParsing.h
-    test/Codec/H265/H265ValidSamplesParsing.cpp
-    test/Codec/H265/H265ValidSamplesParsing.h
-    test/Codec/H265/H265InvalidSamplesParsing.cpp
-    test/Codec/H265/H265InvalidSamplesParsing.h
+	test/main.cpp
+	test/Codec/H264/H264ValidSamplesParsing.cpp
+	test/Codec/H264/H264ValidSamplesParsing.h
+	test/Codec/H264/H264InvalidSamplesParsing.cpp
+	test/Codec/H264/H264InvalidSamplesParsing.h
+	test/Codec/H265/H265ValidSamplesParsing.cpp
+	test/Codec/H265/H265ValidSamplesParsing.h
+	test/Codec/H265/H265InvalidSamplesParsing.cpp
+	test/Codec/H265/H265InvalidSamplesParsing.h
 )
 
 set (TEST_EXE ${APPLICATION_EXE_NAME}-testsuite)
 add_executable (${TEST_EXE} ${TEST_SRC} ${CODEC_SOURCES} ${UNITTEST_MOC_OUTFILES})
 
 set_target_properties(${TEST_EXE} PROPERTIES 
-    COMPILE_FLAGS -DUNITTEST
-    AUTOMOC ON
+	COMPILE_FLAGS -DUNITTEST
+	AUTOMOC ON
 )
 
 target_link_libraries (${TEST_EXE}
-    ${QT_LIBRARIES}
+	${QT_LIBRARIES}
 	${QT_QTMAIN_LIBRARY}
 )
 install(TARGETS ${TEST_EXE} DESTINATION ${INSTALL_PATH_BIN})

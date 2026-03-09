@@ -125,10 +125,10 @@ size_t receiveResponse(void* contents, size_t size, size_t nmemb, StreamClient* 
             memcpy(allocatedStream, inputData->m_buffer.data(), inputData->m_buffer.size());
             switch(inputData->m_codec){
                 case Codec_H264:
-                    emit inputData->loadH264Packet(allocatedStream, inputData->m_buffer.size());
+                    emit inputData->loadH264Packet(allocatedStream, (quint32)inputData->m_buffer.size());
                     break;
                 case Codec_H265:
-                    emit inputData->loadH265Packet(allocatedStream, inputData->m_buffer.size());
+                    emit inputData->loadH265Packet(allocatedStream, (quint32)inputData->m_buffer.size());
                     break;
                 default:
                     emit inputData->detectUnsupportedVideoCodec();

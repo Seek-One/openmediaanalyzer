@@ -75,7 +75,7 @@ void H265ProfileTierLevel::dump(H26XDumpObject& dumpObject) const
 			dumpObject.addUnitField("general_one_picture_only_constraint_flag", general_inbld_flag);
 		}
 		dumpObject.addUnitField("general_level_idc", general_level_idc);
-		uint32_t maxNumSubLayersMinus1 = sub_layer_profile_present_flag.size();
+		uint32_t maxNumSubLayersMinus1 = (uint32_t)sub_layer_profile_present_flag.size();
 		for (uint32_t i = 0; i < maxNumSubLayersMinus1; ++i) {
 			dumpObject.startIdxValueUnitFieldList("sub_layer_profile_present_flag", i, sub_layer_profile_present_flag[i]);
 			if (sub_layer_profile_present_flag[i]) {

@@ -40,7 +40,7 @@ void H264AccessUnit::addNALUnit(std::unique_ptr<H264NALUnit> NALUnit){
 }
 
 uint32_t H264AccessUnit::size() const{
-    return NALUnits.size();
+    return (uint32_t)NALUnits.size();
 }
 
 uint64_t H264AccessUnit::byteSize() const{

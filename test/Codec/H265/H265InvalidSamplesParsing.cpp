@@ -40,7 +40,7 @@ void H265InvalidSamplesParsing::loadStream(const QString& szDirName, H265Stream&
 		QVERIFY(data.size() > 0);
 		bitstream.append(data);
 	}
-	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()) == expectedPacketParsingResult);
+	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), (uint32_t)bitstream.size()) == expectedPacketParsingResult);
 }
 
 void H265InvalidSamplesParsing::test_h265FramesOutOfOrderBitstream()

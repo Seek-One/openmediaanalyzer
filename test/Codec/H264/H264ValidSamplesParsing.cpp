@@ -27,7 +27,7 @@ void H264ValidSamplesParsing::loadStream(const QString& szDirName, H264Stream& s
 		bitstream.append(data);
 	}
 
-	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()));
+	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), (uint32_t)bitstream.size()));
 }
 
 void H264ValidSamplesParsing::test_h264AxisBitstream()

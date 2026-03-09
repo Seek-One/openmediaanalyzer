@@ -26,7 +26,7 @@ void H265ValidSamplesParsing::loadStream(const QString& szDirName, H265Stream& s
 		bitstream.append(data);
 	}
 
-	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), bitstream.size()));
+	QVERIFY(stream.parsePacket((uint8_t*)bitstream.data(), (uint32_t)bitstream.size()));
 }
 
 void H265ValidSamplesParsing::test_h265DahuaBitstream()

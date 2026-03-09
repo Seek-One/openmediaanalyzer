@@ -65,7 +65,7 @@ bool H265GOP::empty() const {
 }
 
 uint32_t H265GOP::size() const {
-    return accessUnits.size();
+    return (uint32_t)accessUnits.size();
 }
 
 uint64_t H265GOP::byteSize() const {

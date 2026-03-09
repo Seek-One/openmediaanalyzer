@@ -19,7 +19,7 @@ H264GOP::~H264GOP(){
 }
 
 uint32_t H264GOP::size() const {
-    return accessUnits.size();
+    return (uint32_t)accessUnits.size();
 }
 
 uint64_t H264GOP::byteSize() const {

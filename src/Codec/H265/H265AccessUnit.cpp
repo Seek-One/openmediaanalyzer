@@ -54,7 +54,7 @@ void H265AccessUnit::addNALUnit(std::unique_ptr<H265NALUnit> NALUnit){
 }
 
 uint32_t H265AccessUnit::size() const{
-    return NALUnits.size();
+    return (uint32_t)NALUnits.size();
 }
 
 uint64_t H265AccessUnit::byteSize() const{
@@ -167,7 +167,7 @@ void H265AccessUnit::validate(){
         }
     }
     // order-related checks
-    uint32_t lastVCLIndex = NALUnits.size();
+    uint32_t lastVCLIndex = (uint32_t)NALUnits.size();
     for(uint32_t i = 0;i < NALUnits.size();++i){
 		if(NALUnits[i]->getNALHeader()->isSlice()){
 			lastVCLIndex = i;

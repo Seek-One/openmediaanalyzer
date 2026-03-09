@@ -44,8 +44,8 @@ void QFolderModel::processFile(const QString& filePath)
     uint8_t* buffer = new uint8_t[fileSize];
     fileStream.read(reinterpret_cast<char*>(buffer), fileSize);
     QString fileExtension = filePath.split('.').back(); 
-    if(fileExtension.toLower() == "h264") emit loadH264File(buffer, fileSize);
-    else if (fileExtension.toLower() == "h265") emit loadH265File(buffer, fileSize);
+    if(fileExtension.toLower() == "h264") emit loadH264File(buffer, (quint32)fileSize);
+    else if (fileExtension.toLower() == "h265") emit loadH265File(buffer, (quint32)fileSize);
     else delete[] buffer;
     fileStream.close();
 }

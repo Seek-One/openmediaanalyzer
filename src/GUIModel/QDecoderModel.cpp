@@ -905,7 +905,7 @@ void QDecoderModel::checkForNewGOP()
             }
         }
         m_currentGOPModel.pop_back();
-        emit updateGOVLength(m_currentGOPModel.size());
+        emit updateGOVLength((quint32)m_currentGOPModel.size());
         validateCurrentGOP();
         m_firstGOPSliceTimestamp[m_currentGOPModel.first()->m_id] = QDateTime::currentDateTime();
         m_previousGOPModels.push_back(QVector<QSharedPointer<QAccessUnitModel>>());
@@ -936,7 +936,7 @@ void QDecoderModel::discardH264GOPs(){
     }
     // size()-1 checked to not account for the current incomplete GOP
     if(m_GOPCountLimitSet && GOPs.size()-1 > m_GOPCountLimit) {
-        emit removeTimelineUnits(m_pH264Stream->popFrontGOPs((GOPs.size()-1)-m_GOPCountLimit));
+        emit removeTimelineUnits(m_pH264Stream->popFrontGOPs((uint32_t)((GOPs.size()-1)-m_GOPCountLimit)));
         removedGOPs += GOPs.size()-1-m_GOPCountLimit;
     }
     if(m_memoryLimitSet){
@@ -968,7 +968,7 @@ void QDecoderModel::discardH265GOPs(){
         GOPs = m_pH265Stream->getGOPs();
     }
     if(m_GOPCountLimitSet && GOPs.size()-1 > m_GOPCountLimit) {
-        emit removeTimelineUnits(m_pH265Stream->popFrontGOPs((GOPs.size()-1)-m_GOPCountLimit));
+        emit removeTimelineUnits(m_pH265Stream->popFrontGOPs((uint32_t)((GOPs.size()-1)-m_GOPCountLimit)));
         removedGOPs += GOPs.size()-1-m_GOPCountLimit;
     }
     if(m_memoryLimitSet){
@@ -1274,7 +1274,7 @@ QImage* QPictureWorker::getQImageFromH265Frame(const AVFrame* pFrame) {
 void QPictureWorker::decodeH264AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     if(!std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->slice()) return;
     AVPacket* pPacket = av_packet_alloc();
-    pPacket->size = std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
+    pPacket->size = (int)std::get<const H264AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
     pPacket->data = pAccessUnitModel->serialize();
     if(avcodec_send_packet(m_pH264CodecCtx, pPacket) < 0){
         qDebug() << "Couldn't send packet for decoding";
@@ -1301,7 +1301,7 @@ void QPictureWorker::decodeH264AccessUnit(QSharedPointer<QAccessUnitModel> pAcce
 void QPictureWorker::decodeH265AccessUnit(QSharedPointer<QAccessUnitModel> pAccessUnitModel){
     if(!std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->slice()) return;
     AVPacket* pPacket = av_packet_alloc();
-    pPacket->size = std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
+    pPacket->size = (int)std::get<const H265AccessUnit*>(pAccessUnitModel->m_pAccessUnit)->byteSize();
     pPacket->data = pAccessUnitModel->serialize();
     if(avcodec_send_packet(m_pH265CodecCtx, pPacket) < 0){
         qDebug() << "Couldn't send packet for decoding";
